@@ -204,7 +204,6 @@ function get_fy_items(sheet){
   return(array_fy_items);
 }
 function get_count(subject_of_condition, object_of_condition, return_value){
-  // 条件に該当しない場合は空白を返す
   var temp = '';
   if (subject_of_condition == object_of_condition){
     temp = return_value;
@@ -212,12 +211,56 @@ function get_count(subject_of_condition, object_of_condition, return_value){
   return(temp);
 }
 function get_count_more_than(subject_of_condition, object_of_condition, return_value){
-  // 条件に該当しない場合は空白を返す
   var temp = '';
   if (subject_of_condition > object_of_condition){
     temp = return_value;
   }
   return(temp);
+}
+function set_range_value(target_sheet, item_name, set_value, const_count_col, array_item){
+  var temp_row = array_item[item_name];
+    if( temp_row !== void 0){
+      target_sheet.getRange(temp_row, const_count_col).setValue(set_value);
+    }
+}
+function set_all_sheet_common_items(target_sheet, term, array_item, sheet_start_date, sheet_end_date){
+  // プロジェクト管理、事務局運営、医師主導治験対応はすべてのシートで全期間とる
+  var get_s_p = PropertiesService.getScriptProperties();
+  const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
+  var project_management = get_months(sheet_start_date, sheet_end_date);
+  var clinical_trials_office = ''; 
+  var investigator_initiated_trial_support = '';
+  var set_items_list = [
+    ['プロジェクト管理', project_management],
+    ['事務局運営', clinical_trials_office],
+    ['医師主導治験対応', investigator_initiated_trial_support]
+  ];
+  if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
+    clinical_trials_office = project_management; 
+    investigator_initiated_trial_support = project_management;
+  }
+  for (var i = 0; i < set_items_list.length; i++){
+    set_range_value(target_sheet, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
+  }
+  return(project_management);
+}
+function set_registration_term_items(target_sheet, term, array_item, project_management, array_quotation_request){
+  var get_s_p = PropertiesService.getScriptProperties();
+  const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
+  // データベース管理料、中央モニタリング、安管、効安　この年度にregistration期間がある場合その期間分とる
+  var registration_term = '';
+  if (term.setup < project_management){
+    registration_term = project_management - term.setup;
+  }
+  var set_items_list = [
+    ['データベース管理料', registration_term],
+    [get_s_p.getProperty('central_monitoring_str'), registration_term],
+    ['安全性管理事務局業務', get_count(get_quotation_request_value(array_quotation_request, '安全性管理事務局設置'), 'あり', registration_term)],
+    ['効果安全性評価委員会事務局業務', get_count(get_quotation_request_value(array_quotation_request, '効安事務局設置'), 'あり', registration_term)],
+  ];
+  for (var i = 0; i < set_items_list.length; i++){
+    set_range_value(target_sheet, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
+  }
 }
 function set_setup_sheet(sheet, array_quotation_request, term){
   var get_s_p = PropertiesService.getScriptProperties();
@@ -227,62 +270,46 @@ function set_setup_sheet(sheet, array_quotation_request, term){
   const const_trial_setup_years = get_s_p.getProperty('trial_years_col');
   const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
   var array_item = get_fy_items(sheet.setup);
-  // プロジェクト管理、事務局運営、医師主導治験対応はSetupの全期間
-  var project_management = get_months(Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_start_col).getValue()),
-                                      Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_end_col).getValue())); 
+  // このシートの全期間
+  var project_management = set_all_sheet_common_items(sheet.setup, term, array_item, 
+                                                      Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_start_col).getValue()),
+                                                      Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_end_col).getValue()));
   // 医師主導治験のみ算定または名称が異なる項目に対応する
-  var clinical_trials_office = ''; 
-  var investigator_initiated_trial_support = '';
   var sop = '';
   var office_irb_str = 'IRB準備・承認確認';
   var office_irb = '';
   var dm_irb = get_s_p.getProperty('facilities_value');
-  var central_monitoring_str = '中央モニタリング、定期モニタリングレポート作成';
+  var temp_str = '中央モニタリング、定期モニタリングレポート作成';
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
-    clinical_trials_office = project_management; 
-    investigator_initiated_trial_support = project_management;
     sop = 1;
     office_irb_str = 'IRB承認確認、施設管理';
     office_irb = get_s_p.getProperty('facilities_value');
     dm_irb = '';
-    central_monitoring_str = '中央モニタリング'
+    temp_str = '中央モニタリング'
   }
-  // データベース管理料、Ptosh初期アカウント、安管、効安　この年度にregistration期間がある場合その期間分とる
-  var registration_term = '';
-  if (term.setup < project_management){
-    registration_term = project_management - term.setup;
-  }  
+  get_s_p.setProperty('central_monitoring_str', temp_str);
+  // registration期間があれば
+  set_registration_term_items(sheet.setup, term, array_item, project_management, array_quotation_request);
   var set_items_list = [
     ['プロトコルレビュー・作成支援（図表案、統計解析計画書案を含む）', 1],
     ['検討会実施（TV会議等）', 4],
     ['PMDA相談資料作成支援', get_count(get_quotation_request_value(array_quotation_request, 'PMDA相談資料作成支援'), 'あり', 1)],
     ['AMED申請資料作成支援', get_count(get_quotation_request_value(array_quotation_request, 'AMED申請資料作成支援'), 'あり', 1)],
     ['特定臨床研究法申請資料作成支援', get_count(get_s_p.getProperty('trial_type_value'), get_s_p.getProperty('specified_clinical_trial'), get_s_p.getProperty('facilities_value'))],
-    ['プロジェクト管理', project_management],
-    ['事務局運営', clinical_trials_office],
-    ['医師主導治験対応', investigator_initiated_trial_support],
     ['ミーティング準備・実行', get_count(get_quotation_request_value(array_quotation_request, 'キックオフミーティング'), 'あり', 1)],
     ['SOP一式、CTR登録案、TMF雛形', sop],
     [office_irb_str, office_irb],
     ['モニタリング準備業務（関連資料作成、キックオフ参加）', get_count(get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数'), 0, 1)],
     ['EDCライセンス・データベースセットアップ', 1],
-    ['データベース管理料', registration_term],
     ['業務分析・DM計画書の作成・CTR登録案の作成', 1],
     ['DB作成・eCRF作成・バリデーション', 1],
     ['バリデーション報告書', 1],
     ['初期アカウント設定（施設・ユーザー）、IRB承認確認', dm_irb],
     ['入力の手引作成', 1],
-    [central_monitoring_str, registration_term],
-    ['安全性管理事務局業務', get_count(get_quotation_request_value(array_quotation_request, '安全性管理事務局設置'), 'あり', registration_term)],
-    ['効果安全性評価委員会事務局業務', get_count(get_quotation_request_value(array_quotation_request, '効安事務局設置'), 'あり', registration_term)],
     ['試験開始準備費用', get_count(get_quotation_request_value(array_quotation_request, '試験開始準備費用'), 'あり', get_s_p.getProperty('facilities_value'))]
   ];
-  var temp_row;
-  for (i = 0; i < set_items_list.length; i++){
-    temp_row = array_item[set_items_list[i][0]];
-    if( temp_row !== void 0){
-      sheet.setup.getRange(temp_row, const_count_col).setFormula(set_items_list[i][1]);
-    }
+  for (var i = 0; i < set_items_list.length; i++){
+    set_range_value(sheet.setup, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
   }
 }
 function test(){
