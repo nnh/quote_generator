@@ -92,6 +92,8 @@ function get_trial_start_end_date(trial_start_date, trial_end_date, term){
   // registration_1シートの終了日を仮にclosingシートの開始日の１日前と設定しておく
   registration_1_end_date = closing_start_date.clone().subtract(1, 'days');
   // シート分け判定
+  // setup期間が複数年度にまたがる場合
+  // closing期間が複数年度にまたがる場合
   // CRB申請がある場合registration_1に最初の1年、registration_2に残りの年度を分ける
     // registration_1の終了日を開始日の一年後にする
     // registration_2の開始日をregistration_1の終了日の翌日にする
@@ -104,6 +106,9 @@ function get_trial_start_end_date(trial_start_date, trial_end_date, term){
 }
 
 function get_months(start_date, end_date){
+  if (start_date == '' || end_date == ''){
+    return(null);
+  }
   return(end_date.diff(start_date, 'months') + 1);
 }
 function get_years(start_date, end_date){
@@ -120,6 +125,7 @@ function set_trial_sheet(sheet, array_quotation_request){
   const const_trial_start = '症例登録開始日';
   const const_registration_end = '症例登録終了日';
   const const_trial_end = '試験終了日';
+  const const_facilities = '実施施設数';
   const const_trial_start_col = get_s_p.getProperty('trial_start_col');
   const const_trial_end_col = get_s_p.getProperty('trial_end_col');
   const const_trial_setup_row = get_s_p.getProperty('trial_setup_row');
@@ -133,7 +139,7 @@ function set_trial_sheet(sheet, array_quotation_request){
     ['試験実施番号', 10],
     [const_trial_type, 27],
     ['目標症例数', 28],
-    ['実施施設数', 29],
+    [const_facilities, 29],
     ['CRF項目数', 30]
   ];
   var temp_str;
@@ -147,6 +153,9 @@ function set_trial_sheet(sheet, array_quotation_request){
           } else {
             temp_str = '御参考見積書';
           }
+          break;
+        case const_facilities:
+          get_s_p.setProperty('facilities_value', temp_str);
           break;
         case const_trial_type: 
           get_s_p.setProperty('trial_type_value', temp_str);
@@ -165,7 +174,6 @@ function set_trial_sheet(sheet, array_quotation_request){
           sheet.trial.getRange(const_trial_setup_row, const_trial_end_col).setValue(array_trial_date.setup_end.format('YYYY/MM/DD'));
           sheet.trial.getRange(const_trial_setup_row, const_trial_years_col).setValue(get_years(array_trial_date.setup_start, array_trial_date.setup_end));
           // registration
-          Logger.log(const_trial_setup_row);
           sheet.trial.getRange(parseInt(const_trial_setup_row) + 1, const_trial_start_col).setValue(array_trial_date.registration_1_start.format('YYYY/MM/DD'));
           sheet.trial.getRange(parseInt(const_trial_setup_row) + 1, const_trial_end_col).setValue(array_trial_date.registration_1_end.format('YYYY/MM/DD'));
           sheet.trial.getRange(parseInt(const_trial_setup_row) + 1, const_trial_years_col).setValue(get_years(array_trial_date.registration_1_start, array_trial_date.registration_1_end));
@@ -195,60 +203,87 @@ function get_fy_items(sheet){
   }
   return(array_fy_items);
 }
+function get_count(subject_of_condition, object_of_condition, return_value){
+  // 条件に該当しない場合は空白を返す
+  var temp = '';
+  if (subject_of_condition == object_of_condition){
+    temp = return_value;
+  }
+  return(temp);
+}
+function get_count_more_than(subject_of_condition, object_of_condition, return_value){
+  // 条件に該当しない場合は空白を返す
+  var temp = '';
+  if (subject_of_condition > object_of_condition){
+    temp = return_value;
+  }
+  return(temp);
+}
 function set_setup_sheet(sheet, array_quotation_request, term){
   var get_s_p = PropertiesService.getScriptProperties();
+  const const_trial_start_col = get_s_p.getProperty('trial_start_col');
+  const const_trial_end_col = get_s_p.getProperty('trial_end_col');
   const const_trial_setup_row = get_s_p.getProperty('trial_setup_row');
   const const_trial_setup_years = get_s_p.getProperty('trial_years_col');
   const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
-  var facilities = get_quotation_request_value(array_quotation_request, 'PMDA相談資料作成支援');
-  var array_item = get_fy_items(sheet);
-  var pmda = '';
-  if (get_quotation_request_value(array_quotation_request, 'PMDA相談資料作成支援') == 'あり'){
-    pmda = 1;
+  var array_item = get_fy_items(sheet.setup);
+  // プロジェクト管理、事務局運営、医師主導治験対応はSetupの全期間
+  var project_management = get_months(Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_start_col).getValue()),
+                                      Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_end_col).getValue())); 
+  // 医師主導治験のみ算定または名称が異なる項目に対応する
+  var clinical_trials_office = ''; 
+  var investigator_initiated_trial_support = '';
+  var sop = '';
+  var office_irb_str = 'IRB準備・承認確認';
+  var office_irb = '';
+  var dm_irb = get_s_p.getProperty('facilities_value');
+  var central_monitoring_str = '中央モニタリング、定期モニタリングレポート作成';
+  if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
+    clinical_trials_office = project_management; 
+    investigator_initiated_trial_support = project_management;
+    sop = 1;
+    office_irb_str = 'IRB承認確認、施設管理';
+    office_irb = get_s_p.getProperty('facilities_value');
+    dm_irb = '';
+    central_monitoring_str = '中央モニタリング'
   }
-  var amed = '';
-  if (get_quotation_request_value(array_quotation_request, 'AMED申請資料作成支援') == 'あり'){
-    amed = 1;
-  }
-  var var_specified_clinical_trial = '';
-  if (get_quotation_request_value(array_quotation_request, get_s_p.getProperty('trial_type')) == get_s_p.getProperty('specified_clinical_trial')){
-    var_specified_clinical_trial = 1;
-  }
-  
+  // データベース管理料、Ptosh初期アカウント、安管、効安　この年度にregistration期間がある場合その期間分とる
+  var registration_term = '';
+  if (term.setup < project_management){
+    registration_term = project_management - term.setup;
+  }  
   var set_items_list = [
     ['プロトコルレビュー・作成支援（図表案、統計解析計画書案を含む）', 1],
     ['検討会実施（TV会議等）', 4],
-    ['PMDA相談資料作成支援', pmda],
-    ['AMED申請資料作成支援', amed],
-    ['Panda', 3]
+    ['PMDA相談資料作成支援', get_count(get_quotation_request_value(array_quotation_request, 'PMDA相談資料作成支援'), 'あり', 1)],
+    ['AMED申請資料作成支援', get_count(get_quotation_request_value(array_quotation_request, 'AMED申請資料作成支援'), 'あり', 1)],
+    ['特定臨床研究法申請資料作成支援', get_count(get_s_p.getProperty('trial_type_value'), get_s_p.getProperty('specified_clinical_trial'), get_s_p.getProperty('facilities_value'))],
+    ['プロジェクト管理', project_management],
+    ['事務局運営', clinical_trials_office],
+    ['医師主導治験対応', investigator_initiated_trial_support],
+    ['ミーティング準備・実行', get_count(get_quotation_request_value(array_quotation_request, 'キックオフミーティング'), 'あり', 1)],
+    ['SOP一式、CTR登録案、TMF雛形', sop],
+    [office_irb_str, office_irb],
+    ['モニタリング準備業務（関連資料作成、キックオフ参加）', get_count(get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数'), 0, 1)],
+    ['EDCライセンス・データベースセットアップ', 1],
+    ['データベース管理料', registration_term],
+    ['業務分析・DM計画書の作成・CTR登録案の作成', 1],
+    ['DB作成・eCRF作成・バリデーション', 1],
+    ['バリデーション報告書', 1],
+    ['初期アカウント設定（施設・ユーザー）、IRB承認確認', dm_irb],
+    ['入力の手引作成', 1],
+    [central_monitoring_str, registration_term],
+    ['安全性管理事務局業務', get_count(get_quotation_request_value(array_quotation_request, '安全性管理事務局設置'), 'あり', registration_term)],
+    ['効果安全性評価委員会事務局業務', get_count(get_quotation_request_value(array_quotation_request, '効安事務局設置'), 'あり', registration_term)],
+    ['試験開始準備費用', get_count(get_quotation_request_value(array_quotation_request, '試験開始準備費用'), 'あり', get_s_p.getProperty('facilities_value'))]
   ];
   var temp_row;
-//  Logger.log(array_item);
   for (i = 0; i < set_items_list.length; i++){
     temp_row = array_item[set_items_list[i][0]];
     if( temp_row !== void 0){
-      sheet.getRange(temp_row, const_count_col).setFormula(set_items_list[i][1]);
+      sheet.setup.getRange(temp_row, const_count_col).setFormula(set_items_list[i][1]);
     }
   }
-  // 特定臨床研究法申請資料作成支援
-  // プロジェクト管理
-  // 事務局運営
-  // 医師主導治験対応
-  // ミーティング準備・実行
-  // SOP一式、CTR登録案、TMF雛形
-  // =if(and('Quotation Request'!$A$2<>"", Trial!$B$27="医師主導治験"),"IRB承認確認、施設管理","IRB準備・承認確認")
-  // モニタリング準備業務（関連資料作成、キックオフ参加）
-  // EDCライセンス・データベースセットアップ
-  // データベース管理料
-  // 業務分析・DM計画書の作成・CTR登録案の作成
-  // DB作成・eCRF作成・バリデーション
-  // バリデーション報告書
-  // 初期アカウント設定（施設・ユーザー）、IRB承認確認
-  // 入力の手引作成
-  // =if(and('Quotation Request'!$A$2<>"", Trial!$B$27="医師主導治験"),"中央モニタリング","中央モニタリング、定期モニタリングレポート作成")
-  // 安全性管理事務局業務
-  // 効果安全性評価委員会事務局業務
-  // 試験開始準備費用
 }
 function test(){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -259,6 +294,6 @@ function test(){
                closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name'))}
   var quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   var array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
-  set_setup_sheet(sheet.setup, array_quotation_request, 0);
   set_trial_sheet(sheet, array_quotation_request);
+  set_setup_sheet(sheet, array_quotation_request, 0);
 }
