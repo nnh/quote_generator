@@ -1,10 +1,3 @@
-function getColumnNumber(column_name){
-  // 列名から列番号を返す
-  var temp_sheet = SpreadsheetApp.getActiveSheet();
-  var temp_range = temp_sheet.getRange(column_name + '1').getColumn();
-  return(temp_range);
-}
-
 // シート追加時のtotalシート足し込み処理
 function edit_Add_Del_InTotal(total_sheet, add_sheet_name, trial_range, process_parameter){
   // process_parameter＝0：Totalシートの回数列に追加したシートの回数を追加する

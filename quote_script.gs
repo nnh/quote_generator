@@ -1,49 +1,11 @@
-function filtervisible(){
-  // フィルタ：全条件を表示する
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var ws_t = ss.getSheets();
-  var max_index = ws_t.length;
-  var i, ws_filter;
-  for (i = 0; i < max_index; i++){
-    ws_filter = ws_t[i].getFilter();
-    if (ws_filter != null){
-      col = ws_filter.getRange().getColumn();
-      ws_filter.removeColumnFilterCriteria(col)      
-    } 
-  }
-}
-function filterhidden(){
-  // フィルタ：0を非表示にする
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var ws_t = ss.getSheets();
-  var max_index = ws_t.length;
-  var i, ws_filter, filter_criteria;
-  for (i = 0; i < max_index; i++){
-    ws_filter = ws_t[i].getFilter();
-    if (ws_filter != null){
-      col = ws_filter.getRange().getColumn();
-      filter_criteria = ws_filter.getColumnFilterCriteria(col);
-      if (filter_criteria != null){
-        ws_filter.removeColumnFilterCriteria(col)
-      } 
-      filter_criteria = SpreadsheetApp.newFilterCriteria();
-      filter_criteria.setHiddenValues(['0']);
-      ws_filter.setColumnFilterCriteria(col, filter_criteria);
-    } 
-  }
-}
-function setProtectionEditusers(){
-  // シートの保護権限設定変更
-  // シート編集可能者全員の権限を設定する
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var users = ss.getEditors();
-  var protections = ss.getProtections(SpreadsheetApp.ProtectionType.SHEET);
-  for (var i = 0; i < protections.length; i++){
-   var protection = protections[i];
-   protection.addEditors(users)
-  }
-}
-
+/**
+* quotation_requestの1行目（項目名）からフォーム入力情報を取得する
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @param {string} header_str 検索対象の値
+* @return 項目名が完全一致すればその項目の値を返す。一致しなければnullを返す。
+* @example 
+*   var trial_start_date = get_quotation_request_value(array_quotation_request, const_trial_start);
+*/
 function get_quotation_request_value(array_quotation_request, header_str){
   var temp_col = array_quotation_request[0].indexOf(header_str);
   if (temp_col > -1){
@@ -52,6 +14,14 @@ function get_quotation_request_value(array_quotation_request, header_str){
     return null;
   }  
 }
+/**
+* 試験種別からSetup、Closing期間の判定を行いスクリプトプロパティに格納する
+* @param {string} temp_str 試験種別 
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @return none
+* @example 
+*   get_setup_closing_term(temp_str, array_quotation_request);
+*/
 function get_setup_closing_term(temp_str, array_quotation_request){
   // Setup期間は医師主導治験、特定臨床研究が6ヶ月、それ以外が3ヶ月
   // Closing期間は医師主導治験、特定臨床研究、研究結果報告書作成支援ありの試験が6ヶ月、それ以外が3ヶ月
@@ -68,8 +38,15 @@ function get_setup_closing_term(temp_str, array_quotation_request){
   get_s_p.setProperty('setup_term', setup_term);
   get_s_p.setProperty('closing_term', closing_term);
 }
-
-function get_trial_start_end_date(trial_start_date, trial_end_date, term){
+/**
+* 各シートの開始日、終了日を設定する
+* @param {number} trial_start_date　試験開始日のセルの値
+* @param {number} trial_end_date　試験終了日のセルの値
+* @return 各シートの開始日、終了日を連想配列で返す
+* @example 
+*   var array_trial_date = get_trial_start_end_date(trial_start_date, trial_end_date);
+*/
+function get_trial_start_end_date(trial_start_date, trial_end_date){
   var get_s_p = PropertiesService.getScriptProperties();
   // 試験開始日はその月の1日にする
   var trial_start_date = Moment.moment(trial_start_date).startOf('month');
@@ -107,20 +84,14 @@ function get_trial_start_end_date(trial_start_date, trial_end_date, term){
           registration_2_start:registration_2_start_date, registration_2_end:registration_2_end_date,
           closing_start:closing_start_date, closing_end:closing_end_date});
 }
-
-function get_months(start_date, end_date){
-  if (start_date == '' || end_date == ''){
-    return(null);
-  }
-  return(end_date.diff(start_date, 'months') + 1);
-}
-function get_years(start_date, end_date){
-  if (start_date == '' || end_date == ''){
-    return(null);
-  }
-  var temp = get_months(start_date, end_date);
-  return(Math.ceil(temp / 12));
-}
+/**
+* quotation_requestシートの内容からtrialシートを設定する
+* @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @return none
+* @example 
+*   set_trial_sheet(sheet, array_quotation_request);
+*/
 function set_trial_sheet(sheet, array_quotation_request){
   var get_s_p = PropertiesService.getScriptProperties();
   const const_quotation_type = '見積種別';
@@ -195,11 +166,18 @@ function set_trial_sheet(sheet, array_quotation_request){
     } 
   }    
 }
+/**
+* 項目と行番号を連想配列に格納する（例：{契約・支払手続、実施計画提出支援=24.0, バリデーション報告書=39.0, ...}）
+* @param {sheet} sheet シートオブジェクト（Setup〜Closingのいずれか１シート）
+* @return {associative array} array_fy_items 項目と行番号の連想配列
+* @example 
+*   var array_item = get_fy_items(target_sheet);
+*/
 function get_fy_items(sheet){
-  // Setup〜Closing各シートの項目と行番号を配列に格納する
   var get_s_p = PropertiesService.getScriptProperties();
   const const_fy_sheet_items_col = get_s_p.getProperty('fy_sheet_items_col');
   var temp_array = sheet.getRange(1, const_fy_sheet_items_col, sheet.getDataRange().getLastRow(), 1).getValues();
+  // 二次元配列から一次元配列に変換
   temp_array = Array.prototype.concat.apply([],temp_array);
   var array_fy_items = {};
   for (var i = 0; i < temp_array.length; i++){
@@ -209,6 +187,9 @@ function get_fy_items(sheet){
   }
   return(array_fy_items);
 }
+/**
+* 条件が真ならば引数return_valueを返す。偽なら空白を返す。
+*/
 function get_count(subject_of_condition, object_of_condition, return_value){
   var temp = '';
   if (subject_of_condition == object_of_condition){
@@ -223,23 +204,48 @@ function get_count_more_than(subject_of_condition, object_of_condition, return_v
   }
   return(temp);
 }
+/**
+* 該当する項目名の行に回数をセットする。該当項目がなければセットしない。
+* @param {sheet} sheet 対象のシートオブジェクト
+* @param {string} item_name　項目名
+* @param {string} set_value　回数 
+* @param {number} const_count_col 回数入力列
+* @param {associative array} array_item 項目と行番号の連想配列
+* @return none 
+* @example 
+*   set_range_value(sheet.setup, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
+*/
 function set_range_value(target_sheet, item_name, set_value, const_count_col, array_item){
   var temp_row = array_item[item_name];
     if( temp_row !== void 0){
       target_sheet.getRange(temp_row, const_count_col).setValue(set_value);
     }
 }
+/**
+* Setup〜Closing共通項目の設定
+* @param {sheet} target_sheet 対象のシートオブジェクト
+* @param {associative array} array_item 項目と行番号の連想配列
+* @param {Moment.moment} sheet_start_date 開始日のMomentオブジェクト
+* @param {Moment.moment} sheet_end_date 終了日のMomentオブジェクト
+* @return 共通項目の設定月数
+* @example 
+*   var project_management = set_all_sheet_common_items(sheet.setup, array_item, 
+*                             Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_start_col).getValue()),
+*                             Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_end_col).getValue()));
+*/
 function set_all_sheet_common_items(target_sheet, array_item, sheet_start_date, sheet_end_date){
   // プロジェクト管理、事務局運営、医師主導治験対応はすべてのシートで全期間とる
   var get_s_p = PropertiesService.getScriptProperties();
   const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
   var temp_months = get_months(sheet_start_date, sheet_end_date);
   var project_management = 12;
+  // １シート１年分なので最大月数は12となる
   if ((temp_months != null) && (temp_months < 12)){
     project_management = temp_months;
   }
   var clinical_trials_office = ''; 
   var investigator_initiated_trial_support = '';
+  // 医師主導治験のみ
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
     clinical_trials_office = project_management; 
     investigator_initiated_trial_support = project_management;
@@ -254,10 +260,20 @@ function set_all_sheet_common_items(target_sheet, array_item, sheet_start_date, 
   }
   return(project_management);
 }
+/**
+* registration期間に算定する項目の設定
+* @param {sheet} target_sheet 対象のシートオブジェクト
+* @param {associative array} array_item 項目と行番号の連想配列
+* @param {number} project_management 共通項目の設定月数
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @return none
+* @example 
+*   set_registration_term_items(target_sheet, array_item, project_management, array_quotation_request);
+*/
 function set_registration_term_items(target_sheet, array_item, project_management, array_quotation_request){
   var get_s_p = PropertiesService.getScriptProperties();
   const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
-  // データベース管理料、中央モニタリング、安管、効安　この年度にregistration期間がある場合その期間分とる
+  // データベース管理料、中央モニタリング、安全性管理、効安　この年度にregistration期間がある場合その期間分とる
   var registration_term = '';
   var temp_overflowing_setup = 0;
   if (target_sheet.getName() == get_s_p.getProperty('setup_sheet_name')){
@@ -284,6 +300,9 @@ function set_registration_term_items(target_sheet, array_item, project_managemen
     set_range_value(target_sheet, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
   }
 }
+/**
+* setupシートの編集
+*/
 function set_setup_sheet(sheet, array_quotation_request){
   var get_s_p = PropertiesService.getScriptProperties();
   const const_trial_start_col = get_s_p.getProperty('trial_start_col');
@@ -335,6 +354,9 @@ function set_setup_sheet(sheet, array_quotation_request){
     set_range_value(sheet.setup, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
   }
 }
+/**
+* registration, interim, observationシートの編集
+*/
 function set_registration_sheet(trial_sheet, target_sheet, array_quotation_request, trial_target_row){
   var get_s_p = PropertiesService.getScriptProperties();
   const const_trial_start_col = get_s_p.getProperty('trial_start_col');
@@ -365,6 +387,13 @@ function set_registration_sheet(trial_sheet, target_sheet, array_quotation_reque
   for (var i = 0; i < set_items_list.length; i++){
     set_range_value(target_sheet, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
   }
+  // 期間が入っていない場合はシートを非表示にする
+  if ((trial_sheet.getRange(trial_target_row, const_trial_start_col).getValue() == '') &&
+      (trial_sheet.getRange(trial_target_row, const_trial_end_col).getValue() == '')){
+    target_sheet.hideSheet();
+  } else {
+    target_sheet.showSheet();
+  }
 }
 function test(){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -375,12 +404,14 @@ function test(){
                registration_1:ss.getSheetByName(get_s_p.getProperty('registration_1_sheet_name')),
                registration_2:ss.getSheetByName(get_s_p.getProperty('registration_2_sheet_name')),
                interim_1:ss.getSheetByName(get_s_p.getProperty('interim_1_sheet_name')),
+               interim_2:ss.getSheetByName(get_s_p.getProperty('interim_2_sheet_name')),
+               observation_1:ss.getSheetByName(get_s_p.getProperty('observation_1_sheet_name')),
+               observation_2:ss.getSheetByName(get_s_p.getProperty('observation_2_sheet_name')),
                closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name'))}
   var quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   var array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
-  set_trial_sheet(sheet, array_quotation_request);
-  set_setup_sheet(sheet, array_quotation_request, 0);
-  set_registration_sheet(sheet.trial, sheet.registration_1, array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + 1);
-  set_registration_sheet(sheet.trial, sheet.registration_2, array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + 2);
-  set_registration_sheet(sheet.trial, sheet.interim_1, array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + 3);
+  var array_target_sheet = [null, sheet.registration_1, sheet.registration_2, sheet.interim_1, sheet.interim_2, sheet.observation_1, sheet.observation_2];
+  for (var i = 1; i < array_target_sheet.length; i++){
+    set_registration_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + i);
+  }
 }
