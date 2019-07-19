@@ -167,27 +167,6 @@ function set_trial_sheet(sheet, array_quotation_request){
   }    
 }
 /**
-* 項目と行番号を連想配列に格納する（例：{契約・支払手続、実施計画提出支援=24.0, バリデーション報告書=39.0, ...}）
-* @param {sheet} sheet シートオブジェクト（Setup〜Closingのいずれか１シート）
-* @return {associative array} array_fy_items 項目と行番号の連想配列
-* @example 
-*   var array_item = get_fy_items(target_sheet);
-*/
-function get_fy_items(sheet){
-  var get_s_p = PropertiesService.getScriptProperties();
-  const const_fy_sheet_items_col = get_s_p.getProperty('fy_sheet_items_col');
-  var temp_array = sheet.getRange(1, const_fy_sheet_items_col, sheet.getDataRange().getLastRow(), 1).getValues();
-  // 二次元配列から一次元配列に変換
-  temp_array = Array.prototype.concat.apply([],temp_array);
-  var array_fy_items = {};
-  for (var i = 0; i < temp_array.length; i++){
-    if (temp_array[i] != ''){
-      array_fy_items[temp_array[i]] = i + 1;
-    }
-  }
-  return(array_fy_items);
-}
-/**
 * 条件が真ならば引数return_valueを返す。偽なら空白を返す。
 */
 function get_count(subject_of_condition, object_of_condition, return_value){
@@ -398,16 +377,7 @@ function set_registration_sheet(trial_sheet, target_sheet, array_quotation_reque
 function test(){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var get_s_p = PropertiesService.getScriptProperties();
-  var sheet = {trial:ss.getSheetByName(get_s_p.getProperty('trial_sheet_name')),
-               quotation_request:ss.getSheetByName(get_s_p.getProperty('quotation_request_sheet_name')),
-               setup:ss.getSheetByName(get_s_p.getProperty('setup_sheet_name')),
-               registration_1:ss.getSheetByName(get_s_p.getProperty('registration_1_sheet_name')),
-               registration_2:ss.getSheetByName(get_s_p.getProperty('registration_2_sheet_name')),
-               interim_1:ss.getSheetByName(get_s_p.getProperty('interim_1_sheet_name')),
-               interim_2:ss.getSheetByName(get_s_p.getProperty('interim_2_sheet_name')),
-               observation_1:ss.getSheetByName(get_s_p.getProperty('observation_1_sheet_name')),
-               observation_2:ss.getSheetByName(get_s_p.getProperty('observation_2_sheet_name')),
-               closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name'))}
+  var sheet = get_sheets();
   var quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   var array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
   var array_target_sheet = [null, sheet.registration_1, sheet.registration_2, sheet.interim_1, sheet.interim_2, sheet.observation_1, sheet.observation_2];
