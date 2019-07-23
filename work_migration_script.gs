@@ -57,7 +57,7 @@ function reconfigure_total(){
       temp_str = '=';
       for (var i = 0; i < array_target_sheet_name.length; i++){
         trial_cell_addr = sheet.trial.getRange(parseInt(const_trial_setup_row) + i, const_trial_years_col).getA1Notation();
-        temp_str = temp_str + sheet[array_target_sheet_name[i]].getName() + '!' + getColumnString(const_count_col) + this[row_num] + '*Trial!' + trial_cell_addr + '+'; 
+        temp_str = temp_str + sheet[array_target_sheet_name[i]].getName() + '!' + getColumnString(const_count_col) + this[row_num] + '*Trial!' + trial_cell_addr + '+';  
     }
     // 最後の＋を消してセット
     sheet.total.getRange(this[row_num], const_count_col).setFormula(temp_str.substr(0, temp_str.length - 1));
@@ -80,12 +80,15 @@ function work_addsheet(){
                       get_s_p.getProperty('interim_2_sheet_name'),
                       get_s_p.getProperty('observation_1_sheet_name'),
                       get_s_p.getProperty('observation_2_sheet_name')];
+  var trial_header_row = parseInt(get_s_p.getProperty('trial_setup_row'));
   for (var i = 0; i < temp_sheet_t.length; i++){
     if (ss.getSheetByName(temp_sheet_t[i]) == null){
       var ss_sheet_copy = sheet.setup.copyTo(ss);
       ss_sheet_copy.setName(temp_sheet_t[i]);
       ss.getSheetByName(temp_sheet_t[i]).activate();
       ss.moveActiveSheet(i + 7);
+      trial_header_row++;
+      ss.getSheetByName(temp_sheet_t[i]).getRange(2, 2).setFormula('=' + get_s_p.getProperty('trial_sheet_name') + '!B' + trial_header_row);
     }
   }
   // total関数再構成
@@ -108,9 +111,22 @@ function reconfigure_total2(array_sheet){
   var get_s_p = PropertiesService.getScriptProperties();
   var sheet = get_sheets();
   var rangeToCopy, temp_formula, array_formula, insert_col, replace_str;
-  const const_replace_source = /Registration_1/g;
+  var source_sheet_name = 'Registration_1';
+  const const_replace_source = new RegExp(source_sheet_name, 'g');
+  const const_start_row = 5;
   // setupは元の列を残す
   const const_registration_col = 5;
+  // registrationの列の関数再構成
+  var temp_str;
+//  var temp_formulas = sheet.total2.getRange(const_start_row, const_registration_col, sheet.total2.getLastRow(), 1).getFormulas();
+  for (var i = const_registration_col; i <= sheet.total2.getLastRow(); i++){
+    if (sheet.total2.getRange(i, const_registration_col).getFormula() != ''){
+      temp_str = '=IF(or(' + get_s_p.getProperty('trial_sheet_name') + '!$B$2="", ' + source_sheet_name +'!H' + i + '=""), "", ' +source_sheet_name + '!H' + i + ')';
+      sheet.total2.getRange(i, const_registration_col).setFormula(temp_str);
+    }
+  }
+//  sheet.total2.getRange(const_start_row, const_registration_col).setFormulas(set_formulas);
+  return;
   for (var i = 0; i < array_sheet.length; i++){
     insert_col = const_registration_col + i;
     sheet.total2.insertColumnAfter(insert_col);
@@ -124,6 +140,7 @@ function reconfigure_total2(array_sheet){
         sheet.total2.getRange(j + 1, insert_col).setFormula(replace_str);
       }
     }
+    sheet.total2.getRange(2, insert_col).setValue(array_sheet[i]);
   }
 }
 function call_total2(){
