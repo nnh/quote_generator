@@ -95,14 +95,14 @@ function get_years(start_date, end_date){
 /**
 * 項目と行番号を連想配列に格納する（例：{契約・支払手続、実施計画提出支援=24.0, バリデーション報告書=39.0, ...}）
 * @param {associative array sheet} sheet シートオブジェクト
+* @param {string} target_col 項目名の列
 * @return {associative array} array_fy_items 項目と行番号の連想配列
 * @example 
-*   var array_item = get_fy_items(target_sheet);
+*   var array_item = get_fy_items(target_sheet, target_col);
 */
-function get_fy_items(sheet){
+function get_fy_items(sheet, target_col){
   var get_s_p = PropertiesService.getScriptProperties();
-  const const_fy_sheet_items_col = get_s_p.getProperty('fy_sheet_items_col');
-  var temp_array = sheet.getRange(1, const_fy_sheet_items_col, sheet.getDataRange().getLastRow(), 1).getValues();
+  var temp_array = sheet.getRange(1, target_col, sheet.getDataRange().getLastRow(), 1).getValues();
   // 二次元配列から一次元配列に変換
   temp_array = Array.prototype.concat.apply([],temp_array);
   var array_fy_items = {};

@@ -289,7 +289,7 @@ function set_setup_sheet(sheet, array_quotation_request){
   const const_trial_setup_row = get_s_p.getProperty('trial_setup_row');
   const const_trial_setup_years = get_s_p.getProperty('trial_years_col');
   const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
-  var array_item = get_fy_items(sheet.setup);
+  var array_item = get_fy_items(sheet.setup, get_s_p.getProperty('fy_sheet_items_col'));
   // このシートの全期間
   var project_management = set_all_sheet_common_items(sheet.setup, array_item, 
                                                       Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_start_col).getValue()),
@@ -341,7 +341,7 @@ function set_registration_sheet(trial_sheet, target_sheet, array_quotation_reque
   const const_trial_start_col = get_s_p.getProperty('trial_start_col');
   const const_trial_end_col = get_s_p.getProperty('trial_end_col');
   const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
-  var array_item = get_fy_items(target_sheet);
+  var array_item = get_fy_items(target_sheet, get_s_p.getProperty('fy_sheet_items_col'));
   var project_management = set_all_sheet_common_items(target_sheet, array_item, 
                                                       Moment.moment(trial_sheet.getRange(trial_target_row, const_trial_start_col).getValue()),
                                                       Moment.moment(trial_sheet.getRange(trial_target_row, const_trial_end_col).getValue()));
