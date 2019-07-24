@@ -103,44 +103,54 @@ function work_addsheet(){
 }
 /**
 * Registrationの列をテンプレートにしてtotal2シートの関数を再構成する
-* @param {array<string>} array_sheet シート名
+* @param {Array.<string>} array_sheet シート名
+* @param {Number} trial_start_row trialシートのsetup試験期間年数の行
 * @return none
 */
-function reconfigure_total2(array_sheet){
+function reconfigure_total2(array_sheet, trial_start_row){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var get_s_p = PropertiesService.getScriptProperties();
   var sheet = get_sheets();
   var rangeToCopy, temp_formula, array_formula, insert_col, replace_str;
-  var source_sheet_name = 'Registration_1';
+  var source_sheet_name = 'Registration';
   const const_replace_source = new RegExp(source_sheet_name, 'g');
   const const_start_row = 5;
   // setupは元の列を残す
   const const_registration_col = 5;
   // registrationの列の関数再構成
   var temp_str;
-//  var temp_formulas = sheet.total2.getRange(const_start_row, const_registration_col, sheet.total2.getLastRow(), 1).getFormulas();
   for (var i = const_registration_col; i <= sheet.total2.getLastRow(); i++){
     if (sheet.total2.getRange(i, const_registration_col).getFormula() != ''){
-      temp_str = '=IF(or(' + get_s_p.getProperty('trial_sheet_name') + '!$B$2="", ' + source_sheet_name +'!H' + i + '=""), "", ' +source_sheet_name + '!H' + i + ')';
+      temp_str = '=IF(or(' + source_sheet_name + '!$B$2="", ' + source_sheet_name +'!$H' + i + '=""), "", ' +source_sheet_name + '!$H' + i + ')';
       sheet.total2.getRange(i, const_registration_col).setFormula(temp_str);
     }
   }
-//  sheet.total2.getRange(const_start_row, const_registration_col).setFormulas(set_formulas);
-  return;
   for (var i = 0; i < array_sheet.length; i++){
     insert_col = const_registration_col + i;
     sheet.total2.insertColumnAfter(insert_col);
     rangeToCopy = sheet.total2.getRange(1, const_registration_col, sheet.total2.getMaxRows(), 1);
-    rangeToCopy.copyTo(sheet.total2.getRange(1, insert_col));
-    array_formula = sheet.total2.getRange(1, insert_col, sheet.total2.getDataRange().getLastRow(), 1).getFormulas();
+    rangeToCopy.copyTo(sheet.total2.getRange(1, insert_col + 1));
+    array_formula = sheet.total2.getRange(1, insert_col + 1, sheet.total2.getDataRange().getLastRow(), 1).getFormulas();
     array_formula = Array.prototype.concat.apply([],array_formula);
     for (var j = 0; j < array_formula.length; j++){
       if (array_formula[j] != ''){
         replace_str = array_formula[j].replace(const_replace_source, array_sheet[i]);
-        sheet.total2.getRange(j + 1, insert_col).setFormula(replace_str);
+        sheet.total2.getRange(j + 1, insert_col + 1).setFormula(replace_str);
       }
     }
-    sheet.total2.getRange(2, insert_col).setValue(array_sheet[i]);
+    // 2行目にシート名、4行目に年度
+    sheet.total2.getRange(2, insert_col + 1).setValue(array_sheet[i]);
+    temp_str = '=if(' + get_s_p.getProperty('trial_sheet_name') + '!$C$' + (parseInt(trial_start_row) + i) + '<>"", OFFSET(INDIRECT(ADDRESS(ROW(),COLUMN())), 0, -1)+1, OFFSET(INDIRECT(ADDRESS(ROW(),COLUMN())), 0, -1))';
+    sheet.total2.getRange(4, insert_col + 1).setFormula(temp_str);
+  }
+  // 合計列再構成
+  var total_col = const_registration_col + array_sheet.length + 1;
+  var closing_col_str = getColumnString(total_col - 1);
+  for (var i = const_start_row; i <= sheet.total2.getLastRow(); i++){
+    if (sheet.total2.getRange(i, total_col).getFormula() != ''){
+      temp_str = '=if(sum(D' + i + ':' + closing_col_str + i + ')=0,"",sum(D' + i + ':' + closing_col_str + i + '))';
+      sheet.total2.getRange(i, total_col).setFormula(temp_str);
+    }
   }
 }
 function call_total2(){
@@ -152,6 +162,15 @@ function call_total2(){
                       get_s_p.getProperty('observation_1_sheet_name'),
                       get_s_p.getProperty('observation_2_sheet_name'),
                       get_s_p.getProperty('closing_sheet_name')];
-
-  reconfigure_total2(temp_sheet_t);
+  reconfigure_total2(temp_sheet_t, parseInt(get_s_p.getProperty('trial_setup_row')) + 1);
+}
+/**
+* total3シートの関数を再構成する
+* @param {Array.<string>} array_sheet シート名
+* @param {Number} trial_start_row trialシートのsetup試験期間年数の行
+* @return none
+*/
+function reconfigure_total3(array_sheet, trial_start_row){
+  // totalシートのB列の値と行を配列に格納
+  
 }
