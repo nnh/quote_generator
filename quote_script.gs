@@ -1,4 +1,8 @@
 /**
+* Momentライブラリの追加が必要
+* ライブラリキー：MHMchiX6c1bwSqGM1PZiW_PxhMjh3Sh48
+*/
+/**
 * quotation_requestの1行目（項目名）からフォーム入力情報を取得する
 * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
 * @param {string} header_str 検索対象の値

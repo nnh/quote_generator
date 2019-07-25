@@ -75,33 +75,6 @@ function reconfigure_total_col(sheet, total_col, row_count, start_col, start_row
 }
 /**
 * totalシートの関数を再構成する
-* @param none
-* @return none
-*/
-//function reconfigure_total(){
-//  var ss = SpreadsheetApp.getActiveSpreadsheet();
-//  var get_s_p = PropertiesService.getScriptProperties();
-//  const const_trial_setup_row = get_s_p.getProperty('trial_setup_row');
-//  const const_trial_years_col = get_s_p.getProperty('trial_years_col');
-//  const const_count_col =get_s_p.getProperty('fy_sheet_count_col');
-//  var sheet = get_sheets();
-//  var array_total_items = get_fy_items(sheet.total, 3);
-//  var array_target_sheet_name = ['setup', 'registration_1', 'registration_2', 'interim_1', 'interim_2', 
-//                            'observation_1', 'observation_2', 'closing']
-//  var trial_cell_addr, temp_str;
-//  Object.keys(array_total_items).forEach(
-//    function(row_num){
-//      temp_str = '=';
-//      for (var i = 0; i < array_target_sheet_name.length; i++){
-//        trial_cell_addr = sheet.trial.getRange(parseInt(const_trial_setup_row) + i, const_trial_years_col).getA1Notation();
-//        temp_str = temp_str + sheet[array_target_sheet_name[i]].getName() + '!' + getColumnString(const_count_col) + this[row_num] + '*Trial!' + trial_cell_addr + '+';  
-//    }
-//    // 最後の＋を消してセット
-//    sheet.total.getRange(this[row_num], const_count_col).setFormula(temp_str.substr(0, temp_str.length - 1));
-//  }, array_total_items);
-//}
-/**
-* totalシートの関数を再構成する
 * @param {Array.<string>} array_sheet シート名
 * @return none
 */
@@ -217,7 +190,6 @@ function work_addsheet(){
                total3:ss.getSheetByName(get_s_p.getProperty('total3_sheet_name')),
                setup:ss.getSheetByName(get_s_p.getProperty('setup_sheet_name')),
                closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name'))}
-  // シート作成
   var temp_sheet_t = [get_s_p.getProperty('registration_1_sheet_name'),
                       get_s_p.getProperty('registration_2_sheet_name'),
                       get_s_p.getProperty('interim_1_sheet_name'),
@@ -225,6 +197,10 @@ function work_addsheet(){
                       get_s_p.getProperty('observation_1_sheet_name'),
                       get_s_p.getProperty('observation_2_sheet_name')];
   var trial_header_row = parseInt(get_s_p.getProperty('trial_setup_row'));
+  var trial_header_end_row = parseInt(get_s_p.getProperty('trial_closing_row'));
+  var temp_row;
+  const const_trial_header_col = 3;
+  // シート作成
   for (var i = 0; i < temp_sheet_t.length; i++){
     if (ss.getSheetByName(temp_sheet_t[i]) == null){
       var ss_sheet_copy = sheet.setup.copyTo(ss);
@@ -232,10 +208,8 @@ function work_addsheet(){
       ss.getSheetByName(temp_sheet_t[i]).activate();
       ss.moveActiveSheet(i + 7);
       trial_header_row++;
-      ss.getSheetByName(temp_sheet_t[i]).getRange(2, 2).setFormula('=' + get_s_p.getProperty('trial_sheet_name') + '!B' + trial_header_row);
     }
   }
-  // total関数再構成
   temp_sheet_t = [get_s_p.getProperty('setup_sheet_name'),
                   get_s_p.getProperty('registration_1_sheet_name'),
                  　　get_s_p.getProperty('registration_2_sheet_name'),
@@ -244,6 +218,26 @@ function work_addsheet(){
                   get_s_p.getProperty('observation_1_sheet_name'),
                   get_s_p.getProperty('observation_2_sheet_name'),
                   get_s_p.getProperty('closing_sheet_name')];
+  // trialシートに試験期間年月行追加
+  if (sheet.trial.getRange(trial_header_end_row, 1).getValue() != get_s_p.getProperty('closing_sheet_name')){
+    sheet.trial.insertRowsAfter(trial_header_row, const_trial_header_col);
+    temp_row = parseInt(trial_header_end_row) - parseInt(trial_header_row) + 1;
+    var temp_range = sheet.trial.getRange(trial_header_row, 1, temp_row, 1);
+    var temp_array = temp_range.getValues();
+    var temp_formulas_range = sheet.trial.getRange(trial_header_row, 2, temp_row, 1);
+    var temp_formulas = temp_formulas_range.getFormulas();
+    sheet.trial.getRange(trial_header_row, const_trial_header_col, temp_row, 3).clear();
+    for (var i = 0; i < temp_sheet_t.length; i++){
+      temp_row = (parseInt(trial_header_row) + i);
+      temp_array[i][0] = temp_sheet_t[i];
+      temp_formulas[i][0] = '=if(C' + temp_row + '<>"","【見積明細：1年毎（" & year(edate(D' + temp_row + ',-3)) & if(C' + temp_row + '>1,"〜" & year(edate(edate(D' + temp_row + ',-3),12*(C' + temp_row + '-1))), "")& "年度）】","")';
+      // 各シートのB2セルに年度を表示
+      ss.getSheetByName(temp_sheet_t[i]).getRange(2, 2).setFormula('=' + get_s_p.getProperty('trial_sheet_name') + '!B' + temp_row);
+    }
+    temp_range.setValues(temp_array);
+    temp_formulas_range.setFormulas(temp_formulas);
+  }
+  // total関数再構成
   reconfigure_total(temp_sheet_t);
   reconfigure_total2(temp_sheet_t, parseInt(get_s_p.getProperty('trial_setup_row')) + 1);
   reconfigure_total3(temp_sheet_t, parseInt(get_s_p.getProperty('trial_setup_row')) + 1);
