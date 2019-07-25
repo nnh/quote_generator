@@ -374,7 +374,7 @@ function set_registration_sheet(trial_sheet, target_sheet, array_quotation_reque
     target_sheet.showSheet();
   }
 }
-function test(){
+function quote_script_main(){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var get_s_p = PropertiesService.getScriptProperties();
   var sheet = get_sheets();
