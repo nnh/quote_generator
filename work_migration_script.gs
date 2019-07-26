@@ -200,6 +200,7 @@ function work_addsheet(){
   var trial_header_end_row = parseInt(get_s_p.getProperty('trial_closing_row'));
   var temp_row;
   const const_trial_header_col = 3;
+  var count_col = getColumnString(get_s_p.getProperty('fy_sheet_count_col'));
   // シート作成
   for (var i = 0; i < temp_sheet_t.length; i++){
     if (ss.getSheetByName(temp_sheet_t[i]) == null){
@@ -210,6 +211,18 @@ function work_addsheet(){
       trial_header_row++;
     }
   }
+  // trial!B27の入力規則を変更する
+  var temp_range = sheet.trial.getRange('B27');
+  var rule = SpreadsheetApp.newDataValidation();
+  temp_range.clearDataValidations();
+  rule.requireValueInList(['観察研究・レジストリ', get_s_p.getProperty('investigator_initiated_trial'), '介入研究（特定臨床研究法対応以外）', get_s_p.getProperty('specified_clinical_trial')], true);
+  rule.setAllowInvalid(false);
+  rule.build();
+  temp_range.setDataValidation(rule);
+  // trial!C27の判定式を変更する
+  var temp_addr = temp_range.getA1Notation();
+  temp_range.offset(0, 1).setFormula('=IF(' + temp_addr + '="観察研究・レジストリ",1,IF(OR(' + temp_addr + '="' + get_s_p.getProperty('specified_clinical_trial') +'", ' + temp_addr + '="介入研究（特定臨床研究法対応以外）"),2,5))');
+  
   temp_sheet_t = [get_s_p.getProperty('setup_sheet_name'),
                   get_s_p.getProperty('registration_1_sheet_name'),
                  　　get_s_p.getProperty('registration_2_sheet_name'),
@@ -221,22 +234,31 @@ function work_addsheet(){
   // trialシートに試験期間年月行追加
   if (sheet.trial.getRange(trial_header_end_row, 1).getValue() != get_s_p.getProperty('closing_sheet_name')){
     sheet.trial.insertRowsAfter(trial_header_row, const_trial_header_col);
-    temp_row = parseInt(trial_header_end_row) - parseInt(trial_header_row) + 1;
-    var temp_range = sheet.trial.getRange(trial_header_row, 1, temp_row, 1);
+    temp_row = trial_header_end_row - trial_header_row + 1;
+    temp_range = sheet.trial.getRange(trial_header_row, 1, temp_row, 1);
     var temp_array = temp_range.getValues();
     var temp_formulas_range = sheet.trial.getRange(trial_header_row, 2, temp_row, 1);
     var temp_formulas = temp_formulas_range.getFormulas();
     sheet.trial.getRange(trial_header_row, const_trial_header_col, temp_row, 3).clear();
     for (var i = 0; i < temp_sheet_t.length; i++){
-      temp_row = (parseInt(trial_header_row) + i);
+      temp_row = (trial_header_row + i);
       temp_array[i][0] = temp_sheet_t[i];
       temp_formulas[i][0] = '=if(C' + temp_row + '<>"","【見積明細：1年毎（" & year(edate(D' + temp_row + ',-3)) & if(C' + temp_row + '>1,"〜" & year(edate(edate(D' + temp_row + ',-3),12*(C' + temp_row + '-1))), "")& "年度）】","")';
-      // 各シートのB2セルに年度を表示
-      ss.getSheetByName(temp_sheet_t[i]).getRange(2, 2).setFormula('=' + get_s_p.getProperty('trial_sheet_name') + '!B' + temp_row);
+      // setup~closingシートのB2セルに年度を表示、回数列をクリア
+      ss.getSheetByName(temp_sheet_t[i]).getRange('B2').setFormula('=' + get_s_p.getProperty('trial_sheet_name') + '!B' + temp_row);
+      ss.getSheetByName(temp_sheet_t[i]).getRange(count_col + ':' + count_col).clearContent();
+      // setup~closingシートの保護
+      set_protection(ss.getSheetByName(temp_sheet_t[i]));
     }
     temp_range.setValues(temp_array);
     temp_formulas_range.setFormulas(temp_formulas);
   }
+  // trial!コメントの修正
+  var replace_source_str = '"契約期間は"&text($D$32,"yyyy年m月d日")&"〜"&text($E$39,"yyyy年m月d日") & " ("&$C$40&"間）を想定しております。"';
+  var replace_str = '"契約期間は"&text($D$40,"yyyy年m月d日")&"〜"&text($E$40,"yyyy年m月d日") & " ("&$C$40&"間）を想定しております。"'
+  var textFinder = sheet.trial.createTextFinder(replace_source_str).matchFormulaText(true);
+  textFinder.replaceAllWith(replace_str);
+
   // total関数再構成
   reconfigure_total(temp_sheet_t);
   reconfigure_total2(temp_sheet_t, parseInt(get_s_p.getProperty('trial_setup_row')) + 1);
@@ -249,4 +271,12 @@ function work_addsheet(){
       ss.deleteSheet(ss.getSheetByName(temp_sheet_t[i]));
     }
   }
+}
+/**
+* シートの保護をかける
+*/
+function set_protection(sheet){
+  var unprotected_range = sheet.getRangeList(['F6:F80', 'L:L']).getRanges();
+  var protection = sheet.protect();
+  protection.setUnprotectedRanges(unprotected_range);
 }

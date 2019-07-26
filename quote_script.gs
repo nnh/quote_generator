@@ -46,7 +46,7 @@ function get_setup_closing_term(temp_str, array_quotation_request){
 * 各シートの開始日、終了日を設定する
 * @param {number} trial_start_date　試験開始日のセルの値
 * @param {number} trial_end_date　試験終了日のセルの値
-* @return 各シートの開始日、終了日を連想配列で返す
+* @return 二次元配列（各シートの開始日、終了日）
 * @example 
 *   var array_trial_date = get_trial_start_end_date(trial_start_date, trial_end_date);
 */
@@ -78,15 +78,18 @@ function get_trial_start_end_date(trial_start_date, trial_end_date){
   }
   // registrationの年数を取得
   get_s_p.setProperty('registration_years', get_years(registration_1_start_date, temp_registration_end_date));
-  var interim_1_start_date, interim_1_end_date;
-  var interim_2_start_date, interim_2_end_date;
-  var observation_1_start_date, observation_1_end_date;
-  var observation_2_start_date, observation_2_end_date;
-  
-  return({trial_start:trial_start_date, trial_end:trial_end_date, setup_start:setup_start_date, setup_end:setup_end_date,
-          registration_1_start:registration_1_start_date, registration_1_end:registration_1_end_date,
-          registration_2_start:registration_2_start_date, registration_2_end:registration_2_end_date,
-          closing_start:closing_start_date, closing_end:closing_end_date});
+  var temp_array = [
+    [setup_start_date, setup_end_date],
+    [registration_1_start_date, registration_1_end_date],
+    [registration_2_start_date, registration_2_end_date],
+    ['', ''],
+    ['', ''],
+    ['', ''],
+    ['', ''],
+    [closing_start_date, closing_end_date],
+    [setup_start_date, closing_end_date]
+  ];
+  return(temp_array);
 }
 /**
 * quotation_requestシートの内容からtrialシートを設定する
@@ -104,11 +107,12 @@ function set_trial_sheet(sheet, array_quotation_request){
   const const_registration_end = '症例登録終了日';
   const const_trial_end = '試験終了日';
   const const_facilities = '実施施設数';
-  const const_trial_start_col = get_s_p.getProperty('trial_start_col');
-  const const_trial_end_col = get_s_p.getProperty('trial_end_col');
-  const const_trial_setup_row = get_s_p.getProperty('trial_setup_row');
-  const const_trial_closing_row = get_s_p.getProperty('trial_closing_row');
-  const const_trial_years_col = get_s_p.getProperty('trial_years_col');
+  const const_trial_start_col = parseInt(get_s_p.getProperty('trial_start_col'));
+  const const_trial_end_col = parseInt(get_s_p.getProperty('trial_end_col'));
+  const const_trial_setup_row = parseInt(get_s_p.getProperty('trial_setup_row'));
+  const const_trial_closing_row = parseInt(get_s_p.getProperty('trial_closing_row'));
+  const const_trial_years_col = parseInt(get_s_p.getProperty('trial_years_col'));
+  const const_total_month_col = 6;
   var trial_list = [
     [const_quotation_type, 2],
     ['見積発行先', 4],
@@ -120,7 +124,7 @@ function set_trial_sheet(sheet, array_quotation_request){
     [const_facilities, 29],
     ['CRF項目数', 30]
   ];
-  var temp_str;
+  var temp_str, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total;
   for (var i = 0; i < trial_list.length; i++){
     temp_str = get_quotation_request_value(array_quotation_request, trial_list[i][0]);
     if (temp_str != null){
@@ -146,22 +150,25 @@ function set_trial_sheet(sheet, array_quotation_request){
           }
           get_setup_closing_term(temp_str, array_quotation_request);
           var array_trial_date = get_trial_start_end_date(trial_start_date, trial_end_date);
-          sheet.trial.getRange(const_trial_setup_row, const_trial_start_col, const_trial_closing_row - const_trial_setup_row + 1, const_trial_end_col - const_trial_years_col + 1).clear();
-          // setup
-          sheet.trial.getRange(const_trial_setup_row, const_trial_start_col).setValue(array_trial_date.setup_start.format('YYYY/MM/DD'));
-          sheet.trial.getRange(const_trial_setup_row, const_trial_end_col).setValue(array_trial_date.setup_end.format('YYYY/MM/DD'));
-          sheet.trial.getRange(const_trial_setup_row, const_trial_years_col).setValue(get_years(array_trial_date.setup_start, array_trial_date.setup_end));
-          // registration期間が1年以上あれば、1年めをregistration_1、残りをregistration_2にセットする
-          sheet.trial.getRange(parseInt(const_trial_setup_row) + 1, const_trial_start_col).setValue(array_trial_date.registration_1_start.format('YYYY/MM/DD'));
-          sheet.trial.getRange(parseInt(const_trial_setup_row) + 1, const_trial_end_col).setValue(array_trial_date.registration_1_end.format('YYYY/MM/DD'));
-          sheet.trial.getRange(parseInt(const_trial_setup_row) + 1, const_trial_years_col).setValue(get_years(array_trial_date.registration_1_start, array_trial_date.registration_1_end));
-          sheet.trial.getRange(parseInt(const_trial_setup_row) + 2, const_trial_start_col).setValue(array_trial_date.registration_2_start.format('YYYY/MM/DD'));
-          sheet.trial.getRange(parseInt(const_trial_setup_row) + 2, const_trial_end_col).setValue(array_trial_date.registration_2_end.format('YYYY/MM/DD'));
-          sheet.trial.getRange(parseInt(const_trial_setup_row) + 2, const_trial_years_col).setValue(get_years(array_trial_date.registration_2_start, array_trial_date.registration_2_end));
-          // closing
-          sheet.trial.getRange(const_trial_closing_row, const_trial_start_col).setValue(array_trial_date.closing_start.format('YYYY/MM/DD'));
-          sheet.trial.getRange(const_trial_closing_row, const_trial_end_col).setValue(array_trial_date.closing_end.format('YYYY/MM/DD'));
-          sheet.trial.getRange(const_trial_closing_row, const_trial_years_col).setValue(get_years(array_trial_date.closing_start, array_trial_date.closing_end));
+          sheet.trial.getRange(const_trial_setup_row, const_trial_start_col, array_trial_date.length, 2).clear();
+          for (var j = 0; j < array_trial_date.length; j++){
+            temp_start = sheet.trial.getRange(const_trial_setup_row + j, const_trial_start_col);
+            temp_end = sheet.trial.getRange(const_trial_setup_row + j, const_trial_end_col);
+            if (array_trial_date[j][0] != ''){
+              temp_start.setValue(array_trial_date[j][0].format('YYYY/MM/DD'));
+            }
+            if (array_trial_date[j][1] != ''){
+              temp_end.setValue(array_trial_date[j][1].format('YYYY/MM/DD'));
+            }
+            temp_start_addr = temp_start.getA1Notation();
+            temp_end_addr = temp_end.getA1Notation();              
+            sheet.trial.getRange(const_trial_setup_row + j, const_trial_years_col).setFormula('=if(and($' + temp_start_addr + '<>"",$' + temp_end_addr + '<>""),datedif($' + temp_start_addr + ',$' + temp_end_addr + ',"y")+1,"")');
+            save_row = const_trial_setup_row + j;
+          }
+          // totalはx年xヶ月と月数を出力
+          temp_total = sheet.trial.getRange(save_row, const_total_month_col);
+          sheet.trial.getRange(save_row, const_total_month_col).setFormula('=datedif(' + sheet.trial.getRange(save_row, const_trial_start_col).getA1Notation() + ',(' + sheet.trial.getRange(save_row, const_trial_end_col).getA1Notation() + '+1),"m")');
+          sheet.trial.getRange(save_row, const_trial_years_col).setFormula('=trunc(' + temp_total.getA1Notation() + '/12) & "年" & if(mod(' + temp_total.getA1Notation() + ',12)<>0,mod(' + temp_total.getA1Notation() + ',12) & "ヶ月","")');
           break;
         default:
           break;
@@ -384,6 +391,7 @@ function quote_script_main(){
   var sheet = get_sheets();
   var quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   var array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
+  set_trial_sheet(sheet, array_quotation_request);
   var array_target_sheet = [null, sheet.registration_1, sheet.registration_2, sheet.interim_1, sheet.interim_2, sheet.observation_1, sheet.observation_2];
   for (var i = 1; i < array_target_sheet.length; i++){
     set_registration_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + i);
