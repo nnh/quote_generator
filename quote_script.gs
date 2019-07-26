@@ -391,6 +391,10 @@ function quote_script_main(){
   var sheet = get_sheets();
   var quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   var array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
+  // Quotation requestシートのA2セルが空白の場合、Quotation requestが入っていないものと判断して処理を終了する
+  if (array_quotation_request[1][0] == ''){
+    return;
+  }
   set_trial_sheet(sheet, array_quotation_request);
   var array_target_sheet = [null, sheet.registration_1, sheet.registration_2, sheet.interim_1, sheet.interim_2, sheet.observation_1, sheet.observation_2];
   for (var i = 1; i < array_target_sheet.length; i++){
