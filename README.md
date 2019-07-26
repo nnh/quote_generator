@@ -16,6 +16,6 @@ Momentライブラリの追加が必要
 - Quotation Requestシート
 シートの内容を全て削除し、Quotation Request（回答）の1行目を貼り付ける。
 ### 実行PG
-work_migration_script.gs
-    - work_setproperty
-    - work_addsheet
+work_migration_script.gs  
+    - work_setproperty  
+    - work_addsheet  
