@@ -1,7 +1,7 @@
 # Quote generator
 ## 概要
-Quote templateの見積項目を設定するスクリプト
-使用方法はQuote templateスプレッドシート内に記載
+Quote templateの見積項目を設定するスクリプト  
+使用方法はQuote templateスプレッドシート内に記載  
 - - -
 ## 以下、初回のみの対応
 Momentライブラリの追加が必要  
