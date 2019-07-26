@@ -60,9 +60,10 @@ function get_fy_formula(sheet_name, trial_row){
 * @param {Number} start_col 開始列
 * @param {Number} start_row 開始行
 * @param {String} cond_str 合計が0の時にセルにセットする値
+* @param {Number} total_head_row 「合計」を出す行
 * @return none
 */
-function reconfigure_total_col(sheet, total_col, row_count, start_col, start_row, cond_str){
+function reconfigure_total_col(sheet, total_col, row_count, start_col, start_row, cond_str, total_head_row){
   var setup_col_str = getColumnString(start_col);
   var closing_col_str = getColumnString(total_col - 1);
   var temp_range = sheet.getRange(1, total_col, row_count, 1);
@@ -71,7 +72,7 @@ function reconfigure_total_col(sheet, total_col, row_count, start_col, start_row
     temp_array[i][0] = '=if(sum(' + setup_col_str + (i + 1) + ':' + closing_col_str + (i + 1) + ')=0, ' + cond_str + ',sum(' + setup_col_str + (i + 1) + ':' + closing_col_str + (i + 1) + '))';
   }
   temp_range.setFormulas(temp_array);
-  sheet.getRange(start_row - 1, total_col).setValue('合計');
+  sheet.getRange(total_head_row, total_col).setValue('合計');
 }
 /**
 * totalシートの関数を再構成する
@@ -133,7 +134,7 @@ function reconfigure_total2(array_sheet, trial_start_row){
     sheet.total2.getRange(4, insert_col).setFormula(temp_str);
   }
   // 合計列再構成
-  reconfigure_total_col(sheet.total2, const_start_col + array_sheet.length, row_count, const_start_col, const_start_row, '""');
+  reconfigure_total_col(sheet.total2, const_start_col + array_sheet.length, row_count, const_start_col, const_start_row, '""', const_start_row - 1);
 }
 /**
 * total3シートの関数を再構成する
@@ -178,7 +179,7 @@ function reconfigure_total3(array_sheet, trial_start_row){
     sheet.total3.getRange(3, insert_col).setFormula(temp_str);
   }
   // 合計列再構成
-  reconfigure_total_col(sheet.total3, const_start_col + array_sheet.length, row_count, const_start_col, const_start_row + 1, 0);
+  reconfigure_total_col(sheet.total3, const_start_col + array_sheet.length, row_count, const_start_col, const_start_row + 1, 0, 3);
 }
 function work_addsheet(){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -232,6 +233,7 @@ function work_addsheet(){
                   get_s_p.getProperty('observation_2_sheet_name'),
                   get_s_p.getProperty('closing_sheet_name')];
   // trialシートに試験期間年月行追加
+  trial_header_row = parseInt(get_s_p.getProperty('trial_setup_row'));
   if (sheet.trial.getRange(trial_header_end_row, 1).getValue() != get_s_p.getProperty('closing_sheet_name')){
     sheet.trial.insertRowsAfter(trial_header_row, const_trial_header_col);
     temp_row = trial_header_end_row - trial_header_row + 1;
