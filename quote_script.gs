@@ -337,8 +337,9 @@ function set_setup_sheet(sheet, array_quotation_request){
     ['バリデーション報告書', 1],
     ['初期アカウント設定（施設・ユーザー）、IRB承認確認', dm_irb],
     ['入力の手引作成', 1],
-    ['外部監査費用', get_count(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 1)],
-    ['試験開始準備費用', get_count(get_quotation_request_value(array_quotation_request, '試験開始準備費用'), 'あり', get_s_p.getProperty('facilities_value'))]
+    ['外部監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 1)],
+    ['試験開始準備費用', get_count(get_quotation_request_value(array_quotation_request, '試験開始準備費用'), 'あり', get_s_p.getProperty('facilities_value'))],
+    ['CDISC対応費', get_count(get_quotation_request_value(array_quotation_request, 'CDISC対応'), 'あり', 1)]
   ];
   for (var i = 0; i < set_items_list.length; i++){
     set_range_value(sheet.setup, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
@@ -385,6 +386,55 @@ function set_registration_sheet(trial_sheet, target_sheet, array_quotation_reque
     target_sheet.showSheet();
   }
 }
+/**
+* closingシートの編集
+*/
+function set_closing_sheet(sheet, array_quotation_request){
+  var get_s_p = PropertiesService.getScriptProperties();
+  var array_item = get_fy_items(sheet.closing, get_s_p.getProperty('fy_sheet_items_col'));
+  const const_trial_closing_row = get_s_p.getProperty('trial_closing_row');
+  const const_trial_closing_years = get_s_p.getProperty('trial_years_col');
+  const const_trial_start_col = get_s_p.getProperty('trial_start_col');
+  const const_trial_end_col = get_s_p.getProperty('trial_end_col');
+  const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
+  // このシートの全期間
+  var project_management = set_all_sheet_common_items(sheet.closing, array_item, 
+                                                      Moment.moment(sheet.trial.getRange(const_trial_closing_row, const_trial_start_col).getValue()),
+                                                      Moment.moment(sheet.trial.getRange(const_trial_closing_row, const_trial_end_col).getValue()));
+  // csrの作成支援は医師主導治験ならば必須
+  var csr_count = get_count(get_quotation_request_value(array_quotation_request, '研究結果報告書の作成'), 'あり', 1);
+  // 医師主導治験のみ算定または名称が異なる項目に対応する
+  var csr = '研究結果報告書の作成';
+  var final_analysis = '最終解析プログラム作成、解析実施（シングル）';
+  var clinical_conference = '';
+  //統計
+  if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
+    csr = 'CSRの作成支援';
+    csr_count = 1;
+    final_analysis = '最終解析プログラム作成、解析実施（ダブル）';
+    // 医師主導治験で症例検討会ありの場合症例検討会資料作成に1をセット
+    if (get_count(get_quotation_request_value(array_quotation_request, '症例検討会'), 'あり', 1) > 0){
+      clinical_conference = 1;
+    }
+  }
+  // registration期間があれば
+  set_registration_term_items(sheet.closing, array_item, project_management, array_quotation_request);
+  var set_items_list = [
+    ['開始前モニタリング・必須文書確認', get_count(get_quotation_request_value(array_quotation_request, 'PMDA相談資料作成支援'), 'あり', 1)],
+    ['データクリーニング', 1],
+    ['データベース固定作業、クロージング', 1],
+    ['症例検討会資料作成', clinical_conference],
+    ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(get_quotation_request_value(array_quotation_request, '統計解析に必要な帳票数'), 0, 1)],
+    [final_analysis, get_count_more_than(get_quotation_request_value(array_quotation_request, '統計解析に必要な帳票数'), 0, get_quotation_request_value(array_quotation_request, '統計解析に必要な帳票数'))],
+    ['最終解析報告書作成（出力結果＋表紙）', get_count_more_than(get_quotation_request_value(array_quotation_request, '統計解析に必要な帳票数'), 0, 1)],
+    [csr, csr_count],
+    ['外部監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 1)]
+  ];
+  for (var i = 0; i < set_items_list.length; i++){
+    set_range_value(sheet.closing, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
+  }
+}
+
 function quote_script_main(){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var get_s_p = PropertiesService.getScriptProperties();
@@ -396,8 +446,10 @@ function quote_script_main(){
     return;
   }
   set_trial_sheet(sheet, array_quotation_request);
+  set_setup_sheet(sheet, array_quotation_request);
   var array_target_sheet = [null, sheet.registration_1, sheet.registration_2, sheet.interim_1, sheet.interim_2, sheet.observation_1, sheet.observation_2];
   for (var i = 1; i < array_target_sheet.length; i++){
     set_registration_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + i);
   }
+  set_closing_sheet(sheet, array_quotation_request);
 }
