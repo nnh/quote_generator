@@ -282,6 +282,7 @@ function set_registration_term_items(target_sheet, array_item, project_managemen
   // データベース管理料、中央モニタリング、安全性管理、効安　この年度にregistration期間がある場合その期間分とる
   var registration_term = project_management;
   var temp_overflowing_setup = 0;
+  var temp_str = '中央モニタリング、定期モニタリングレポート作成';
   if (target_sheet.getName() == get_s_p.getProperty('setup_sheet_name')){
     if (get_s_p.getProperty('setup_term') < project_management){
       // setupシートに試験期間が入っている場合
@@ -289,7 +290,9 @@ function set_registration_term_items(target_sheet, array_item, project_managemen
     } else if (get_s_p.getProperty('setup_term') > project_management){
       // registration_1シートにsetup期間が入っている場合その期間を退避する
       temp_overflowing_setup = get_s_p.getProperty('setup_term') - project_management;
-    }    
+    } else {
+      registration_term = '';
+    }   
   } else if ((target_sheet.getName() == get_s_p.getProperty('registration_1_sheet_name')) && get_s_p.getProperty('flag_overflowing_setup') > 0){
     // registration_1シートにsetup期間が入っていたらその分を除く 
     registration_term = project_management - get_s_p.getProperty('flag_overflowing_setup');
@@ -298,12 +301,18 @@ function set_registration_term_items(target_sheet, array_item, project_managemen
     // closingシートに試験期間が入っている場合
     if (get_s_p.getProperty('closing_term') < project_management){
       registration_term = project_management - get_s_p.getProperty('closing_term');
+    } else {
+      registration_term = '';
     }
   }
   get_s_p.setProperty('flag_overflowing_setup', temp_overflowing_setup);
+  // 医師主導治験のみ算定または名称が異なる項目に対応する
+  if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
+    temp_str = '中央モニタリング'
+  }
   set_items_list = [
     ['データベース管理料', registration_term],
-    [get_s_p.getProperty('central_monitoring_str'), registration_term],
+    [temp_str, registration_term],
     ['安全性管理事務局業務', get_count(get_quotation_request_value(array_quotation_request, '安全性管理事務局設置'), 'あり', registration_term)],
     ['効果安全性評価委員会事務局業務', get_count(get_quotation_request_value(array_quotation_request, '効安事務局設置'), 'あり', registration_term)]
   ];
@@ -323,15 +332,12 @@ function set_setup_items(array_quotation_request){
   var office_irb_str = 'IRB準備・承認確認';
   var office_irb = '';
   var dm_irb = get_s_p.getProperty('facilities_value');
-  var temp_str = '中央モニタリング、定期モニタリングレポート作成';
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
     sop = 1;
     office_irb_str = 'IRB承認確認、施設管理';
     office_irb = get_s_p.getProperty('facilities_value');
     dm_irb = '';
-    temp_str = '中央モニタリング'
   }
-  get_s_p.setProperty('central_monitoring_str', temp_str);
   set_items_list = [
     ['プロトコルレビュー・作成支援（図表案、統計解析計画書案を含む）', 1],
     ['検討会実施（TV会議等）', 4],
