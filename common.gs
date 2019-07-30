@@ -4,9 +4,9 @@
 * @return none
 */
 function filtervisible(){
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var ws_t = ss.getSheets();
-  var max_index = ws_t.length;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws_t = ss.getSheets();
+  const max_index = ws_t.length;
   var i, ws_filter, col;
   for (i = 0; i < max_index; i++){
     ws_filter = ws_t[i].getFilter();
@@ -22,9 +22,9 @@ function filtervisible(){
 * @return none
 */
 function filterhidden(){
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var ws_t = ss.getSheets();
-  var max_index = ws_t.length;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws_t = ss.getSheets();
+  const max_index = ws_t.length;
   var i, ws_filter, filter_criteria, col; 
   for (i = 0; i < max_index; i++){
     ws_filter = ws_t[i].getFilter();
@@ -47,9 +47,9 @@ function filterhidden(){
 * @return none
 */
 function setProtectionEditusers(){
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var users = ss.getEditors();
-  var protections = ss.getProtections(SpreadsheetApp.ProtectionType.sheet);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const users = ss.getEditors();
+  const protections = ss.getProtections(SpreadsheetApp.ProtectionType.SHEET);
   for (var i = 0; i < protections.length; i++){
    protections[i].addEditors(users)
   }
@@ -60,8 +60,8 @@ function setProtectionEditusers(){
 * @return Aなら1、のような列番号
 */
 function getColumnNumber(column_name){ 
-  var temp_sheet = SpreadsheetApp.getActiveSheet();
-  var temp_range = temp_sheet.getRange(column_name + '1').getColumn();
+  const temp_sheet = SpreadsheetApp.getActiveSheet();
+  const temp_range = temp_sheet.getRange(column_name + '1').getColumn();
   return(temp_range);
 }
 /**
@@ -70,8 +70,8 @@ function getColumnNumber(column_name){
 * @return 1ならA、のような列名
 */
 function getColumnString(column_number) {
-  var temp_sheet = SpreadsheetApp.getActiveSheet();
-  var temp_range = temp_sheet.getRange(1, column_number);
+  const temp_sheet = SpreadsheetApp.getActiveSheet();
+  const temp_range = temp_sheet.getRange(1, column_number);
   var temp_res = temp_range.getA1Notation();
   temp_res = temp_res.replace(/\d/,'');
   return(temp_res);
@@ -86,10 +86,11 @@ function get_months(start_date, end_date){
   return(end_date.diff(start_date, 'months') + 1);
 }
 function get_years(start_date, end_date){
+  var temp;
   if (start_date == '' || end_date == ''){
     return(null);
   }
-  var temp = get_months(start_date, end_date);
+  temp = get_months(start_date, end_date);
   return(Math.ceil(temp / 12));
 }
 /**
@@ -101,7 +102,7 @@ function get_years(start_date, end_date){
 *   var array_item = get_fy_items(target_sheet, target_col);
 */
 function get_fy_items(sheet, target_col){
-  var get_s_p = PropertiesService.getScriptProperties();
+  const get_s_p = PropertiesService.getScriptProperties();
   var temp_array = sheet.getRange(1, target_col, sheet.getDataRange().getLastRow(), 1).getValues();
   // 二次元配列から一次元配列に変換
   temp_array = Array.prototype.concat.apply([],temp_array);
@@ -119,9 +120,9 @@ function get_fy_items(sheet, target_col){
 * @return シート名の連想配列
 */
 function get_sheets(){
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var get_s_p = PropertiesService.getScriptProperties();
-  var sheet = {trial:ss.getSheetByName(get_s_p.getProperty('trial_sheet_name')),
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const get_s_p = PropertiesService.getScriptProperties();
+  const sheet = {trial:ss.getSheetByName(get_s_p.getProperty('trial_sheet_name')),
                quotation_request:ss.getSheetByName(get_s_p.getProperty('quotation_request_sheet_name')),
                total:ss.getSheetByName(get_s_p.getProperty('total_sheet_name')),
                total2:ss.getSheetByName(get_s_p.getProperty('total2_sheet_name')),

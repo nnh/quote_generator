@@ -1,12 +1,14 @@
+/**
+* スクリプトプロパティの一覧をログに出力する
+*/
 function work_getproperty(){
-  var get_s_p = PropertiesService.getScriptProperties();
+  const get_s_p = PropertiesService.getScriptProperties();
   for(var key in get_s_p.getProperties()) {
-    // get_s_p.setProperty('setup_term', setup_term);
     Logger.log('get_s_p.setProperty(' + "'" + key + "', " + get_s_p.getProperty(key) + ')');
   }
 }
 function work_setproperty(){
-  var get_s_p = PropertiesService.getScriptProperties();
+  const get_s_p = PropertiesService.getScriptProperties();
   get_s_p.setProperty('trial_years_col', 3);
   get_s_p.setProperty('trial_closing_row', 39);
   get_s_p.setProperty('quotation_request_sheet_name', 'Quotation Request');
@@ -43,7 +45,7 @@ function work_setproperty(){
 * @return {String} 年度の式
 */
 function get_fy_formula(sheet_name, trial_row){
-  var get_s_p = PropertiesService.getScriptProperties();
+  const get_s_p = PropertiesService.getScriptProperties();
   var temp_str;
   if (sheet_name == get_s_p.getProperty('setup_sheet_name')){
     temp_str = '=if(' + get_s_p.getProperty('trial_sheet_name') + '!$C$' + trial_row + '<>"", year(edate(' + get_s_p.getProperty('trial_sheet_name') + '!$C$' + trial_row + ', -3)), 2019)';
@@ -64,9 +66,9 @@ function get_fy_formula(sheet_name, trial_row){
 * @return none
 */
 function reconfigure_total_col(sheet, total_col, row_count, start_col, start_row, cond_str, total_head_row){
-  var setup_col_str = getColumnString(start_col);
-  var closing_col_str = getColumnString(total_col - 1);
-  var temp_range = sheet.getRange(1, total_col, row_count, 1);
+  const setup_col_str = getColumnString(start_col);
+  const closing_col_str = getColumnString(total_col - 1);
+  const temp_range = sheet.getRange(1, total_col, row_count, 1);
   var temp_array = temp_range.getFormulas();
   for (var i = start_row - 1; i < temp_array.length; i++){
     temp_array[i][0] = '=if(sum(' + setup_col_str + (i + 1) + ':' + closing_col_str + (i + 1) + ')=0, ' + cond_str + ',sum(' + setup_col_str + (i + 1) + ':' + closing_col_str + (i + 1) + '))';
@@ -80,17 +82,17 @@ function reconfigure_total_col(sheet, total_col, row_count, start_col, start_row
 * @return none
 */
 function reconfigure_total(array_sheet){
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var get_s_p = PropertiesService.getScriptProperties();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const get_s_p = PropertiesService.getScriptProperties();
   const const_trial_setup_row = get_s_p.getProperty('trial_setup_row');
   const const_trial_years_col = get_s_p.getProperty('trial_years_col');
   const const_count_col =get_s_p.getProperty('fy_sheet_count_col');
-  var sheet = get_sheets();
-  var trial_cell_addr, temp_str;
+  const sheet = get_sheets();
   const const_start_row = 4;
-  var row_count = sheet.total.getLastRow();
-  var temp_range = sheet.total.getRange(1, 6, row_count, 1);
-  var temp_array = temp_range.getFormulas(); 
+  const row_count = sheet.total.getLastRow();
+  const temp_range = sheet.total.getRange(1, 6, row_count, 1);
+  var temp_array = temp_range.getFormulas();
+  var trial_cell_addr, temp_str; 
   for (var i = const_start_row - 1; i < temp_array.length; i++){
     temp_str = '=';
     if (temp_array[i][0] != ''){
@@ -111,13 +113,13 @@ function reconfigure_total(array_sheet){
 * @return none
 */
 function reconfigure_total2(array_sheet, trial_start_row){
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var get_s_p = PropertiesService.getScriptProperties();
-  var sheet = get_sheets();
-  var insert_col, temp_str, temp_range, temp_array;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const get_s_p = PropertiesService.getScriptProperties();
+  const sheet = get_sheets();
   const const_start_col = 4;
   const const_start_row = 5;
-  var row_count = sheet.total2.getLastRow();
+  const row_count = sheet.total2.getLastRow();
+  var insert_col, temp_str, temp_range, temp_array;
   // setup~closing列再構成  
   sheet.total2.insertColumnsAfter(const_start_col, array_sheet.length - 1);
   for (var i = 0; i < array_sheet.length; i++){
@@ -143,16 +145,15 @@ function reconfigure_total2(array_sheet, trial_start_row){
 * @return none
 */
 function reconfigure_total3(array_sheet, trial_start_row){
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var get_s_p = PropertiesService.getScriptProperties();
-  var sheet = get_sheets();
-  var insert_col, temp_str, temp_range, temp_array;
-  var item_name, temp_row, temp_col;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const get_s_p = PropertiesService.getScriptProperties();
+  const sheet = get_sheets();
   const const_start_col = 4;
   const const_start_row = 4;
   const const_sum_str = '合計';
- 　　var array_total_item = get_fy_items(sheet.total, 2);
-  var row_count = sheet.total3.getLastRow();
+ 　　const array_total_item = get_fy_items(sheet.total, 2);
+  const row_count = sheet.total3.getLastRow();
+  var insert_col, temp_str, temp_range, temp_array, item_name, temp_row, temp_col;
   // setup~closing列再構成  
   sheet.total3.insertColumnsAfter(const_start_col, array_sheet.length - 1);
   for (var i = 0; i < array_sheet.length; i++){
@@ -182,30 +183,34 @@ function reconfigure_total3(array_sheet, trial_start_row){
   reconfigure_total_col(sheet.total3, const_start_col + array_sheet.length, row_count, const_start_col, const_start_row + 1, 0, 3);
 }
 function work_addsheet(){
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var get_s_p = PropertiesService.getScriptProperties();
-  var sheet = {trial:ss.getSheetByName(get_s_p.getProperty('trial_sheet_name')),
-               quotation_request:ss.getSheetByName(get_s_p.getProperty('quotation_request_sheet_name')),
-               total:ss.getSheetByName(get_s_p.getProperty('total_sheet_name')),
-               total2:ss.getSheetByName(get_s_p.getProperty('total2_sheet_name')),
-               total3:ss.getSheetByName(get_s_p.getProperty('total3_sheet_name')),
-               setup:ss.getSheetByName(get_s_p.getProperty('setup_sheet_name')),
-               closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name'))}
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const get_s_p = PropertiesService.getScriptProperties();
+  const sheet = {trial:ss.getSheetByName(get_s_p.getProperty('trial_sheet_name')),
+                 quotation_request:ss.getSheetByName(get_s_p.getProperty('quotation_request_sheet_name')),
+                 total:ss.getSheetByName(get_s_p.getProperty('total_sheet_name')),
+                 total2:ss.getSheetByName(get_s_p.getProperty('total2_sheet_name')),
+                 total3:ss.getSheetByName(get_s_p.getProperty('total3_sheet_name')),
+                 setup:ss.getSheetByName(get_s_p.getProperty('setup_sheet_name')),
+                 closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name'))}
+  const const_trial_header_col = 3;
+  const trial_header_row = parseInt(get_s_p.getProperty('trial_setup_row'));
+  const trial_header_end_row = parseInt(get_s_p.getProperty('trial_closing_row'));
+  const rule = SpreadsheetApp.newDataValidation();
+  const count_col = getColumnString(get_s_p.getProperty('fy_sheet_count_col'));
+  const replace_source_str = '"契約期間は"&text($D$32,"yyyy年m月d日")&"〜"&text($E$39,"yyyy年m月d日") & " ("&$C$40&"間）を想定しております。"';
+  const replace_str = '"契約期間は"&text($D$40,"yyyy年m月d日")&"〜"&text($E$40,"yyyy年m月d日") & " ("&$C$40&"間）を想定しております。"'
+  const textFinder = sheet.trial.createTextFinder(replace_source_str).matchFormulaText(true);
   var temp_sheet_t = [get_s_p.getProperty('registration_1_sheet_name'),
                       get_s_p.getProperty('registration_2_sheet_name'),
                       get_s_p.getProperty('interim_1_sheet_name'),
                       get_s_p.getProperty('interim_2_sheet_name'),
                       get_s_p.getProperty('observation_1_sheet_name'),
                       get_s_p.getProperty('observation_2_sheet_name')];
-  var trial_header_row = parseInt(get_s_p.getProperty('trial_setup_row'));
-  var trial_header_end_row = parseInt(get_s_p.getProperty('trial_closing_row'));
-  var temp_row;
-  const const_trial_header_col = 3;
-  var count_col = getColumnString(get_s_p.getProperty('fy_sheet_count_col'));
+  var temp_row, ss_sheet_copy, temp_range, temp_addr, temp_array, temp_formulas_range, temp_formulas;
   // シート作成
   for (var i = 0; i < temp_sheet_t.length; i++){
     if (ss.getSheetByName(temp_sheet_t[i]) == null){
-      var ss_sheet_copy = sheet.setup.copyTo(ss);
+      ss_sheet_copy = sheet.setup.copyTo(ss);
       ss_sheet_copy.setName(temp_sheet_t[i]);
       ss.getSheetByName(temp_sheet_t[i]).activate();
       ss.moveActiveSheet(i + 7);
@@ -213,17 +218,16 @@ function work_addsheet(){
     }
   }
   // trial!B27の入力規則を変更する
-  var temp_range = sheet.trial.getRange('B27');
-  var rule = SpreadsheetApp.newDataValidation();
+  temp_range = sheet.trial.getRange('B27');
   temp_range.clearDataValidations();
   rule.requireValueInList(['観察研究・レジストリ', get_s_p.getProperty('investigator_initiated_trial'), '介入研究（特定臨床研究法対応以外）', get_s_p.getProperty('specified_clinical_trial')], true);
   rule.setAllowInvalid(false);
   rule.build();
   temp_range.setDataValidation(rule);
   // trial!C27の判定式を変更する
-  var temp_addr = temp_range.getA1Notation();
+  temp_addr = temp_range.getA1Notation();
   temp_range.offset(0, 1).setFormula('=IF(' + temp_addr + '="観察研究・レジストリ",1,IF(OR(' + temp_addr + '="' + get_s_p.getProperty('specified_clinical_trial') +'", ' + temp_addr + '="介入研究（特定臨床研究法対応以外）"),2,5))');
-  
+  // 対象シートセット  
   temp_sheet_t = [get_s_p.getProperty('setup_sheet_name'),
                   get_s_p.getProperty('registration_1_sheet_name'),
                  　　get_s_p.getProperty('registration_2_sheet_name'),
@@ -238,9 +242,9 @@ function work_addsheet(){
     sheet.trial.insertRowsAfter(trial_header_row, const_trial_header_col);
     temp_row = trial_header_end_row - trial_header_row + 1;
     temp_range = sheet.trial.getRange(trial_header_row, 1, temp_row, 1);
-    var temp_array = temp_range.getValues();
-    var temp_formulas_range = sheet.trial.getRange(trial_header_row, 2, temp_row, 1);
-    var temp_formulas = temp_formulas_range.getFormulas();
+    temp_array = temp_range.getValues();
+    temp_formulas_range = sheet.trial.getRange(trial_header_row, 2, temp_row, 1);
+    temp_formulas = temp_formulas_range.getFormulas();
     sheet.trial.getRange(trial_header_row, const_trial_header_col, temp_row, 3).clear();
     for (var i = 0; i < temp_sheet_t.length; i++){
       temp_row = (trial_header_row + i);
@@ -256,16 +260,11 @@ function work_addsheet(){
     temp_formulas_range.setFormulas(temp_formulas);
   }
   // trial!コメントの修正
-  var replace_source_str = '"契約期間は"&text($D$32,"yyyy年m月d日")&"〜"&text($E$39,"yyyy年m月d日") & " ("&$C$40&"間）を想定しております。"';
-  var replace_str = '"契約期間は"&text($D$40,"yyyy年m月d日")&"〜"&text($E$40,"yyyy年m月d日") & " ("&$C$40&"間）を想定しております。"'
-  var textFinder = sheet.trial.createTextFinder(replace_source_str).matchFormulaText(true);
   textFinder.replaceAllWith(replace_str);
-
   // total関数再構成
   reconfigure_total(temp_sheet_t);
   reconfigure_total2(temp_sheet_t, parseInt(get_s_p.getProperty('trial_setup_row')) + 1);
   reconfigure_total3(temp_sheet_t, parseInt(get_s_p.getProperty('trial_setup_row')) + 1);
-
   // シート削除
   temp_sheet_t = ['Registration', 'Interim', 'observation'];
   for (var i = 0; i < temp_sheet_t.length; i++){
@@ -278,7 +277,7 @@ function work_addsheet(){
 * シートの保護をかける
 */
 function set_protection(sheet){
-  var unprotected_range = sheet.getRangeList(['F6:F80', 'L:L']).getRanges();
-  var protection = sheet.protect();
+  const unprotected_range = sheet.getRangeList(['F6:F80', 'L:L']).getRanges();
+  const protection = sheet.protect();
   protection.setUnprotectedRanges(unprotected_range);
 }
