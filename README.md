@@ -20,7 +20,7 @@ Quote templateの見積項目を設定するスクリプト
 - total3シート
     - E~H列を削除する。
 - Quotation Requestシート
-シートの内容を全て削除し、Quotation Request（回答）の1行目を貼り付ける。
+1行目にQuotation Request（回答）の1行目を貼り付ける。
 ### 実行PG
 work_migration_script.gs  
     - work_setproperty  
