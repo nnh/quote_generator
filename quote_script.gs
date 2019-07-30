@@ -271,7 +271,7 @@ function set_registration_term_items(target_sheet, array_item, project_managemen
   var set_items_list = [];
   if (target_sheet.getName() == get_s_p.getProperty('setup_sheet_name')){
     if (get_s_p.getProperty('setup_term') < project_management){
-      // setupシートにregistration期間が入っている場合
+      // setupシートに試験期間が入っている場合
       registration_term = project_management - get_s_p.getProperty('setup_term');
     } else if (get_s_p.getProperty('setup_term') > project_management){
       // registration_1シートにsetup期間が入っている場合
@@ -281,6 +281,11 @@ function set_registration_term_items(target_sheet, array_item, project_managemen
     // registration_1シートにsetup期間が入っていたらその分を除く 
     registration_term = project_management - get_s_p.getProperty('flag_overflowing_setup');
     temp_overflowing_setup = 0;
+  } else if (target_sheet.getName() == get_s_p.getProperty('closing_sheet_name')){
+    // closingシートに試験期間が入っている場合
+    if (get_s_p.getProperty('closing_term') < project_management){
+      registration_term = project_management - get_s_p.getProperty('closing_term');
+    }
   }
   get_s_p.setProperty('flag_overflowing_setup', temp_overflowing_setup);
   set_items_list = [
