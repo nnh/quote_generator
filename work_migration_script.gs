@@ -48,7 +48,7 @@ function get_fy_formula(sheet_name, trial_row){
   const get_s_p = PropertiesService.getScriptProperties();
   var temp_str;
   if (sheet_name == get_s_p.getProperty('setup_sheet_name')){
-    temp_str = '=if(' + get_s_p.getProperty('trial_sheet_name') + '!$C$' + trial_row + '<>"", year(edate(' + get_s_p.getProperty('trial_sheet_name') + '!$C$' + trial_row + ', -3)), 2019)';
+    temp_str = '=if(' + get_s_p.getProperty('trial_sheet_name') + '!$C$' + trial_row + '<>"", year(edate(' + get_s_p.getProperty('trial_sheet_name') + '!$D$' + trial_row + ', -3)), 2019)';
   } else { 
     temp_str = '=if(' + get_s_p.getProperty('trial_sheet_name') + '!$C$' + trial_row + '<>"", OFFSET(INDIRECT(ADDRESS(ROW(),COLUMN())), 0, -1)+1, OFFSET(INDIRECT(ADDRESS(ROW(),COLUMN())), 0, -1))';
   }
