@@ -166,9 +166,10 @@ function reconfigure_total3(array_sheet, trial_start_row){
       if (temp_row !== void 0){
         if (item_name == const_sum_str){
           temp_col = getColumnString(insert_col);
+          // 
           temp_str = '=sum(' + temp_col + const_start_row + ':' + temp_col + (j) + ')';
         } else {
-          temp_str = '=' + array_sheet[i] + '!I' + temp_row;
+          temp_str = '=if(or(' + array_sheet[i] + '!B2="",' + array_sheet[i] + '!I' + temp_row + '=""),"",' + array_sheet[i] + '!I' + temp_row + ')';
         }
         temp_array[j][0] = temp_str;
       }
