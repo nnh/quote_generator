@@ -132,7 +132,7 @@ function reconfigure_total2(array_sheet, trial_start_row){
     temp_range.setFormulas(temp_array);
     // 2行目にシート名、4行目に年度
     sheet.total2.getRange(2, insert_col).setValue(array_sheet[i]);
-    temp_str = get_fy_formula(array_sheet[i], parseInt(trial_start_row) + i);
+    temp_str = get_fy_formula(array_sheet[i], parseInt(trial_start_row) + i - 1);
     sheet.total2.getRange(4, insert_col).setFormula(temp_str);
   }
   // 合計列再構成
@@ -164,9 +164,10 @@ function reconfigure_total3(array_sheet, trial_start_row){
       item_name = sheet.total3.getRange(j + 1, 2).getValue();
       temp_row = array_total_item[item_name];
       if (temp_row !== void 0){
-        if (item_name == const_sum_str){
+        if (item_name == ''){
+          temp_str = '';
+        } else if (item_name == const_sum_str){
           temp_col = getColumnString(insert_col);
-          // 
           temp_str = '=sum(' + temp_col + const_start_row + ':' + temp_col + (j) + ')';
         } else {
           temp_str = '=if(or(' + array_sheet[i] + '!B2="",' + array_sheet[i] + '!I' + temp_row + '=""),"",' + array_sheet[i] + '!I' + temp_row + ')';
@@ -177,13 +178,17 @@ function reconfigure_total3(array_sheet, trial_start_row){
     temp_range.setFormulas(temp_array);
     // 2行目にシート名、3行目に年度
     sheet.total3.getRange(2, insert_col).setValue(array_sheet[i]);
-    temp_str = get_fy_formula(array_sheet[i], parseInt(trial_start_row) + i);
+    temp_str = get_fy_formula(array_sheet[i], parseInt(trial_start_row) + i - 1);
     sheet.total3.getRange(3, insert_col).setFormula(temp_str);
   }
   // 合計列再構成
   reconfigure_total_col(sheet.total3, const_start_col + array_sheet.length, row_count, const_start_col, const_start_row + 1, 0, 3);
+  // 書式を会計にする
+  sheet.total3.getRange(const_start_row, const_start_col, row_count - const_start_row, const_start_col + array_sheet.length).setNumberFormat('#,##0;(#,##0)');
 }
 function work_addsheet(){
+  // スクリプトプロパティの設定
+  work_setproperty();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const get_s_p = PropertiesService.getScriptProperties();
   const sheet = {trial:ss.getSheetByName(get_s_p.getProperty('trial_sheet_name')),
@@ -194,13 +199,13 @@ function work_addsheet(){
                  setup:ss.getSheetByName(get_s_p.getProperty('setup_sheet_name')),
                  closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name'))}
   const const_trial_header_col = 3;
-  const trial_header_row = parseInt(get_s_p.getProperty('trial_setup_row'));
   const trial_header_end_row = parseInt(get_s_p.getProperty('trial_closing_row'));
   const rule = SpreadsheetApp.newDataValidation();
   const count_col = getColumnString(get_s_p.getProperty('fy_sheet_count_col'));
   const replace_source_str = '"契約期間は"&text($D$32,"yyyy年m月d日")&"〜"&text($E$39,"yyyy年m月d日") & " ("&$C$40&"間）を想定しております。"';
   const replace_str = '"契約期間は"&text($D$40,"yyyy年m月d日")&"〜"&text($E$40,"yyyy年m月d日") & " ("&$C$40&"間）を想定しております。"'
   const textFinder = sheet.trial.createTextFinder(replace_source_str).matchFormulaText(true);
+  var trial_header_row = parseInt(get_s_p.getProperty('trial_setup_row'));
   var temp_sheet_t = [get_s_p.getProperty('registration_1_sheet_name'),
                       get_s_p.getProperty('registration_2_sheet_name'),
                       get_s_p.getProperty('interim_1_sheet_name'),
