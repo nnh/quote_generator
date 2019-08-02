@@ -108,6 +108,7 @@ function set_trial_sheet(sheet, array_quotation_request){
   const const_registration_end = '症例登録終了日';
   const const_trial_end = '試験終了日';
   const const_facilities = '実施施設数';
+  const const_number_of_cases = '目標症例数';
   const const_trial_start_col = parseInt(get_s_p.getProperty('trial_start_col'));
   const const_trial_end_col = parseInt(get_s_p.getProperty('trial_end_col'));
   const const_trial_setup_row = parseInt(get_s_p.getProperty('trial_setup_row'));
@@ -121,7 +122,7 @@ function set_trial_sheet(sheet, array_quotation_request){
     ['試験課題名', 9],
     ['試験実施番号', 10],
     [const_trial_type, 27],
-    ['目標症例数', 28],
+    [const_number_of_cases, 28],
     [const_facilities, 29],
     ['CRF項目数', 30]
   ];
@@ -136,6 +137,9 @@ function set_trial_sheet(sheet, array_quotation_request){
           } else {
             temp_str = '御参考見積書';
           }
+          break;
+        case const_number_of_cases:
+          get_s_p.setProperty('number_of_cases', temp_str);
           break;
         case const_facilities:
           get_s_p.setProperty('facilities_value', temp_str);
@@ -356,6 +360,8 @@ function set_setup_items(array_quotation_request){
     ['入力の手引作成', 1],
     ['外部監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 1)],
     ['試験開始準備費用', get_count(get_quotation_request_value(array_quotation_request, '試験開始準備費用'), 'あり', get_s_p.getProperty('facilities_value'))],
+    ['保険料', get_count_more_than(get_quotation_request_value(array_quotation_request, '保険料'), 0, 1)],
+    ['治験薬管理（中央）', get_count(get_quotation_request_value(array_quotation_request, '治験薬管理'), 'あり', 1)],
     ['CDISC対応費', get_count(get_quotation_request_value(array_quotation_request, 'CDISC対応'), 'あり', 1)]
   ];
   return(set_items_list);
@@ -367,6 +373,7 @@ function set_registration_items(target_sheet, array_quotation_request){
   var interim_table_count = 0;
   var crb_first_year = '';
   var crb_after_second_year = '';
+  var monitoring_count = get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数');
   var set_items_list = [];
   // 中間解析
   if (target_sheet.getSheetName() == get_s_p.getProperty('interim_1_sheet_name') || target_sheet.getSheetName() == get_s_p.getProperty('interim_2_sheet_name')){
@@ -381,14 +388,25 @@ function set_registration_items(target_sheet, array_quotation_request){
   } else {
     crb_after_second_year = get_count(get_quotation_request_value(array_quotation_request, 'CRB申請'), 'あり', 1);
   }
+  // 1例あたりの実地モニタリング回数
+  if (monitoring_count > 0){
+    monitoring_count = Math.round(monitoring_count * get_s_p.getProperty('number_of_cases') / get_s_p.getProperty('registration_years'));
+  } 　else {
+    monitoring_count = '';
+  }
   set_items_list = [
+    ['開始前モニタリング・必須文書確認', get_count_more_than(get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数'), 0, 
+      get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数'))],
+    ['症例モニタリング・SAE対応', monitoring_count],
     ['CRB申請費用(初年度)', crb_first_year],
     ['CRB申請費用(2年目以降)', crb_after_second_year],
     ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(interim_table_count, 0, 1)],
     [interim_analysis, get_count_more_than(interim_table_count, 0, interim_table_count)],
     ['中間解析報告書作成（出力結果＋表紙）', get_count_more_than(interim_table_count, 0, 1)],
+    ['症例登録', get_count_more_than('症例登録毎の支払', 0, Math.round(get_s_p.getProperty('number_of_cases') / get_s_p.getProperty('registration_years')))],
     ['施設監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 
-                         Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / get_s_p.getProperty('registration_years')))]
+      Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / get_s_p.getProperty('registration_years')))],
+    ['治験薬運搬', get_count(get_quotation_request_value(array_quotation_request, '治験薬運搬'), 'あり', 1)]
   ];
   return(set_items_list);
 }
@@ -411,7 +429,6 @@ function set_closing_items(array_quotation_request){
     }
   }
   set_items_list = [
-    ['開始前モニタリング・必須文書確認', get_count(get_quotation_request_value(array_quotation_request, 'PMDA相談資料作成支援'), 'あり', 1)],
     ['データクリーニング', 1],
     ['データベース固定作業、クロージング', 1],
     ['症例検討会資料作成', clinical_conference],
