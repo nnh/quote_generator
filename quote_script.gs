@@ -239,9 +239,6 @@ function set_trial_comment(str_comment){
     }
   } 
 }
-function test(){
-  set_trial_comment('test');
-}
 /**
 * Setup〜Closing共通項目の設定
 * @param {sheet} target_sheet 対象のシートオブジェクト
