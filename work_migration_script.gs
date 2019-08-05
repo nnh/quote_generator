@@ -37,6 +37,7 @@ function work_setproperty(){
   get_s_p.setProperty('total_sheet_name', 'Total');
   get_s_p.setProperty('total2_sheet_name', 'Total2');
   get_s_p.setProperty('total3_sheet_name', 'Total3');
+  get_s_p.setProperty('trial_comment_range', 'B12:B26');
 }
 /**
 * シート名から年度の計算式を返す

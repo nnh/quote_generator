@@ -217,6 +217,29 @@ function set_range_value(target_sheet, item_name, set_value, const_count_col, ar
     }
 }
 /**
+* trialシートのコメントを追加する。
+* @param {string} str_comment コメント文字列
+* @return none
+*/
+function set_trial_comment(str_comment){
+  const sheet = get_sheets();
+  const get_s_p = PropertiesService.getScriptProperties();
+  const const_range = get_s_p.getProperty('trial_comment_range');
+  var temp_row;  
+  // 既にその文言がコメントに入っていたらスキップする
+ 　　var temp_array = sheet.trial.getRange(const_range).getValues();
+  temp_row = Array.prototype.concat.apply([],temp_array).indexOf(str_comment);
+  if (temp_row == -1){
+    for (var i = 0; i < temp_array.length; i++){
+      if (temp_array[i][0] == ''){
+        temp_array[i][0] = str_comment;
+        sheet.trial.getRange(const_range).setValues(temp_array);
+        break;
+      }
+    }
+  } 
+}
+/**
 * Setup〜Closing共通項目の設定
 * @param {sheet} target_sheet 対象のシートオブジェクト
 * @param {associative array} array_item 項目と行番号の連想配列
@@ -294,6 +317,7 @@ function set_registration_term_items(target_sheet, array_item, project_managemen
     } else if (get_s_p.getProperty('setup_term') > project_management){
       // registration_1シートにsetup期間が入っている場合その期間を退避する
       temp_overflowing_setup = get_s_p.getProperty('setup_term') - project_management;
+      registration_term = '';
     } else {
       registration_term = '';
     }   
@@ -317,8 +341,8 @@ function set_registration_term_items(target_sheet, array_item, project_managemen
   set_items_list = [
     ['データベース管理料', registration_term],
     [temp_str, registration_term],
-    ['安全性管理事務局業務', get_count(get_quotation_request_value(array_quotation_request, '安全性管理事務局設置'), 'あり', registration_term)],
-    ['効果安全性評価委員会事務局業務', get_count(get_quotation_request_value(array_quotation_request, '効安事務局設置'), 'あり', registration_term)]
+    ['安全性管理事務局業務', get_count(get_quotation_request_value(array_quotation_request, '安全性管理事務局設置'), '設置・委託する', registration_term)],
+    ['効果安全性評価委員会事務局業務', get_count(get_quotation_request_value(array_quotation_request, '効安事務局設置'), '設置・委託する', registration_term)]
   ];
   for (var i = 0; i < set_items_list.length; i++){
     temp_row = array_item[set_items_list[i][0]] - 1;
@@ -328,6 +352,11 @@ function set_registration_term_items(target_sheet, array_item, project_managemen
   }
   target_range.setValues(array_count);
 }
+/**
+* setupシートに積む見積項目の設定
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @return {Array.<string>}　項目名と回数の二次元配列
+*/
 function set_setup_items(array_quotation_request){
   const get_s_p = PropertiesService.getScriptProperties();
   var set_items_list = [];
@@ -366,6 +395,11 @@ function set_setup_items(array_quotation_request){
   ];
   return(set_items_list);
 }
+/**
+* setup, closingシート以外に積む見積項目の設定
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @return {Array.<string>}　項目名と回数の二次元配列
+*/
 function set_registration_items(target_sheet, array_quotation_request){
   const get_s_p = PropertiesService.getScriptProperties();
   var set_items_list = [];
@@ -376,11 +410,13 @@ function set_registration_items(target_sheet, array_quotation_request){
   var monitoring_count = get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数');
   var set_items_list = [];
   // 中間解析
-  if (target_sheet.getSheetName() == get_s_p.getProperty('interim_1_sheet_name') || target_sheet.getSheetName() == get_s_p.getProperty('interim_2_sheet_name')){
-    if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
+  if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
       interim_analysis = '中間解析プログラム作成、解析実施（ダブル）';
-      interim_table_count = get_quotation_request_value(array_quotation_request, '中間解析に必要な帳票数');
-    }
+  }
+  if (target_sheet.getSheetName() == get_s_p.getProperty('interim_1_sheet_name') || target_sheet.getSheetName() == get_s_p.getProperty('interim_2_sheet_name')){
+    interim_table_count = get_quotation_request_value(array_quotation_request, '中間解析に必要な帳票数');
+  } else {
+    interim_table_count = 0;
   }
   // CRB申請費用
   if (target_sheet.getSheetName() == get_s_p.getProperty('registration_1_sheet_name')){
@@ -406,18 +442,24 @@ function set_registration_items(target_sheet, array_quotation_request){
     ['症例登録', get_count_more_than('症例登録毎の支払', 0, Math.round(get_s_p.getProperty('number_of_cases') / get_s_p.getProperty('registration_years')))],
     ['施設監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 
       Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / get_s_p.getProperty('registration_years')))],
-    ['治験薬運搬', get_count(get_quotation_request_value(array_quotation_request, '治験薬運搬'), 'あり', 1)]
+    ['治験薬運搬', get_count(get_quotation_request_value(array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('facilities_value'))]
   ];
   return(set_items_list);
 }
+/**
+* closingシートに積む見積項目の設定
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @return {Array.<string>}　項目名と回数の二次元配列
+*/
 function set_closing_items(array_quotation_request){
   const get_s_p = PropertiesService.getScriptProperties();
   var set_items_list = [];
   // csrの作成支援は医師主導治験ならば必須
-  var csr_count = get_count(get_quotation_request_value(array_quotation_request, '研究結果報告書の作成'), 'あり', 1);
+  var csr_count = get_count(get_quotation_request_value(array_quotation_request, '研究結果報告書作成支援'), 'あり', 1);
   // 医師主導治験のみ算定または名称が異なる項目に対応する
   var csr = '研究結果報告書の作成';
   var final_analysis = '最終解析プログラム作成、解析実施（シングル）';
+  var final_analysis_table_count = get_quotation_request_value(array_quotation_request, '統計解析に必要な帳票数');
   var clinical_conference = '';
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
     csr = 'CSRの作成支援';
@@ -427,90 +469,32 @@ function set_closing_items(array_quotation_request){
     if (get_count(get_quotation_request_value(array_quotation_request, '症例検討会'), 'あり', 1) > 0){
       clinical_conference = 1;
     }
+    // 医師主導治験で統計解析に必要な帳票数が50未満であれば50をセットしtrialシートのコメントに追加
+    if ((final_analysis_table_count > 0) && (final_analysis_table_count < 50)) {
+      final_analysis_table_count = 50;
+      set_trial_comment('統計解析に必要な帳票数を50表と想定しております。');
+    }
   }
   set_items_list = [
     ['データクリーニング', 1],
     ['データベース固定作業、クロージング', 1],
     ['症例検討会資料作成', clinical_conference],
-    ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(get_quotation_request_value(array_quotation_request, '統計解析に必要な帳票数'), 0, 1)],
-    [final_analysis, get_count_more_than(get_quotation_request_value(array_quotation_request, '統計解析に必要な帳票数'), 0, get_quotation_request_value(array_quotation_request, '統計解析に必要な帳票数'))],
-    ['最終解析報告書作成（出力結果＋表紙）', get_count_more_than(get_quotation_request_value(array_quotation_request, '統計解析に必要な帳票数'), 0, 1)],
+    ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(final_analysis_table_count, 0, 1)],
+    [final_analysis, get_count_more_than(final_analysis_table_count, 0, final_analysis_table_count)],
+    ['最終解析報告書作成（出力結果＋表紙）', get_count_more_than(final_analysis_table_count, 0, 1)],
     [csr, csr_count],
     ['外部監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 1)]
   ];
   return(set_items_list);  
 }
 /**
-* setupシートの編集
+* setup〜closingシートの見積項目の設定
+* @param {sheet} trial_sheet　trialシート
+* @param {sheet} target_sheet　見積を設定するシート
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @param {number} trialシートの試験期間行
+* @return none
 */
-function set_setup_sheet(sheet, array_quotation_request){
-  const get_s_p = PropertiesService.getScriptProperties();
-  const const_trial_start_col = get_s_p.getProperty('trial_start_col');
-  const const_trial_end_col = get_s_p.getProperty('trial_end_col');
-  const const_trial_setup_row = get_s_p.getProperty('trial_setup_row');
-  const const_trial_setup_years = get_s_p.getProperty('trial_years_col');
-  const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
-  const array_item = get_fy_items(sheet.setup, get_s_p.getProperty('fy_sheet_items_col'));
-  // このシートの全期間
-  const project_management = set_all_sheet_common_items(sheet.setup, array_item, 
-                                                      Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_start_col).getValue()),
-                                                      Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_end_col).getValue()));
-  var set_items_list = [];
-  // registration期間があれば
-  set_registration_term_items(sheet.setup, array_item, project_management, array_quotation_request);
-  set_items_list = set_setup_items(array_quotation_request);
-  for (var i = 0; i < set_items_list.length; i++){
-    set_range_value(sheet.setup, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
-  }
-}
-/**
-* registration, interim, observationシートの編集
-*/
-function set_registration_sheet(trial_sheet, target_sheet, array_quotation_request, trial_target_row){
-  const get_s_p = PropertiesService.getScriptProperties();
-  const const_trial_start_col = get_s_p.getProperty('trial_start_col');
-  const const_trial_end_col = get_s_p.getProperty('trial_end_col');
-  const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
-  const array_item = get_fy_items(target_sheet, get_s_p.getProperty('fy_sheet_items_col'));
-  const project_management = set_all_sheet_common_items(target_sheet, array_item, 
-                                                      Moment.moment(trial_sheet.getRange(trial_target_row, const_trial_start_col).getValue()),
-                                                      Moment.moment(trial_sheet.getRange(trial_target_row, const_trial_end_col).getValue()));
-  set_registration_term_items(target_sheet, array_item, project_management, array_quotation_request);
-  set_items_list = set_registration_items(array_quotation_request);
-  for (var i = 0; i < set_items_list.length; i++){
-    set_range_value(target_sheet, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
-  }
-  // 期間が入っていない場合はシートを非表示にする
-  if ((trial_sheet.getRange(trial_target_row, const_trial_start_col).getValue() == '') &&
-      (trial_sheet.getRange(trial_target_row, const_trial_end_col).getValue() == '')){
-    target_sheet.hideSheet();
-  } else {
-    target_sheet.showSheet();
-  }
-}
-/**
-* closingシートの編集
-*/
-function set_closing_sheet(sheet, array_quotation_request){
-  const get_s_p = PropertiesService.getScriptProperties();
-  const array_item = get_fy_items(sheet.closing, get_s_p.getProperty('fy_sheet_items_col'));
-  const const_trial_closing_row = get_s_p.getProperty('trial_closing_row');
-  const const_trial_closing_years = get_s_p.getProperty('trial_years_col');
-  const const_trial_start_col = get_s_p.getProperty('trial_start_col');
-  const const_trial_end_col = get_s_p.getProperty('trial_end_col');
-  const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
-  // このシートの全期間
-  const project_management = set_all_sheet_common_items(sheet.closing, array_item, 
-                                                      Moment.moment(sheet.trial.getRange(const_trial_closing_row, const_trial_start_col).getValue()),
-                                                      Moment.moment(sheet.trial.getRange(const_trial_closing_row, const_trial_end_col).getValue()));
-  var set_items_list = [];
-  // registration期間があれば
-  set_registration_term_items(sheet.closing, array_item, project_management, array_quotation_request);
-  set_items_list = set_setup_items(array_quotation_request);
-  for (var i = 0; i < set_items_list.length; i++){
-    set_range_value(sheet.closing, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
-  }
-}
 function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request, trial_target_row){
   const get_s_p = PropertiesService.getScriptProperties();
   const const_trial_closing_years = get_s_p.getProperty('trial_years_col');
@@ -549,6 +533,7 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
   }
   // 回数を再取得する
   array_count = target_range.getValues();
+  
   for (var i = 0; i < set_items_list.length; i++){
     temp_row = array_item[set_items_list[i][0]] - 1;
     if (temp_row != void 0){
@@ -557,7 +542,9 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
   }
   target_range.setValues(array_count);
 }
-
+/**
+* 見積項目設定
+*/
 function quote_script_main(){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const get_s_p = PropertiesService.getScriptProperties();
@@ -567,11 +554,12 @@ function quote_script_main(){
   const array_target_sheet = [sheet.setup, sheet.registration_1, sheet.registration_2, sheet.interim_1, sheet.interim_2, sheet.observation_1, sheet.observation_2, sheet.closing];
   // Quotation requestシートのA2セルが空白の場合、Quotation requestが入っていないものと判断して処理を終了する
   if (array_quotation_request[1][0] == ''){
+    Browser.msgBox('Quotation requestシートの2行目に情報を貼り付けて再実行してください。');
     return;
   }
   set_trial_sheet(sheet, array_quotation_request);
   for (var i = 0; i < array_target_sheet.length; i++){
     set_value_each_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + i);
   }
-
+  filtervisible();
 }
