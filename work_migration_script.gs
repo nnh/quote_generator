@@ -227,13 +227,13 @@ function work_addsheet(){
   // trial!B27の入力規則を変更する
   temp_range = sheet.trial.getRange('B27');
   temp_range.clearDataValidations();
-  rule.requireValueInList(['観察研究・レジストリ', get_s_p.getProperty('investigator_initiated_trial'), '介入研究（特定臨床研究法対応以外）', get_s_p.getProperty('specified_clinical_trial')], true);
+  rule.requireValueInList(['観察研究・レジストリ', get_s_p.getProperty('investigator_initiated_trial'), '介入研究（特定臨床研究以外）', get_s_p.getProperty('specified_clinical_trial')], true);
   rule.setAllowInvalid(false);
   rule.build();
   temp_range.setDataValidation(rule);
   // trial!C27の判定式を変更する
   temp_addr = temp_range.getA1Notation();
-  temp_range.offset(0, 1).setFormula('=IF(' + temp_addr + '="観察研究・レジストリ",1,IF(OR(' + temp_addr + '="' + get_s_p.getProperty('specified_clinical_trial') +'", ' + temp_addr + '="介入研究（特定臨床研究法対応以外）"),2,5))');
+  temp_range.offset(0, 1).setFormula('=IF(' + temp_addr + '="観察研究・レジストリ",1,IF(OR(' + temp_addr + '="' + get_s_p.getProperty('specified_clinical_trial') +'", ' + temp_addr + '="介入研究（特定臨床研究以外）"),2,5))');
   // 対象シートセット  
   temp_sheet_t = [get_s_p.getProperty('setup_sheet_name'),
                   get_s_p.getProperty('registration_1_sheet_name'),

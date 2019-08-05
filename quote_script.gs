@@ -225,19 +225,22 @@ function set_trial_comment(str_comment){
   const sheet = get_sheets();
   const get_s_p = PropertiesService.getScriptProperties();
   const const_range = get_s_p.getProperty('trial_comment_range');
+  const start_range = sheet.trial.getRange(const_range).getCell(1, 1);
   var temp_row;  
   // 既にその文言がコメントに入っていたらスキップする
- 　　var temp_array = sheet.trial.getRange(const_range).getValues();
-  temp_row = Array.prototype.concat.apply([],temp_array).indexOf(str_comment);
+ 　　var temp_array_values = sheet.trial.getRange(const_range).getValues();
+  temp_row = Array.prototype.concat.apply([],temp_array_values).indexOf(str_comment);
   if (temp_row == -1){
-    for (var i = 0; i < temp_array.length; i++){
-      if (temp_array[i][0] == ''){
-        temp_array[i][0] = str_comment;
-        sheet.trial.getRange(const_range).setValues(temp_array);
+    for (var i = 0; i < temp_array_values.length; i++){
+      if (temp_array_values[i][0] == ''){
+        start_range.offset(i, 0).setValue(str_comment);
         break;
       }
     }
   } 
+}
+function test(){
+  set_trial_comment('test');
 }
 /**
 * Setup〜Closing共通項目の設定
