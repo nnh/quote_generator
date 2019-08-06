@@ -268,6 +268,10 @@ function work_addsheet(){
   }
   // trial!コメントの修正
   textFinder.replaceAllWith(replace_str);
+  // trial!F31「月数」
+  sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')) - 1, 6).setValue('月数');
+  // trial!F40の書式を自動に変更
+  sheet.trial.getRange(parseInt(trial_header_end_row) + 1, 6).setNumberFormat("@");
   // total関数再構成
   reconfigure_total(temp_sheet_t);
   reconfigure_total2(temp_sheet_t, parseInt(get_s_p.getProperty('trial_setup_row')) + 1);
