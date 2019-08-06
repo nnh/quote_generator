@@ -41,8 +41,8 @@ function filterhidden(){
   }
 }
 /**
-* シートの保護権限設定変更
-* シート編集可能者全員の権限を設定する
+* 初回必須処理
+* シート編集可能者全員の権限を設定し、見積設定に必要なスクリプトプロパティを設定する
 * @param none
 * @return none
 */
@@ -53,6 +53,7 @@ function setProtectionEditusers(){
   for (var i = 0; i < protections.length; i++){
    protections[i].addEditors(users)
   }
+  work_setproperty();
 }
 /**
 * 列名から列番号を返す
@@ -136,4 +137,39 @@ function get_sheets(){
                observation_2:ss.getSheetByName(get_s_p.getProperty('observation_2_sheet_name')),
                closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name'))}
   return(sheet);
+}
+/**
+* スクリプトプロパティの設定
+*/
+function work_setproperty(){
+  const get_s_p = PropertiesService.getScriptProperties();
+  get_s_p.setProperty('trial_years_col', 3);
+  get_s_p.setProperty('trial_closing_row', 39);
+  get_s_p.setProperty('quotation_request_sheet_name', 'Quotation Request');
+  get_s_p.setProperty('setup_sheet_name', 'Setup');
+  get_s_p.setProperty('registration_1_sheet_name', 'Registration_1');
+  get_s_p.setProperty('flag_overflowing_setup', 0.0);
+  get_s_p.setProperty('specified_clinical_trial', '特定臨床研究');
+  get_s_p.setProperty('facilities_value', 30.0);
+  get_s_p.setProperty('registration_years', 7.0);
+  get_s_p.setProperty('setup_term', 6.0);
+  get_s_p.setProperty('closing_sheet_name', 'Closing');
+  get_s_p.setProperty('observation_1_sheet_name', 'Observation_1');
+  get_s_p.setProperty('fy_sheet_items_col', 3);
+  get_s_p.setProperty('trial_sheet_name', 'Trial');
+  get_s_p.setProperty('interim_2_sheet_name', 'Interim_2');
+  get_s_p.setProperty('central_monitoring_str', '中央モニタリング');
+  get_s_p.setProperty('trial_start_col', 4);
+  get_s_p.setProperty('trial_setup_row', 32);
+  get_s_p.setProperty('trial_end_col', 5);
+  get_s_p.setProperty('observation_2_sheet_name', 'Observation_2');
+  get_s_p.setProperty('fy_sheet_count_col', 6);
+  get_s_p.setProperty('interim_1_sheet_name', 'Interim_1');
+  get_s_p.setProperty('closing_term', 6.0);
+  get_s_p.setProperty('investigator_initiated_trial', '医師主導治験');
+  get_s_p.setProperty('registration_2_sheet_name', 'Registration_2');
+  get_s_p.setProperty('total_sheet_name', 'Total');
+  get_s_p.setProperty('total2_sheet_name', 'Total2');
+  get_s_p.setProperty('total3_sheet_name', 'Total3');
+  get_s_p.setProperty('trial_comment_range', 'B12:B26');
 }

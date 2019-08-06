@@ -7,38 +7,6 @@ function work_getproperty(){
     Logger.log('get_s_p.setProperty(' + "'" + key + "', " + get_s_p.getProperty(key) + ')');
   }
 }
-function work_setproperty(){
-  const get_s_p = PropertiesService.getScriptProperties();
-  get_s_p.setProperty('trial_years_col', 3);
-  get_s_p.setProperty('trial_closing_row', 39);
-  get_s_p.setProperty('quotation_request_sheet_name', 'Quotation Request');
-  get_s_p.setProperty('setup_sheet_name', 'Setup');
-  get_s_p.setProperty('registration_1_sheet_name', 'Registration_1');
-  get_s_p.setProperty('flag_overflowing_setup', 0.0);
-  get_s_p.setProperty('specified_clinical_trial', '特定臨床研究');
-  get_s_p.setProperty('facilities_value', 30.0);
-  get_s_p.setProperty('registration_years', 7.0);
-  get_s_p.setProperty('setup_term', 6.0);
-  get_s_p.setProperty('closing_sheet_name', 'Closing');
-  get_s_p.setProperty('observation_1_sheet_name', 'Observation_1');
-  get_s_p.setProperty('fy_sheet_items_col', 3);
-  get_s_p.setProperty('trial_sheet_name', 'Trial');
-  get_s_p.setProperty('interim_2_sheet_name', 'Interim_2');
-  get_s_p.setProperty('central_monitoring_str', '中央モニタリング');
-  get_s_p.setProperty('trial_start_col', 4);
-  get_s_p.setProperty('trial_setup_row', 32);
-  get_s_p.setProperty('trial_end_col', 5);
-  get_s_p.setProperty('observation_2_sheet_name', 'Observation_2');
-  get_s_p.setProperty('fy_sheet_count_col', 6);
-  get_s_p.setProperty('interim_1_sheet_name', 'Interim_1');
-  get_s_p.setProperty('closing_term', 6.0);
-  get_s_p.setProperty('investigator_initiated_trial', '医師主導治験');
-  get_s_p.setProperty('registration_2_sheet_name', 'Registration_2');
-  get_s_p.setProperty('total_sheet_name', 'Total');
-  get_s_p.setProperty('total2_sheet_name', 'Total2');
-  get_s_p.setProperty('total3_sheet_name', 'Total3');
-  get_s_p.setProperty('trial_comment_range', 'B12:B26');
-}
 /**
 * シート名から年度の計算式を返す
 * @param {String} sheet_name シート名
@@ -171,7 +139,7 @@ function reconfigure_total3(array_sheet, trial_start_row){
           temp_col = getColumnString(insert_col);
           temp_str = '=sum(' + temp_col + const_start_row + ':' + temp_col + (j) + ')';
         } else {
-          temp_str = '=if(or(' + array_sheet[i] + '!B2="",' + array_sheet[i] + '!I' + temp_row + '=""),"",' + array_sheet[i] + '!I' + temp_row + ')';
+          temp_str = '=if(or(' + array_sheet[i] + '!B2="",' + array_sheet[i] + '!$I' + temp_row + '=""),"",' + array_sheet[i] + '!$I' + temp_row + ')';
         }
         temp_array[j][0] = temp_str;
       }
