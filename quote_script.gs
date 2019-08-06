@@ -67,7 +67,7 @@ function get_trial_start_end_date(input_trial_start_date, input_trial_end_date){
   // registration_1シートの開始日はsetup終了日の翌日
   const registration_1_start_date = setup_end_date.clone().add(1, 'days');  
   // registration期間が1年以上あれば、1年めをregistration_1、残りをregistration_2にセットする
-  const registration_1_end_date = registration_1_start_date.clone().add(1, 'years').subtract(1, 'days');
+  var registration_1_end_date = registration_1_start_date.clone().add(1, 'years').subtract(1, 'days');
   var temp_registration_end_date = registration_1_end_date;
   var registration_2_start_date = ''; 
   var registration_2_end_date = '';
@@ -78,7 +78,12 @@ function get_trial_start_end_date(input_trial_start_date, input_trial_end_date){
     temp_registration_end_date = registration_2_end_date;
   }
   // registrationの年数を取得
-  get_s_p.setProperty('registration_years', get_years(registration_1_start_date, temp_registration_end_date));
+    get_s_p.setProperty('registration_years', get_years(registration_1_start_date, temp_registration_end_date));
+  // closing年度とregistration_1年度の開始日が同じ場合trialシートのregistration_1試験期間年数を空白にする
+  if (registration_1_start_date.isSame(closing_start_date)){
+    registration_1_start_date = '';
+    registration_1_end_date = '';
+  }
   temp_array = [
     [setup_start_date, setup_end_date],
     [registration_1_start_date, registration_1_end_date],
@@ -402,6 +407,7 @@ function set_setup_items(array_quotation_request){
 */
 function set_registration_items(target_sheet, array_quotation_request){
   const get_s_p = PropertiesService.getScriptProperties();
+  const temp_registration_year = get_s_p.getProperty('registration_years');
   var set_items_list = [];
   var interim_analysis = '中間解析プログラム作成、解析実施（シングル）';
   var interim_table_count = 0;
@@ -426,7 +432,7 @@ function set_registration_items(target_sheet, array_quotation_request){
   }
   // 1例あたりの実地モニタリング回数
   if (monitoring_count > 0){
-    monitoring_count = Math.round(monitoring_count * get_s_p.getProperty('number_of_cases') / get_s_p.getProperty('registration_years'));
+    monitoring_count = Math.round(monitoring_count * get_s_p.getProperty('number_of_cases') / temp_registration_year);
   } 　else {
     monitoring_count = '';
   }
@@ -439,9 +445,9 @@ function set_registration_items(target_sheet, array_quotation_request){
     ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(interim_table_count, 0, 1)],
     [interim_analysis, get_count_more_than(interim_table_count, 0, interim_table_count)],
     ['中間解析報告書作成（出力結果＋表紙）', get_count_more_than(interim_table_count, 0, 1)],
-    ['症例登録', get_count_more_than('症例登録毎の支払', 0, Math.round(get_s_p.getProperty('number_of_cases') / get_s_p.getProperty('registration_years')))],
+    ['症例登録', get_count_more_than('症例登録毎の支払', 0, Math.round(get_s_p.getProperty('number_of_cases') / temp_registration_year))],
     ['施設監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 
-      Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / get_s_p.getProperty('registration_years')))],
+      Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / temp_registration_year))],
     ['治験薬運搬', get_count(get_quotation_request_value(array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('facilities_value'))]
   ];
   return(set_items_list);

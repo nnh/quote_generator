@@ -203,7 +203,7 @@ function work_addsheet(){
   const trial_header_end_row = parseInt(get_s_p.getProperty('trial_closing_row'));
   const rule = SpreadsheetApp.newDataValidation();
   const count_col = getColumnString(get_s_p.getProperty('fy_sheet_count_col'));
-  const replace_source_str = '"契約期間は"&text($D$32,"yyyy年m月d日")&"〜"&text($E$39,"yyyy年m月d日") & " ("&$C$40&"間）を想定しております。"';
+  const replace_source_str = '"契約期間は"&text($D$32,"yyyy年m月d日")&"〜"&text($E$36,"yyyy年m月d日") & " ("&$C$37&"間）を想定しております。"';
   const replace_str = '"契約期間は"&text($D$40,"yyyy年m月d日")&"〜"&text($E$40,"yyyy年m月d日") & " ("&$C$40&"間）を想定しております。"'
   const textFinder = sheet.trial.createTextFinder(replace_source_str).matchFormulaText(true);
   var trial_header_row = parseInt(get_s_p.getProperty('trial_setup_row'));
