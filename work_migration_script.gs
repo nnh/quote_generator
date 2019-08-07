@@ -186,6 +186,15 @@ function work_addsheet(){
                       get_s_p.getProperty('interim_2_sheet_name'),
                       get_s_p.getProperty('observation_2_sheet_name')];
   var temp_row, ss_sheet_copy, temp_range, temp_addr, temp_array, temp_formulas_range, temp_formulas;
+  // quotation_requestシートの修正
+  const quotation_request_header = [['タイムスタンプ', '見積種別', '見積発行先', '研究代表者名', '試験課題名', '試験実施番号', '試験種別', 'PMDA相談資料作成支援', 'AMED申請資料作成支援', 
+                                     '1例あたりの実地モニタリング回数', '年間1施設あたりの必須文書実地モニタリング回数', '監査対象施設数', '保険料', '治験薬管理', '治験薬運搬', 'CRB申請', 
+                                     '効安事務局設置', '安全性管理事務局設置', '研究結果報告書作成支援', '目標症例数', '実施施設数', 'CRF項目数', '症例登録開始日', '症例登録終了日', 
+                                     '副作用モニタリング終了日', '試験終了日', 'キックオフミーティング', '症例検討会', 'その他会議（のべ回数）', '中間解析に必要な帳票数', '中間解析の頻度', 
+                                     '統計解析に必要な帳票数', '研究協力費、負担軽減費配分管理', '研究協力費、負担軽減費', '試験開始準備費用', '症例登録毎の支払', '症例最終報告書提出毎の支払', 
+                                     '備考', 'CDISC対応']];
+  sheet.quotation_request.clearContents();
+  sheet.quotation_request.getRange(1, 1, 1, aaa[0].length).setValues(aaa);
   // シート作成
   for (var i = 0; i < temp_sheet_t.length; i++){
     if (ss.getSheetByName(temp_sheet_t[i]) == null){
