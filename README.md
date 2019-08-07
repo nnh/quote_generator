@@ -16,12 +16,6 @@ MHMchiX6c1bwSqGM1PZiW_PxhMjh3Sh48
 
 ![Moment](https://user-images.githubusercontent.com/24307469/62115717-d90fd000-b2f3-11e9-9ec0-72c61f28af09.png)  
 ## Quote Templateのレイアウト変更
-### 前作業
-- total2シート, total3シート
-    - E~H列を削除する。
-- Quotation Requestシート
-    - 1行目にQuotation Request（回答）の1行目を貼り付ける。
-    
 ### 実行PG
 work_migration_script.gs  
     - work_addsheet  
