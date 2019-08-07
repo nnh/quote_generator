@@ -194,7 +194,7 @@ function work_addsheet(){
                                      '統計解析に必要な帳票数', '研究協力費、負担軽減費配分管理', '研究協力費、負担軽減費', '試験開始準備費用', '症例登録毎の支払', '症例最終報告書提出毎の支払', 
                                      '備考', 'CDISC対応']];
   sheet.quotation_request.clearContents();
-  sheet.quotation_request.getRange(1, 1, 1, aaa[0].length).setValues(aaa);
+  sheet.quotation_request.getRange(1, 1, 1, quotation_request_header[0].length).setValues(quotation_request_header);
   // シート作成
   for (var i = 0; i < temp_sheet_t.length; i++){
     if (ss.getSheetByName(temp_sheet_t[i]) == null){
