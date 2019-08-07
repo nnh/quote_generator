@@ -89,6 +89,8 @@ function reconfigure_total2(array_sheet, trial_start_row){
   const const_start_row = 5;
   const row_count = sheet.total2.getLastRow();
   var insert_col, temp_str, temp_range, temp_array;
+  // E~H列を削除
+  sheet.total2.deleteColumns(5, 4);
   // setup~closing列再構成  
   sheet.total2.insertColumnsAfter(const_start_col, array_sheet.length - 1);
   for (var i = 0; i < array_sheet.length; i++){
@@ -123,6 +125,8 @@ function reconfigure_total3(array_sheet, trial_start_row){
  　　const array_total_item = get_fy_items(sheet.total, 2);
   const row_count = sheet.total3.getLastRow();
   var insert_col, temp_str, temp_range, temp_array, item_name, temp_row, temp_col;
+  // E~H列を削除
+  sheet.total3.deleteColumns(5, 4);
   // setup~closing列再構成  
   sheet.total3.insertColumnsAfter(const_start_col, array_sheet.length - 1);
   for (var i = 0; i < array_sheet.length; i++){
@@ -178,8 +182,8 @@ function work_addsheet(){
   var temp_sheet_t = [get_s_p.getProperty('registration_1_sheet_name'),
                       get_s_p.getProperty('registration_2_sheet_name'),
                       get_s_p.getProperty('interim_1_sheet_name'),
-                      get_s_p.getProperty('interim_2_sheet_name'),
                       get_s_p.getProperty('observation_1_sheet_name'),
+                      get_s_p.getProperty('interim_2_sheet_name'),
                       get_s_p.getProperty('observation_2_sheet_name')];
   var temp_row, ss_sheet_copy, temp_range, temp_addr, temp_array, temp_formulas_range, temp_formulas;
   // シート作成
@@ -207,8 +211,8 @@ function work_addsheet(){
                   get_s_p.getProperty('registration_1_sheet_name'),
                  　　get_s_p.getProperty('registration_2_sheet_name'),
                   get_s_p.getProperty('interim_1_sheet_name'),
-                  get_s_p.getProperty('interim_2_sheet_name'),
                   get_s_p.getProperty('observation_1_sheet_name'),
+                  get_s_p.getProperty('interim_2_sheet_name'),
                   get_s_p.getProperty('observation_2_sheet_name'),
                   get_s_p.getProperty('closing_sheet_name')];
   // trialシートに試験期間年月行追加

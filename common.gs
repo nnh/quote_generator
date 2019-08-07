@@ -132,8 +132,8 @@ function get_sheets(){
                registration_1:ss.getSheetByName(get_s_p.getProperty('registration_1_sheet_name')),
                registration_2:ss.getSheetByName(get_s_p.getProperty('registration_2_sheet_name')),
                interim_1:ss.getSheetByName(get_s_p.getProperty('interim_1_sheet_name')),
-               interim_2:ss.getSheetByName(get_s_p.getProperty('interim_2_sheet_name')),
                observation_1:ss.getSheetByName(get_s_p.getProperty('observation_1_sheet_name')),
+               interim_2:ss.getSheetByName(get_s_p.getProperty('interim_2_sheet_name')),
                observation_2:ss.getSheetByName(get_s_p.getProperty('observation_2_sheet_name')),
                closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name'))}
   return(sheet);
