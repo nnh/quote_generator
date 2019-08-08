@@ -150,9 +150,6 @@ function work_setproperty(){
   get_s_p.setProperty('registration_1_sheet_name', 'Registration_1');
   get_s_p.setProperty('flag_overflowing_setup', 0.0);
   get_s_p.setProperty('specified_clinical_trial', '特定臨床研究');
-  get_s_p.setProperty('facilities_value', 30.0);
-  get_s_p.setProperty('registration_years', 7.0);
-  get_s_p.setProperty('setup_term', 6.0);
   get_s_p.setProperty('closing_sheet_name', 'Closing');
   get_s_p.setProperty('observation_1_sheet_name', 'Observation_1');
   get_s_p.setProperty('fy_sheet_items_col', 3);
@@ -165,7 +162,6 @@ function work_setproperty(){
   get_s_p.setProperty('observation_2_sheet_name', 'Observation_2');
   get_s_p.setProperty('fy_sheet_count_col', 6);
   get_s_p.setProperty('interim_1_sheet_name', 'Interim_1');
-  get_s_p.setProperty('closing_term', 6.0);
   get_s_p.setProperty('investigator_initiated_trial', '医師主導治験');
   get_s_p.setProperty('registration_2_sheet_name', 'Registration_2');
   get_s_p.setProperty('total_sheet_name', 'Total');
