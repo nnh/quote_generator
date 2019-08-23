@@ -135,7 +135,8 @@ function get_sheets(){
                observation_1:ss.getSheetByName(get_s_p.getProperty('observation_1_sheet_name')),
                interim_2:ss.getSheetByName(get_s_p.getProperty('interim_2_sheet_name')),
                observation_2:ss.getSheetByName(get_s_p.getProperty('observation_2_sheet_name')),
-               closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name'))}
+               closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name')),
+               items:ss.getSheetByName(get_s_p.getProperty('items_sheet_name'))}
   return(sheet);
 }
 /**
@@ -143,29 +144,34 @@ function get_sheets(){
 */
 function work_setproperty(){
   const get_s_p = PropertiesService.getScriptProperties();
-  get_s_p.setProperty('trial_years_col', 3);
-  get_s_p.setProperty('trial_closing_row', 39);
-  get_s_p.setProperty('quotation_request_sheet_name', 'Quotation Request');
-  get_s_p.setProperty('setup_sheet_name', 'Setup');
-  get_s_p.setProperty('registration_1_sheet_name', 'Registration_1');
-  get_s_p.setProperty('flag_overflowing_setup', 0.0);
-  get_s_p.setProperty('specified_clinical_trial', '特定臨床研究');
-  get_s_p.setProperty('closing_sheet_name', 'Closing');
-  get_s_p.setProperty('observation_1_sheet_name', 'Observation_1');
-  get_s_p.setProperty('fy_sheet_items_col', 3);
-  get_s_p.setProperty('trial_sheet_name', 'Trial');
-  get_s_p.setProperty('interim_2_sheet_name', 'Interim_2');
-  get_s_p.setProperty('central_monitoring_str', '中央モニタリング');
-  get_s_p.setProperty('trial_start_col', 4);
-  get_s_p.setProperty('trial_setup_row', 32);
-  get_s_p.setProperty('trial_end_col', 5);
-  get_s_p.setProperty('observation_2_sheet_name', 'Observation_2');
-  get_s_p.setProperty('fy_sheet_count_col', 6);
-  get_s_p.setProperty('interim_1_sheet_name', 'Interim_1');
-  get_s_p.setProperty('investigator_initiated_trial', '医師主導治験');
-  get_s_p.setProperty('registration_2_sheet_name', 'Registration_2');
   get_s_p.setProperty('total_sheet_name', 'Total');
   get_s_p.setProperty('total2_sheet_name', 'Total2');
   get_s_p.setProperty('total3_sheet_name', 'Total3');
+  get_s_p.setProperty('setup_sheet_name', 'Setup');
+  get_s_p.setProperty('registration_1_sheet_name', 'Registration_1');
+  get_s_p.setProperty('registration_2_sheet_name', 'Registration_2');
+  get_s_p.setProperty('interim_1_sheet_name', 'Interim_1');
+  get_s_p.setProperty('observation_1_sheet_name', 'Observation_1');
+  get_s_p.setProperty('observation_2_sheet_name', 'Observation_2');
+  get_s_p.setProperty('interim_2_sheet_name', 'Interim_2');
+  get_s_p.setProperty('closing_sheet_name', 'Closing');
+  get_s_p.setProperty('trial_sheet_name', 'Trial');
+  get_s_p.setProperty('items_sheet_name', 'Items');
+  get_s_p.setProperty('quotation_request_sheet_name', 'Quotation Request');
+  get_s_p.setProperty('investigator_initiated_trial', '医師主導治験');
+  get_s_p.setProperty('specified_clinical_trial', '特定臨床研究');
+  get_s_p.setProperty('central_monitoring_str', '中央モニタリング');
+  get_s_p.setProperty('flag_overflowing_setup', 0.0);
+  get_s_p.setProperty('fy_sheet_items_col', 3);
+  get_s_p.setProperty('trial_start_col', 4);
+  get_s_p.setProperty('trial_end_col', 5);
+  get_s_p.setProperty('trial_years_col', 3);
+  get_s_p.setProperty('trial_setup_row', 32);
+  get_s_p.setProperty('trial_closing_row', 39);
+  get_s_p.setProperty('fy_sheet_count_col', 6);
+  get_s_p.setProperty('trial_number_of_cases_row', 28);
+  get_s_p.setProperty('trial_const_facilities_row', 29);
   get_s_p.setProperty('trial_comment_range', 'B12:B26');
+  get_s_p.setProperty('function_number_of_cases', '=' + get_s_p.getProperty('trial_sheet_name') + '!B' + parseInt(get_s_p.getProperty('trial_number_of_cases_row'))); 
+  get_s_p.setProperty('function_facilities', '=' + get_s_p.getProperty('trial_sheet_name') + '!B' + parseInt(get_s_p.getProperty('trial_const_facilities_row'))); 
 }

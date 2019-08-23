@@ -127,8 +127,8 @@ function set_trial_sheet(sheet, array_quotation_request){
     ['試験課題名', 9],
     ['試験実施番号', 10],
     [const_trial_type, 27],
-    [const_number_of_cases, 28],
-    [const_facilities, 29],
+    [const_number_of_cases, get_s_p.getProperty('trial_number_of_cases_row')],
+    [const_facilities, get_s_p.getProperty('trial_const_facilities_row')], 
     ['CRF項目数', 30]
   ];
   var temp_str, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total, trial_start_date, registration_end_date, trial_end_date, array_trial_date;
@@ -381,7 +381,7 @@ function set_setup_items(array_quotation_request){
     ['検討会実施（TV会議等）', 4],
     ['PMDA相談資料作成支援', get_count(get_quotation_request_value(array_quotation_request, 'PMDA相談資料作成支援'), 'あり', 1)],
     ['AMED申請資料作成支援', get_count(get_quotation_request_value(array_quotation_request, 'AMED申請資料作成支援'), 'あり', 1)],
-    ['特定臨床研究法申請資料作成支援', get_count(get_s_p.getProperty('trial_type_value'), get_s_p.getProperty('specified_clinical_trial'), get_s_p.getProperty('facilities_value'))],
+    ['特定臨床研究法申請資料作成支援', get_count(get_s_p.getProperty('trial_type_value'), get_s_p.getProperty('specified_clinical_trial'), get_s_p.getProperty('function_facilities'))],
     ['ミーティング準備・実行', get_count(get_quotation_request_value(array_quotation_request, 'キックオフミーティング'), 'あり', 1)],
     ['SOP一式、CTR登録案、TMF雛形', sop],
     [office_irb_str, office_irb],
@@ -393,7 +393,7 @@ function set_setup_items(array_quotation_request){
     ['初期アカウント設定（施設・ユーザー）、IRB承認確認', dm_irb],
     ['入力の手引作成', 1],
     ['外部監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 1)],
-    ['試験開始準備費用', get_count(get_quotation_request_value(array_quotation_request, '試験開始準備費用'), 'あり', get_s_p.getProperty('facilities_value'))],
+    ['試験開始準備費用', get_count(get_quotation_request_value(array_quotation_request, '試験開始準備費用'), 'あり', get_s_p.getProperty('function_facilities'))],
     ['保険料', get_count_more_than(get_quotation_request_value(array_quotation_request, '保険料'), 0, 1)],
     ['治験薬管理（中央）', get_count(get_quotation_request_value(array_quotation_request, '治験薬管理'), 'あり', 1)],
     ['CDISC対応費', get_count(get_quotation_request_value(array_quotation_request, 'CDISC対応'), 'あり', 1)]
@@ -432,7 +432,8 @@ function set_registration_items(target_sheet, array_quotation_request){
   }
   // 1例あたりの実地モニタリング回数
   if (monitoring_count > 0){
-    monitoring_count = Math.round(monitoring_count * get_s_p.getProperty('number_of_cases') / temp_registration_year);
+    //monitoring_count = Math.round(monitoring_count * get_s_p.getProperty('number_of_cases') / temp_registration_year);
+    monitoring_count = '=round(' + monitoring_count + ' * ' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')'
   } 　else {
     monitoring_count = '';
   }
@@ -445,10 +446,11 @@ function set_registration_items(target_sheet, array_quotation_request){
     ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(interim_table_count, 0, 1)],
     [interim_analysis, get_count_more_than(interim_table_count, 0, interim_table_count)],
     ['中間解析報告書作成（出力結果＋表紙）', get_count_more_than(interim_table_count, 0, 1)],
-    ['症例登録', get_count_more_than('症例登録毎の支払', 0, Math.round(get_s_p.getProperty('number_of_cases') / temp_registration_year))],
+//    ['症例登録', get_count_more_than('症例登録毎の支払', 0, Math.round(get_s_p.getProperty('number_of_cases') / temp_registration_year))],
+    ['症例登録', get_count_more_than('症例登録毎の支払', 0, '=round(' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')')],
     ['施設監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 
       Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / temp_registration_year))],
-    ['治験薬運搬', get_count(get_quotation_request_value(array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('facilities_value'))]
+    ['治験薬運搬', get_count(get_quotation_request_value(array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('function_facilities'))]
   ];
   return(set_items_list);
 }
@@ -547,6 +549,13 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
     }
   }
   target_range.setValues(array_count);
+  // 数式のみ再設定
+  for (var i = 0; i < set_items_list.length; i++){
+    if (set_items_list[i][0].substr(0, 1) == '='){
+      temp_row = array_item[set_items_list[i][0]] - 1;
+      target_range.GetRange(1, 1).offset(temp_row, 0).setFormula(set_items_list[i]);
+    }
+  }
 }
 /**
 * 見積項目設定
