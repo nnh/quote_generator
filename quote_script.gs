@@ -61,7 +61,7 @@ function get_trial_start_end_date(input_trial_start_date, input_trial_end_date){
   // setupシートの最終日はsetup開始年度の3/31
   const setup_end_date = Moment.moment([setup_start_date.clone().subtract(3, 'months').year()　+ 1, 2, 31]);
   // closing終了日
-  const closing_end_date = trial_end_date.clone().add(parseInt(get_s_p.getProperty('closing_term')), 'months');
+  const closing_end_date = trial_end_date.clone().add(1, 'days').add(parseInt(get_s_p.getProperty('closing_term')), 'months').subtract(1, 'days');
   // closingシートの開始日はclosing終了年度の4/1
   const closing_start_date = Moment.moment([closing_end_date.clone().subtract(3, 'months').year(), 3, 1]);
   // registration_1シートの開始日はsetup終了日の翌日
@@ -432,7 +432,6 @@ function set_registration_items(target_sheet, array_quotation_request){
   }
   // 1例あたりの実地モニタリング回数
   if (monitoring_count > 0){
-    //monitoring_count = Math.round(monitoring_count * get_s_p.getProperty('number_of_cases') / temp_registration_year);
     monitoring_count = '=round(' + monitoring_count + ' * ' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')'
   } 　else {
     monitoring_count = '';
@@ -446,8 +445,7 @@ function set_registration_items(target_sheet, array_quotation_request){
     ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(interim_table_count, 0, 1)],
     [interim_analysis, get_count_more_than(interim_table_count, 0, interim_table_count)],
     ['中間解析報告書作成（出力結果＋表紙）', get_count_more_than(interim_table_count, 0, 1)],
-//    ['症例登録', get_count_more_than('症例登録毎の支払', 0, Math.round(get_s_p.getProperty('number_of_cases') / temp_registration_year))],
-    ['症例登録', get_count_more_than('症例登録毎の支払', 0, '=round(' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')')],
+    ['症例登録', get_count(get_quotation_request_value(array_quotation_request, '症例登録毎の支払'), 'あり', '=round(' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')')],
     ['施設監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 
       Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / temp_registration_year))],
     ['治験薬運搬', get_count(get_quotation_request_value(array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('function_facilities'))]
@@ -491,6 +489,7 @@ function set_closing_items(array_quotation_request){
     [final_analysis, get_count_more_than(final_analysis_table_count, 0, final_analysis_table_count)],
     ['最終解析報告書作成（出力結果＋表紙）', get_count_more_than(final_analysis_table_count, 0, 1)],
     [csr, csr_count],
+    ['症例報告', get_count(get_quotation_request_value(array_quotation_request, '症例最終報告書提出毎の支払'), 'あり', get_s_p.getProperty('function_number_of_cases'))],
     ['外部監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 1)]
   ];
   return(set_items_list);  
