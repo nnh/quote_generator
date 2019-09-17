@@ -174,4 +174,74 @@ function work_setproperty(){
   get_s_p.setProperty('trial_comment_range', 'B12:B26');
   get_s_p.setProperty('function_number_of_cases', '=' + get_s_p.getProperty('trial_sheet_name') + '!B' + parseInt(get_s_p.getProperty('trial_number_of_cases_row'))); 
   get_s_p.setProperty('function_facilities', '=' + get_s_p.getProperty('trial_sheet_name') + '!B' + parseInt(get_s_p.getProperty('trial_const_facilities_row'))); 
+  get_s_p.setProperty('folder_id', '');
+}
+/**
+* ブック全体のPDFとTotal2, Total3を横方向で出力したPDFを作成する
+* @param none
+* @return none
+*/
+function ssToPdf(){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws_t = ss.getSheets();
+  var temp_target_sheets = get_sheets();
+  const excluded_sheets = ['trial', 'items', 'quotation_request'];
+  temp_target_sheets.quote = ss.getSheetByName('Quote');
+  excluded_sheets.map(function(x){ delete temp_target_sheets[x] });
+  var target_sheetsName = [];
+  Object.keys(temp_target_sheets).forEach(function(x){
+    target_sheetsName.push(this[x].getName());
+  }, temp_target_sheets);
+  var show_sheets = ws_t.map(function(x){
+    if (!(x.isSheetHidden())){
+      var show_sheets = x;
+    } 
+    if (this.indexOf(x.getName()) == -1){
+      x.hideSheet();
+    }
+    return show_sheets;
+  }, target_sheetsName);
+  // remove null
+  show_sheets = show_sheets.filter(Boolean);
+  convertSpreadsheetToPdf(null, true);
+  if (show_sheets !== void　0){
+    show_sheets.map(function(x){ x.showSheet(); });
+  }
+  convertSpreadsheetToPdf('Total2',false);
+  convertSpreadsheetToPdf('Total3',false);
+}
+/**
+* PDFを作成する
+* @param {string} sheet_name シート名
+* @param {boolean} portrait true:vertical false:Horizontal
+* @return none
+*/
+function convertSpreadsheetToPdf(sheet_name, portrait) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const folder_id = PropertiesService.getScriptProperties().getProperty("folder_id");
+  const output_folder = DriveApp.getFolderById(folder_id);
+  const url_base = ss.getUrl().replace(/edit$/,'');
+  var pdfName = ss.getName();
+  var str_id = '&id=' +ss.getId();
+  if (sheet_name != null){
+    var sheet_id = ss.getSheetByName(sheet_name).getSheetId();
+    str_id = '&gid=' + sheet_id;
+    pdfName = sheet_name;
+  }
+  const url_ext = 'export?exportFormat=pdf&format=pdf'
+      + str_id
+      + '&size=letter'
+      + '&portrait=' + portrait 
+      + '&fitw=true'
+      + '&sheetnames=false&printtitle=false&pagenumbers=false'
+      + '&gridlines=false'  // hide gridlines
+      + '&fzr=false';       // do not repeat row headers (frozen rows) on each page
+  const options = {
+    headers: {
+      'Authorization': 'Bearer ' +  ScriptApp.getOAuthToken(),
+    }
+  }
+  const response = UrlFetchApp.fetch(url_base + url_ext, options);
+  const blob = response.getBlob().setName(pdfName + '.pdf');
+  output_folder.createFile(blob);
 }
