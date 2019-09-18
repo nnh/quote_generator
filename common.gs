@@ -208,13 +208,14 @@ function ssToPdf(){
   // remove null
   show_sheets = show_sheets.filter(Boolean);
   filterhidden();
-  convertSpreadsheetToPdf(null, true);
+  total2_3_show_hidden_cols();
+  convertSpreadsheetToPdf(null, true, 2);
   if (show_sheets !== void　0){
     show_sheets.map(function(x){ x.showSheet(); });
   }
   pdf_h.map(function(x){
     if (!(ss.getSheetByName(x).isSheetHidden())){
-      convertSpreadsheetToPdf(x, false); 
+      convertSpreadsheetToPdf(x, false, 4); 
     }
   });
 }
@@ -222,9 +223,10 @@ function ssToPdf(){
 * PDFを作成する
 * @param {string} sheet_name シート名
 * @param {boolean} portrait true:vertical false:Horizontal
+* @param {number} scale 1= 標準100%, 2= 幅に合わせる, 3= 高さに合わせる,  4= ページに合わせる
 * @return none
 */
-function convertSpreadsheetToPdf(sheet_name, portrait) {
+function convertSpreadsheetToPdf(sheet_name, portrait, scale){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const folder_id = PropertiesService.getScriptProperties().getProperty("folder_id");
   const output_folder = DriveApp.getFolderById(folder_id);
@@ -241,6 +243,7 @@ function convertSpreadsheetToPdf(sheet_name, portrait) {
       + '&size=letter'
       + '&portrait=' + portrait 
       + '&fitw=true'
+      + '&scale=' + scale
       + '&sheetnames=false&printtitle=false&pagenumbers=false'
       + '&gridlines=false'  // hide gridlines
       + '&fzr=false';       // do not repeat row headers (frozen rows) on each page
@@ -252,4 +255,72 @@ function convertSpreadsheetToPdf(sheet_name, portrait) {
   const response = UrlFetchApp.fetch(url_base + url_ext, options);
   const blob = response.getBlob().setName(pdfName + '.pdf');
   output_folder.createFile(blob);
+}
+/**
+* 「合計」の列または行の番号を返す
+* @param {sheet} sheet 対象シート
+* @param {boolean} target true:列, false:行
+* @param {number} header_row 見出し行の番号
+* @param {number} header_col 見出し列の番号
+* @return number
+*/
+function get_col_row_number(sheet, target, header_row, header_col){
+  var last_col = 1;
+  var last_row = 1;
+  if (target){
+    last_col = sheet.getLastColumn();
+  } else {
+    last_row = sheet.getLastRow();
+  }
+  var temp_header = sheet.getRange(header_row, header_col, last_row, last_col).getValues();
+  var header = [];
+  if (!target){
+    temp_header.map(function(x){ this.push(x[0]); }, header);
+  } else {
+    header = temp_header[0];
+  }
+  var sum_col_row = header.map(function(x, idx){
+    if (x == '合計'){
+      return(idx);
+    }
+  });
+  sum_col_row = sum_col_row.filter(Boolean)[0];
+  if (target){
+    return(sum_col_row + header_col);
+  } else {
+    return(sum_col_row + header_row);
+  }
+}
+/**
+* Total2, Total3シート
+* 合計0円の列を非表示に、0円以上の列を表示にする
+* @param {string} sheet_name シート名
+* @param {number} start_col setup列の番号
+* @param {number} header_row 見出し行の番号
+* @param {number} header_col 見出し列の番号
+* @return none
+*/
+function show_hidden_cols(sheet_name, start_col, header_row, header_col){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const target_sheet = ss.getSheetByName(sheet_name);
+  // 「合計」列を取得
+  const sum_col = get_col_row_number(target_sheet, true, header_row, header_col);
+  // 合計列の前までを処理範囲にする
+  const last_col = sum_col - start_col;
+  // 「合計」行を取得
+  const sum_row = get_col_row_number(target_sheet, false, header_row, header_col);
+  // 「合計」行が0より大きい数値の場合のみ表示
+  const target_sum_rows = target_sheet.getRange(sum_row, start_col, 1, last_col);
+  const sum_row_values = target_sum_rows.getValues();
+  for (var i = 0; i < last_col; i++){
+    if (target_sum_rows.offset(0, i, 1, 1).getValue() > 0){
+      target_sheet.unhideColumn(target_sum_rows.offset(0, i, 1, 1));
+    } else {
+      target_sheet.hideColumn(target_sum_rows.offset(0, i, 1, 1));
+    }
+  }  
+}
+function total2_3_show_hidden_cols(){
+  show_hidden_cols('Total2', 4, 4, 2);
+  show_hidden_cols('Total3', 4, 3, 2);
 }
