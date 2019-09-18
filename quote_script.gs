@@ -580,6 +580,10 @@ function quote_script_main(){
     Browser.msgBox('Quotation requestシートの2行目に情報を貼り付けて再実行してください。');
     return;
   }
+  // 初回のみsetProtectionEditusersを実行
+  if (get_s_p.getProperty('quote_sheet_name') === null){
+    setProtectionEditusers();
+  }
   set_trial_sheet(sheet, array_quotation_request);
   for (var i = 0; i < array_target_sheet.length; i++){
     set_value_each_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + i);

@@ -207,6 +207,7 @@ function ssToPdf(){
   }, target_sheetsName);
   // remove null
   show_sheets = show_sheets.filter(Boolean);
+  filterhidden();
   convertSpreadsheetToPdf(null, true);
   if (show_sheets !== void　0){
     show_sheets.map(function(x){ x.showSheet(); });
