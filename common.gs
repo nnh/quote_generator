@@ -144,6 +144,7 @@ function get_sheets(){
 */
 function work_setproperty(){
   const get_s_p = PropertiesService.getScriptProperties();
+  get_s_p.setProperty('quote_sheet_name', 'Quote');
   get_s_p.setProperty('total_sheet_name', 'Total');
   get_s_p.setProperty('total2_sheet_name', 'Total2');
   get_s_p.setProperty('total3_sheet_name', 'Total3');
@@ -182,24 +183,27 @@ function work_setproperty(){
 * @return none
 */
 function ssToPdf(){
+  const get_s_p = PropertiesService.getScriptProperties();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const ws_t = ss.getSheets();
-  var temp_target_sheets = get_sheets();
   const excluded_sheets = ['trial', 'items', 'quotation_request'];
-  temp_target_sheets.quote = ss.getSheetByName('Quote');
-  excluded_sheets.map(function(x){ delete temp_target_sheets[x] });
+  const pdf_h = [get_s_p.getProperty('total2_sheet_name'), get_s_p.getProperty('total3_sheet_name')];
+  var temp_target_sheets = get_sheets();
   var target_sheetsName = [];
+  var show_sheets;
+  temp_target_sheets.quote = ss.getSheetByName(get_s_p.getProperty('quote_sheet_name'));
+  excluded_sheets.map(function(x){ delete temp_target_sheets[x] });
   Object.keys(temp_target_sheets).forEach(function(x){
     target_sheetsName.push(this[x].getName());
   }, temp_target_sheets);
-  var show_sheets = ws_t.map(function(x){
+  show_sheets = ws_t.map(function(x){
     if (!(x.isSheetHidden())){
-      var show_sheets = x;
+      var temp = x;
     } 
     if (this.indexOf(x.getName()) == -1){
       x.hideSheet();
     }
-    return show_sheets;
+    return temp;
   }, target_sheetsName);
   // remove null
   show_sheets = show_sheets.filter(Boolean);
@@ -207,8 +211,11 @@ function ssToPdf(){
   if (show_sheets !== void　0){
     show_sheets.map(function(x){ x.showSheet(); });
   }
-  convertSpreadsheetToPdf('Total2',false);
-  convertSpreadsheetToPdf('Total3',false);
+  pdf_h.map(function(x){
+    if (!(ss.getSheetByName(x).isSheetHidden())){
+      convertSpreadsheetToPdf(x, false); 
+    }
+  });
 }
 /**
 * PDFを作成する
