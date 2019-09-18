@@ -114,6 +114,7 @@ function set_trial_sheet(sheet, array_quotation_request){
   const const_trial_end = '試験終了日';
   const const_facilities = '実施施設数';
   const const_number_of_cases = '目標症例数';
+  const const_coefficient = '原資';
   const const_trial_start_col = parseInt(get_s_p.getProperty('trial_start_col'));
   const const_trial_end_col = parseInt(get_s_p.getProperty('trial_end_col'));
   const const_trial_setup_row = parseInt(get_s_p.getProperty('trial_setup_row'));
@@ -129,7 +130,8 @@ function set_trial_sheet(sheet, array_quotation_request){
     [const_trial_type, 27],
     [const_number_of_cases, get_s_p.getProperty('trial_number_of_cases_row')],
     [const_facilities, get_s_p.getProperty('trial_const_facilities_row')], 
-    ['CRF項目数', 30]
+    ['CRF項目数', 30],
+    [const_coefficient, 44]
   ];
   var temp_str, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total, trial_start_date, registration_end_date, trial_end_date, array_trial_date;
   for (var i = 0; i < trial_list.length; i++){
@@ -179,6 +181,13 @@ function set_trial_sheet(sheet, array_quotation_request){
           temp_total = sheet.trial.getRange(save_row, const_total_month_col);
           sheet.trial.getRange(save_row, const_total_month_col).setFormula('=datedif(' + sheet.trial.getRange(save_row, const_trial_start_col).getA1Notation() + ',(' + sheet.trial.getRange(save_row, const_trial_end_col).getA1Notation() + '+1),"m")');
           sheet.trial.getRange(save_row, const_trial_years_col).setFormula('=trunc(' + temp_total.getA1Notation() + '/12) & "年" & if(mod(' + temp_total.getA1Notation() + ',12)<>0,mod(' + temp_total.getA1Notation() + ',12) & "ヶ月","")');
+          break;
+        case const_coefficient:
+          if (temp_str == '営利企業原資（製薬企業等）'){
+            temp_str = 1.5;
+          } else {
+            temp_str = 1;
+          }
           break;
         default:
           break;
@@ -570,6 +579,10 @@ function quote_script_main(){
   if (array_quotation_request[1][0] == ''){
     Browser.msgBox('Quotation requestシートの2行目に情報を貼り付けて再実行してください。');
     return;
+  }
+  // 初回のみsetProtectionEditusersを実行
+  if (get_s_p.getProperty('quote_sheet_name') === null){
+    setProtectionEditusers();
   }
   set_trial_sheet(sheet, array_quotation_request);
   for (var i = 0; i < array_target_sheet.length; i++){
