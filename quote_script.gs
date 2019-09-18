@@ -583,6 +583,7 @@ function quote_script_main(){
   // 初回のみsetProtectionEditusersを実行
   if (get_s_p.getProperty('quote_sheet_name') === null){
     setProtectionEditusers();
+    Utilities.sleep(10000);
   }
   set_trial_sheet(sheet, array_quotation_request);
   for (var i = 0; i < array_target_sheet.length; i++){
