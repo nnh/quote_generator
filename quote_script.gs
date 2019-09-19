@@ -572,6 +572,11 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
 function quote_script_main(){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const get_s_p = PropertiesService.getScriptProperties();
+  // 初回のみsetProtectionEditusersを実行
+  if (get_s_p.getProperty('quote_sheet_name') === null){
+    setProtectionEditusers();
+    Utilities.sleep(10000);
+  }
   const sheet = get_sheets();
   const quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   const array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
@@ -580,11 +585,6 @@ function quote_script_main(){
   if (array_quotation_request[1][0] == ''){
     Browser.msgBox('Quotation requestシートの2行目に情報を貼り付けて再実行してください。');
     return;
-  }
-  // 初回のみsetProtectionEditusersを実行
-  if (get_s_p.getProperty('quote_sheet_name') === null){
-    setProtectionEditusers();
-    Utilities.sleep(10000);
   }
   set_trial_sheet(sheet, array_quotation_request);
   for (var i = 0; i < array_target_sheet.length; i++){
