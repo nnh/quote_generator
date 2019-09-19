@@ -419,7 +419,6 @@ function set_registration_items(target_sheet, array_quotation_request){
   const temp_registration_year = get_s_p.getProperty('registration_years');
   var set_items_list = [];
   var interim_analysis = '中間解析プログラム作成、解析実施（シングル）';
-  var interim_table_count = 0;
   var crb_first_year = '';
   var crb_after_second_year = '';
   var monitoring_count = get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数');
@@ -429,9 +428,9 @@ function set_registration_items(target_sheet, array_quotation_request){
       interim_analysis = '中間解析プログラム作成、解析実施（ダブル）';
   }
   if (target_sheet.getSheetName() == get_s_p.getProperty('interim_1_sheet_name') || target_sheet.getSheetName() == get_s_p.getProperty('interim_2_sheet_name')){
-    interim_table_count = get_quotation_request_value(array_quotation_request, '中間解析に必要な帳票数');
+    get_s_p.setProperty('interim_table_count', get_quotation_request_value(array_quotation_request, '中間解析に必要な帳票数'));
   } else {
-    interim_table_count = 0;
+    get_s_p.setProperty('interim_table_count', 0);
   }
   // CRB申請費用
   if (target_sheet.getSheetName() == get_s_p.getProperty('registration_1_sheet_name')){
@@ -451,9 +450,9 @@ function set_registration_items(target_sheet, array_quotation_request){
     ['症例モニタリング・SAE対応', monitoring_count],
     ['CRB申請費用(初年度)', crb_first_year],
     ['CRB申請費用(2年目以降)', crb_after_second_year],
-    ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(interim_table_count, 0, 1)],
-    [interim_analysis, get_count_more_than(interim_table_count, 0, interim_table_count)],
-    ['中間解析報告書作成（出力結果＋表紙）', get_count_more_than(interim_table_count, 0, 1)],
+    ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
+    [interim_analysis, get_s_p.getProperty('interim_table_count')],
+    ['中間解析報告書作成（出力結果＋表紙）', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
     ['症例登録', get_count(get_quotation_request_value(array_quotation_request, '症例登録毎の支払'), 'あり', '=round(' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')')],
     ['施設監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 
       Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / temp_registration_year))],
@@ -539,8 +538,10 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
     default:
       set_items_list = set_registration_items(target_sheet, array_quotation_request);
       // 期間が入っていない場合はシートを非表示にする
-      if ((trial_sheet.getRange(trial_target_row, const_trial_start_col).getValue() == '') &&
-          (trial_sheet.getRange(trial_target_row, const_trial_end_col).getValue() == '')){
+      // 中間解析ありの場合interim_1は非表示にしない
+      if ((trial_sheet.getRange(trial_target_row, const_trial_start_col).getValue() == '' && trial_sheet.getRange(trial_target_row, const_trial_end_col).getValue() == '') &&
+          (target_sheet.getName() != get_s_p.getProperty('interim_1_sheet_name') ||
+           (target_sheet.getName() == get_s_p.getProperty('interim_1_sheet_name') && get_s_p.getProperty('interim_table_count') == 0))){
         target_sheet.hideSheet();
       } else {
         target_sheet.showSheet();
