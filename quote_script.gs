@@ -98,7 +98,16 @@ function get_trial_start_end_date(input_trial_start_date, input_trial_end_date){
   return(temp_array);
 }
 /**
-* quotation_requestシートの内容からtrialシートを設定する
+* itemsシートに単価を設定する
+*/
+function set_items_price(sheet, price, target_row){
+  const target_col = getColumnNumber('R');
+  if (price > 0){
+    sheet.getRange(target_row, target_col).setValue(price);
+  } 
+}
+/**
+* quotation_requestシートの内容からtrialシート, itemsシートを設定する
 * @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
 * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
 * @return none
@@ -133,7 +142,11 @@ function set_trial_sheet(sheet, array_quotation_request){
     ['CRF項目数', 30],
     [const_coefficient, 44]
   ];
-  var temp_str, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total, trial_start_date, registration_end_date, trial_end_date, array_trial_date;
+  const cost_of_cooperation = '研究協力費、負担軽減費';
+  const items_list = [
+    ['保険料', '保険料'],
+    [cost_of_cooperation, null]];
+  var temp_str, temp_str_2, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total, trial_start_date, registration_end_date, trial_end_date, array_trial_date, date_of_issue;
   for (var i = 0; i < trial_list.length; i++){
     temp_str = get_quotation_request_value(array_quotation_request, trial_list[i][0]);
     if (temp_str != null){
@@ -194,7 +207,51 @@ function set_trial_sheet(sheet, array_quotation_request){
       }
       sheet.trial.getRange(trial_list[i][1], 2).setValue(temp_str);
     } 
-  }    
+  }
+  // 発行年月日
+  date_of_issue = get_row_num_matched_value(sheet.trial, 1, '発行年月日');
+  if (date_of_issue > 0){
+    sheet.trial.getRange(date_of_issue, 2).setValue(Moment.moment().format('YYYY/MM/DD'));
+  }
+  // 単価の設定
+  items_list.map(function(x){
+    const items_header = x[1];
+    const quotation_request_header = x[0];
+    const cost_of_cooperation_item_name = [
+      [get_s_p.getProperty('cost_of_prepare_quotation_request'), get_s_p.getProperty('cost_of_prepare_item')],
+      [get_s_p.getProperty('cost_of_registration_quotation_request'), get_s_p.getProperty('cost_of_registration_item')],
+      [get_s_p.getProperty('cost_of_report_quotation_request'), get_s_p.getProperty('cost_of_report_item')]];
+    var items_row = get_row_num_matched_value(sheet.items, 2, items_header);
+    var price = get_quotation_request_value(array_quotation_request, quotation_request_header);
+    switch(quotation_request_header){
+      case cost_of_cooperation:
+        const target_items = cost_of_cooperation_item_name.map(function(y){
+          const quotation_request_cost_of_cooperation_item_name = y[0];
+          const items_cost_of_cooperation_item_name = y[1];
+          return([get_quotation_request_value(array_quotation_request, quotation_request_cost_of_cooperation_item_name), items_cost_of_cooperation_item_name]);
+        }).filter(function(z){ return (z[0] == 'あり') });
+        if (target_items.length == 0) break;
+        const items_count = target_items.map(function(y){
+          const temp_items_row = get_row_num_matched_value(sheet.items, 2, y[1]);
+          switch(sheet.items.getRange(temp_items_row, 4).getValue()){
+            case '症例':
+              return(get_s_p.getProperty('number_of_cases'));
+              break;
+            case '施設':
+              return(get_s_p.getProperty('facilities_value'));
+              break;
+            default:
+              return(null);
+              break;
+          }
+        });
+        price = items_count.reduce(function(y, z){ return(parseInt(y) + parseInt(z)) });
+        break;
+      default:
+        set_items_price(sheet.items, price, items_row);
+        break;
+    }
+  });
 }
 /**
 * 条件が真ならば引数return_valueを返す。偽なら空白を返す。
@@ -212,23 +269,6 @@ function get_count_more_than(subject_of_condition, object_of_condition, return_v
     temp = return_value;
   }
   return(temp);
-}
-/**
-* 該当する項目名の行に回数をセットする。該当項目がなければセットしない。
-* @param {sheet} sheet 対象のシートオブジェクト
-* @param {string} item_name　項目名
-* @param {string} set_value　回数 
-* @param {number} const_count_col 回数入力列
-* @param {associative array} array_item 項目と行番号の連想配列
-* @return none 
-* @example 
-*   set_range_value(sheet.setup, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
-*/
-function set_range_value(target_sheet, item_name, set_value, const_count_col, array_item){
-  const temp_row = array_item[item_name];
-    if( temp_row !== void 0){
-      target_sheet.getRange(temp_row, const_count_col).setValue(set_value);
-    }
 }
 /**
 * trialシートのコメントを追加する。
@@ -419,7 +459,6 @@ function set_registration_items(target_sheet, array_quotation_request){
   const temp_registration_year = get_s_p.getProperty('registration_years');
   var set_items_list = [];
   var interim_analysis = '中間解析プログラム作成、解析実施（シングル）';
-  var interim_table_count = 0;
   var crb_first_year = '';
   var crb_after_second_year = '';
   var monitoring_count = get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数');
@@ -429,9 +468,9 @@ function set_registration_items(target_sheet, array_quotation_request){
       interim_analysis = '中間解析プログラム作成、解析実施（ダブル）';
   }
   if (target_sheet.getSheetName() == get_s_p.getProperty('interim_1_sheet_name') || target_sheet.getSheetName() == get_s_p.getProperty('interim_2_sheet_name')){
-    interim_table_count = get_quotation_request_value(array_quotation_request, '中間解析に必要な帳票数');
+    get_s_p.setProperty('interim_table_count', get_quotation_request_value(array_quotation_request, '中間解析に必要な帳票数'));
   } else {
-    interim_table_count = 0;
+    get_s_p.setProperty('interim_table_count', 0);
   }
   // CRB申請費用
   if (target_sheet.getSheetName() == get_s_p.getProperty('registration_1_sheet_name')){
@@ -451,9 +490,9 @@ function set_registration_items(target_sheet, array_quotation_request){
     ['症例モニタリング・SAE対応', monitoring_count],
     ['CRB申請費用(初年度)', crb_first_year],
     ['CRB申請費用(2年目以降)', crb_after_second_year],
-    ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(interim_table_count, 0, 1)],
-    [interim_analysis, get_count_more_than(interim_table_count, 0, interim_table_count)],
-    ['中間解析報告書作成（出力結果＋表紙）', get_count_more_than(interim_table_count, 0, 1)],
+    ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
+    [interim_analysis, get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, get_s_p.getProperty('interim_table_count'))],
+    ['中間解析報告書作成（出力結果＋表紙）', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
     ['症例登録', get_count(get_quotation_request_value(array_quotation_request, '症例登録毎の支払'), 'あり', '=round(' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')')],
     ['施設監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 
       Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / temp_registration_year))],
@@ -539,8 +578,10 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
     default:
       set_items_list = set_registration_items(target_sheet, array_quotation_request);
       // 期間が入っていない場合はシートを非表示にする
-      if ((trial_sheet.getRange(trial_target_row, const_trial_start_col).getValue() == '') &&
-          (trial_sheet.getRange(trial_target_row, const_trial_end_col).getValue() == '')){
+      // 中間解析ありの場合interim_1は非表示にしない
+      if ((trial_sheet.getRange(trial_target_row, const_trial_start_col).getValue() == '' && trial_sheet.getRange(trial_target_row, const_trial_end_col).getValue() == '') &&
+          (target_sheet.getName() != get_s_p.getProperty('interim_1_sheet_name') ||
+           (target_sheet.getName() == get_s_p.getProperty('interim_1_sheet_name') && get_s_p.getProperty('interim_table_count') == 0))){
         target_sheet.hideSheet();
       } else {
         target_sheet.showSheet();
@@ -571,6 +612,11 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
 function quote_script_main(){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const get_s_p = PropertiesService.getScriptProperties();
+  // 初回のみsetProtectionEditusersを実行
+  if (get_s_p.getProperty('quote_sheet_name') === null){
+    setProtectionEditusers();
+    Utilities.sleep(10000);
+  }
   const sheet = get_sheets();
   const quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   const array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
@@ -580,13 +626,24 @@ function quote_script_main(){
     Browser.msgBox('Quotation requestシートの2行目に情報を貼り付けて再実行してください。');
     return;
   }
-  // 初回のみsetProtectionEditusersを実行
-  if (get_s_p.getProperty('quote_sheet_name') === null){
-    setProtectionEditusers();
-  }
   set_trial_sheet(sheet, array_quotation_request);
   for (var i = 0; i < array_target_sheet.length; i++){
     set_value_each_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + i);
   }
   filtervisible();
+}
+/**
+* Itemsシートに単価を設定
+* @param {sheet} sheet itemsシート
+* @param {string} items_name 項目名
+* @param {number} items_price 単価
+* @return none
+*/
+function set_price_to_items(items_sheet, items_name, items_price){
+  const items_values = items_sheet.getRange("B:B").getValues();
+  const items = items_values.map(function(x){ return(x[0])});
+  const target_row = items.indexOf(items_name) + 1;
+  if (target_row > 0){
+    items_sheet.getRange(target_row, 3).setValue(items_price);
+  }
 }
