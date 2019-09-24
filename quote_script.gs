@@ -101,10 +101,17 @@ function get_trial_start_end_date(input_trial_start_date, input_trial_end_date){
 * itemsシートに単価を設定する
 */
 function set_items_price(sheet, price, target_row){
-  const target_col = getColumnNumber('R');
+  if (target_row == 0) return;
+  const target_col = getColumnNumber('S');
   if (price > 0){
     sheet.getRange(target_row, target_col).setValue(price);
-  } 
+    sheet.getRange(target_row, target_col).offset(0, 1).setValue(1);
+    sheet.getRange(target_row, target_col).offset(0, 2).setValue(1);
+  } else {
+    sheet.getRange(target_row, target_col).setValue('');
+    sheet.getRange(target_row, target_col).offset(0, 1).setValue('');
+    sheet.getRange(target_row, target_col).offset(0, 2).setValue('');
+  }
 }
 /**
 * quotation_requestシートの内容からtrialシート, itemsシートを設定する
@@ -146,6 +153,11 @@ function set_trial_sheet(sheet, array_quotation_request){
   const items_list = [
     ['保険料', '保険料'],
     [cost_of_cooperation, null]];
+  const cost_of_cooperation_item_name = [
+    [get_s_p.getProperty('cost_of_prepare_quotation_request'), get_s_p.getProperty('cost_of_prepare_item')],
+    [get_s_p.getProperty('cost_of_registration_quotation_request'), get_s_p.getProperty('cost_of_registration_item')],
+    [get_s_p.getProperty('cost_of_report_quotation_request'), get_s_p.getProperty('cost_of_report_item')]
+  ];
   var temp_str, temp_str_2, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total, trial_start_date, registration_end_date, trial_end_date, array_trial_date, date_of_issue;
   for (var i = 0; i < trial_list.length; i++){
     temp_str = get_quotation_request_value(array_quotation_request, trial_list[i][0]);
@@ -217,41 +229,41 @@ function set_trial_sheet(sheet, array_quotation_request){
   items_list.map(function(x){
     const items_header = x[1];
     const quotation_request_header = x[0];
-    const cost_of_cooperation_item_name = [
-      [get_s_p.getProperty('cost_of_prepare_quotation_request'), get_s_p.getProperty('cost_of_prepare_item')],
-      [get_s_p.getProperty('cost_of_registration_quotation_request'), get_s_p.getProperty('cost_of_registration_item')],
-      [get_s_p.getProperty('cost_of_report_quotation_request'), get_s_p.getProperty('cost_of_report_item')]];
     var items_row = get_row_num_matched_value(sheet.items, 2, items_header);
     var price = get_quotation_request_value(array_quotation_request, quotation_request_header);
     switch(quotation_request_header){
+        // 試験開始準備費用、症例登録、症例報告のいずれか一つが「あり」の場合のみ単価を設定する
       case cost_of_cooperation:
-        const target_items = cost_of_cooperation_item_name.map(function(y){
-          const quotation_request_cost_of_cooperation_item_name = y[0];
-          const items_cost_of_cooperation_item_name = y[1];
-          return([get_quotation_request_value(array_quotation_request, quotation_request_cost_of_cooperation_item_name), items_cost_of_cooperation_item_name]);
-        }).filter(function(z){ return (z[0] == 'あり') });
-        if (target_items.length == 0) break;
-        const items_count = target_items.map(function(y){
-          const temp_items_row = get_row_num_matched_value(sheet.items, 2, y[1]);
-          switch(sheet.items.getRange(temp_items_row, 4).getValue()){
+        // 単価を空白にする
+        cost_of_cooperation_item_name.map(function(y){
+          items_row = get_row_num_matched_value(sheet.items, 2, y[1]);
+          set_items_price(sheet.items, 0, items_row);
+        });
+        const res_items = cost_of_cooperation_item_name.filter(function(y){ 
+          return(get_quotation_request_value(array_quotation_request, y[0]) == 'あり'); 
+        });
+        if (res_items.length == 1){
+          items_row = get_row_num_matched_value(sheet.items, 2, res_items[0][1]);
+          switch(sheet.items.getRange(items_row, 4).getValue()){
             case '症例':
-              return(get_s_p.getProperty('number_of_cases'));
+              price = parseInt(price) / get_s_p.getProperty('number_of_cases');
               break;
             case '施設':
-              return(get_s_p.getProperty('facilities_value'));
+              price = parseInt(price) / get_s_p.getProperty('facilities_value');
               break;
             default:
-              return(null);
+              price = 0;
               break;
           }
-        });
-        price = items_count.reduce(function(y, z){ return(parseInt(y) + parseInt(z)) });
+        } else {
+          price = 0;
+        }
         break;
       default:
-        set_items_price(sheet.items, price, items_row);
         break;
     }
-  });
+    set_items_price(sheet.items, price, items_row);
+  });  
 }
 /**
 * 条件が真ならば引数return_valueを返す。偽なら空白を返す。
@@ -631,19 +643,4 @@ function quote_script_main(){
     set_value_each_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + i);
   }
   filtervisible();
-}
-/**
-* Itemsシートに単価を設定
-* @param {sheet} sheet itemsシート
-* @param {string} items_name 項目名
-* @param {number} items_price 単価
-* @return none
-*/
-function set_price_to_items(items_sheet, items_name, items_price){
-  const items_values = items_sheet.getRange("B:B").getValues();
-  const items = items_values.map(function(x){ return(x[0])});
-  const target_row = items.indexOf(items_name) + 1;
-  if (target_row > 0){
-    items_sheet.getRange(target_row, 3).setValue(items_price);
-  }
 }
