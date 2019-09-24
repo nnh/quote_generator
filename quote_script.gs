@@ -98,7 +98,23 @@ function get_trial_start_end_date(input_trial_start_date, input_trial_end_date){
   return(temp_array);
 }
 /**
-* quotation_requestシートの内容からtrialシートを設定する
+* itemsシートに単価を設定する
+*/
+function set_items_price(sheet, price, target_row){
+  if (target_row == 0) return;
+  const target_col = getColumnNumber('S');
+  if (price > 0){
+    sheet.getRange(target_row, target_col).setValue(price);
+    sheet.getRange(target_row, target_col).offset(0, 1).setValue(1);
+    sheet.getRange(target_row, target_col).offset(0, 2).setValue(1);
+  } else {
+    sheet.getRange(target_row, target_col).setValue('');
+    sheet.getRange(target_row, target_col).offset(0, 1).setValue('');
+    sheet.getRange(target_row, target_col).offset(0, 2).setValue('');
+  }
+}
+/**
+* quotation_requestシートの内容からtrialシート, itemsシートを設定する
 * @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
 * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
 * @return none
@@ -133,7 +149,16 @@ function set_trial_sheet(sheet, array_quotation_request){
     ['CRF項目数', 30],
     [const_coefficient, 44]
   ];
-  var temp_str, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total, trial_start_date, registration_end_date, trial_end_date, array_trial_date;
+  const cost_of_cooperation = '研究協力費、負担軽減費';
+  const items_list = [
+    ['保険料', '保険料'],
+    [cost_of_cooperation, null]];
+  const cost_of_cooperation_item_name = [
+    [get_s_p.getProperty('cost_of_prepare_quotation_request'), get_s_p.getProperty('cost_of_prepare_item')],
+    [get_s_p.getProperty('cost_of_registration_quotation_request'), get_s_p.getProperty('cost_of_registration_item')],
+    [get_s_p.getProperty('cost_of_report_quotation_request'), get_s_p.getProperty('cost_of_report_item')]
+  ];
+  var temp_str, temp_str_2, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total, trial_start_date, registration_end_date, trial_end_date, array_trial_date, date_of_issue;
   for (var i = 0; i < trial_list.length; i++){
     temp_str = get_quotation_request_value(array_quotation_request, trial_list[i][0]);
     if (temp_str != null){
@@ -194,7 +219,51 @@ function set_trial_sheet(sheet, array_quotation_request){
       }
       sheet.trial.getRange(trial_list[i][1], 2).setValue(temp_str);
     } 
-  }    
+  }
+  // 発行年月日
+  date_of_issue = get_row_num_matched_value(sheet.trial, 1, '発行年月日');
+  if (date_of_issue > 0){
+    sheet.trial.getRange(date_of_issue, 2).setValue(Moment.moment().format('YYYY/MM/DD'));
+  }
+  // 単価の設定
+  items_list.map(function(x){
+    const items_header = x[1];
+    const quotation_request_header = x[0];
+    var items_row = get_row_num_matched_value(sheet.items, 2, items_header);
+    var price = get_quotation_request_value(array_quotation_request, quotation_request_header);
+    switch(quotation_request_header){
+        // 試験開始準備費用、症例登録、症例報告のいずれか一つが「あり」の場合のみ単価を設定する
+      case cost_of_cooperation:
+        // 単価を空白にする
+        cost_of_cooperation_item_name.map(function(y){
+          items_row = get_row_num_matched_value(sheet.items, 2, y[1]);
+          set_items_price(sheet.items, 0, items_row);
+        });
+        const res_items = cost_of_cooperation_item_name.filter(function(y){ 
+          return(get_quotation_request_value(array_quotation_request, y[0]) == 'あり'); 
+        });
+        if (res_items.length == 1){
+          items_row = get_row_num_matched_value(sheet.items, 2, res_items[0][1]);
+          switch(sheet.items.getRange(items_row, 4).getValue()){
+            case '症例':
+              price = parseInt(price) / get_s_p.getProperty('number_of_cases');
+              break;
+            case '施設':
+              price = parseInt(price) / get_s_p.getProperty('facilities_value');
+              break;
+            default:
+              price = 0;
+              break;
+          }
+        } else {
+          price = 0;
+        }
+        break;
+      default:
+        break;
+    }
+    set_items_price(sheet.items, price, items_row);
+  });  
 }
 /**
 * 条件が真ならば引数return_valueを返す。偽なら空白を返す。
@@ -212,23 +281,6 @@ function get_count_more_than(subject_of_condition, object_of_condition, return_v
     temp = return_value;
   }
   return(temp);
-}
-/**
-* 該当する項目名の行に回数をセットする。該当項目がなければセットしない。
-* @param {sheet} sheet 対象のシートオブジェクト
-* @param {string} item_name　項目名
-* @param {string} set_value　回数 
-* @param {number} const_count_col 回数入力列
-* @param {associative array} array_item 項目と行番号の連想配列
-* @return none 
-* @example 
-*   set_range_value(sheet.setup, set_items_list[i][0], set_items_list[i][1], const_count_col, array_item);
-*/
-function set_range_value(target_sheet, item_name, set_value, const_count_col, array_item){
-  const temp_row = array_item[item_name];
-    if( temp_row !== void 0){
-      target_sheet.getRange(temp_row, const_count_col).setValue(set_value);
-    }
 }
 /**
 * trialシートのコメントを追加する。

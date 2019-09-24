@@ -176,6 +176,12 @@ function work_setproperty(){
   get_s_p.setProperty('function_number_of_cases', '=' + get_s_p.getProperty('trial_sheet_name') + '!B' + parseInt(get_s_p.getProperty('trial_number_of_cases_row'))); 
   get_s_p.setProperty('function_facilities', '=' + get_s_p.getProperty('trial_sheet_name') + '!B' + parseInt(get_s_p.getProperty('trial_const_facilities_row'))); 
   get_s_p.setProperty('folder_id', '');
+  get_s_p.setProperty('cost_of_prepare_quotation_request', '試験開始準備費用');
+  get_s_p.setProperty('cost_of_registration_quotation_request', '症例登録毎の支払');  
+  get_s_p.setProperty('cost_of_report_quotation_request', '症例最終報告書提出毎の支払');
+  get_s_p.setProperty('cost_of_prepare_item', '試験開始準備費用');
+  get_s_p.setProperty('cost_of_registration_item', '症例登録');
+  get_s_p.setProperty('cost_of_report_item', '症例報告');
 }
 /**
 * ブック全体のPDFとTotal2, Total3を横方向で出力したPDFを作成する
@@ -363,4 +369,15 @@ function total2_3_add_del_cols(){
       add_del_cols(sheet.total3, 2, y[0], y[2]);
     });
   total2_3_show_hidden_cols();
+}
+/**
+* 指定した列に値が存在したらその行番号を返す。存在しなければ0を返す。
+* @param {sheet} target_sheet 対象のシート
+* @param {number} target_col_num 対象の列番号
+* @param {string} target_value 検索対象の値
+*/
+function get_row_num_matched_value(target_sheet, target_col_num, target_value){
+  const target_col = getColumnString(target_col_num);
+  const col_values = target_sheet.getRange(target_col + ':' + target_col).getValues().map(function(x){ return(x[0]) });
+  return(col_values.indexOf(target_value) + 1);
 }
