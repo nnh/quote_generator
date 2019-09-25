@@ -215,7 +215,7 @@ function ssToPdf(){
   show_sheets = show_sheets.filter(Boolean);
   filterhidden();
   total2_3_show_hidden_cols();
-  convertSpreadsheetToPdf(null, true, 2);
+  convertSpreadsheetToPdf(null, true, 4);
   if (show_sheets !== void　0){
     show_sheets.map(function(x){ x.showSheet(); });
   }
