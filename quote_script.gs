@@ -66,16 +66,27 @@ function get_trial_start_end_date(input_trial_start_date, input_trial_end_date){
   const closing_start_date = Moment.moment([closing_end_date.clone().subtract(3, 'months').year(), 3, 1]);
   // registration_1シートの開始日はsetup終了日の翌日
   const registration_1_start_date = setup_end_date.clone().add(1, 'days');  
-  // registration期間が1年以上あれば、1年めをregistration_1、残りをregistration_2にセットする
+  // registration期間が1年以上あれば、1年めをregistration_1、残りをregistration_2とobservation_2にセットする
   var registration_1_end_date = registration_1_start_date.clone().add(1, 'years').subtract(1, 'days');
   var temp_registration_end_date = registration_1_end_date;
   var registration_2_start_date = ''; 
   var registration_2_end_date = '';
+  var observation_2_start_date = '';
+  var observation_2_end_date = '';
   var temp_array = [];
   if (registration_1_end_date < closing_start_date.clone().subtract(1, 'days')){
     registration_2_start_date = registration_1_end_date.clone().add(1, 'days');
-    registration_2_end_date = closing_start_date.clone().subtract(1, 'days');
-    temp_registration_end_date = registration_2_end_date;
+    if (closing_start_date.clone().subtract(1, 'days').clone().diff(registration_2_start_date, 'years') > 1){
+        observation_2_end_date = closing_start_date.clone().subtract(1, 'days');
+        observation_2_start_date = closing_start_date.clone().subtract(1, 'years');
+        registration_2_end_date = observation_2_start_date.clone().subtract(1, 'days');
+        temp_registration_end_date = observation_2_end_date;
+    } else {
+      registration_2_end_date = closing_start_date.clone().subtract(1, 'days');
+      temp_registration_end_date = registration_2_end_date;
+    }
+//    registration_2_end_date = closing_start_date.clone().subtract(1, 'days');
+//    temp_registration_end_date = registration_2_end_date;
   }
   // registrationの年数を取得
     get_s_p.setProperty('registration_years', get_years(registration_1_start_date, temp_registration_end_date));
@@ -91,7 +102,7 @@ function get_trial_start_end_date(input_trial_start_date, input_trial_end_date){
     ['', ''],
     ['', ''],
     ['', ''],
-    ['', ''],
+    [observation_2_start_date, observation_2_end_date],
     [closing_start_date, closing_end_date],
     [setup_start_date, closing_end_date]
   ];
@@ -360,46 +371,65 @@ function set_all_sheet_common_items(target_sheet, array_item, sheet_start_date, 
 * @param {associative array} array_item 項目と行番号の連想配列
 * @param {number} project_management 共通項目の設定月数
 * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @param {sheet} trialシート
+* @param {number} trialシートの試験期間行
 * @return none
-* @example 
-*   set_registration_term_items(target_sheet, array_item, project_management, array_quotation_request);
 */
-function set_registration_term_items(target_sheet, array_item, project_management, array_quotation_request){
+function set_registration_term_items(target_sheet, array_item, project_management, array_quotation_request, trial_sheet, trial_target_row){
   const get_s_p = PropertiesService.getScriptProperties();
   const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
   const target_col = getColumnString(const_count_col);
   const target_range = target_sheet.getRange(target_col + ':' + target_col);
+  const target_fy = trial_sheet.getRange(trial_target_row, get_s_p.getProperty('trial_years_col')).getValue(); 
   var array_count = target_range.getValues();
   var set_items_list = [];
   var temp_row;
   // データベース管理料、中央モニタリング、安全性管理、効安　この年度にregistration期間がある場合その期間分とる
   var registration_term = project_management;
-  var temp_overflowing_setup = 0;
+  var temp_overflowing_closing = 0;
   var temp_str = '中央モニタリング、定期モニタリングレポート作成';
-  if (target_sheet.getName() == get_s_p.getProperty('setup_sheet_name')){
-    if (get_s_p.getProperty('setup_term') < project_management){
-      // setupシートに試験期間が入っている場合
-      registration_term = project_management - get_s_p.getProperty('setup_term');
-    } else if (get_s_p.getProperty('setup_term') > project_management){
-      // registration_1シートにsetup期間が入っている場合その期間を退避する
-      temp_overflowing_setup = get_s_p.getProperty('setup_term') - project_management;
-      registration_term = '';
-    } else {
-      registration_term = '';
-    }   
-  } else if ((target_sheet.getName() == get_s_p.getProperty('registration_1_sheet_name')) && get_s_p.getProperty('flag_overflowing_setup') > 0){
-    // registration_1シートにsetup期間が入っていたらその分を除く 
-    registration_term = project_management - get_s_p.getProperty('flag_overflowing_setup');
-    temp_overflowing_setup = 0;
-  } else if (target_sheet.getName() == get_s_p.getProperty('closing_sheet_name')){
-    // closingシートに試験期間が入っている場合
-    if (get_s_p.getProperty('closing_term') < project_management){
-      registration_term = project_management - get_s_p.getProperty('closing_term');
-    } else {
-      registration_term = '';
-    }
+  switch (target_sheet.getName()){
+    case get_s_p.getProperty('setup_sheet_name'):
+      if (get_s_p.getProperty('setup_term') < project_management){
+        // setupシートに試験期間が入っていたらその期間を除く
+        registration_term = registration_term - get_s_p.getProperty('setup_term');
+      } else if (get_s_p.getProperty('setup_term') > project_management){
+        // registration_1シートにsetup期間が入っていたらその期間を退避する
+        get_s_p.setProperty('flag_overflowing_setup', get_s_p.getProperty('setup_term') - registration_term);
+        registration_term = '';
+      } else {
+        registration_term = '';
+      }
+      break;
+    case get_s_p.getProperty('closing_sheet_name'):
+      if (get_s_p.getProperty('closing_term') < project_management){
+      // closingシートに試験期間が入っていたらその期間を除く
+      registration_term = registration_term - get_s_p.getProperty('closing_term');
+      } else if (get_s_p.getProperty('closing_term') > project_management){
+        // registration_1またはregistration_2シートにclosing期間が入っていたらその期間を退避する
+        get_s_p.setProperty('flag_overflowing_closing', get_s_p.getProperty('closing_term') - registration_term);
+        registration_term = '';
+      } else {
+        registration_term = '';
+      }
+      break;
+    case get_s_p.getProperty('registration_1_sheet_name'):
+    case get_s_p.getProperty('registration_2_sheet_name'):
+    case get_s_p.getProperty('observation_2_sheet_name'):
+        // registration_1またはregistration_2またはobservation_2シートにclosing期間が入っていたらその期間を除く
+      if (target_fy != ''){
+        if (get_s_p.getProperty('flag_overflowing_closing') > 0){
+          registration_term = registration_term - get_s_p.getProperty('flag_overflowing_closing');
+          get_s_p.setProperty('flag_overflowing_closing', 0);
+        }
+      }
+      if (target_sheet.getName() == get_s_p.getProperty('registration_1_sheet_name') && get_s_p.getProperty('flag_overflowing_setup') > 0){
+        // registration_1シートにsetup期間が入っていたらその期間を除く 
+        registration_term = registration_term - get_s_p.getProperty('flag_overflowing_setup');
+        get_s_p.setProperty('flag_overflowing_setup', 0);
+      }
+      break;
   }
-  get_s_p.setProperty('flag_overflowing_setup', temp_overflowing_setup);
   // 医師主導治験のみ算定または名称が異なる項目に対応する
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
     temp_str = '中央モニタリング'
@@ -430,11 +460,11 @@ function set_setup_items(array_quotation_request){
   var sop = '';
   var office_irb_str = 'IRB準備・承認確認';
   var office_irb = '';
-  var dm_irb = get_s_p.getProperty('facilities_value');
+  var dm_irb = get_s_p.getProperty('function_facilities');
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
     sop = 1;
     office_irb_str = 'IRB承認確認、施設管理';
-    office_irb = get_s_p.getProperty('facilities_value');
+    office_irb = get_s_p.getProperty('function_facilities');
     dm_irb = '';
   }
   set_items_list = [
@@ -454,7 +484,7 @@ function set_setup_items(array_quotation_request){
     ['初期アカウント設定（施設・ユーザー）、IRB承認確認', dm_irb],
     ['入力の手引作成', 1],
     ['外部監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 1)],
-    ['試験開始準備費用', get_count(get_quotation_request_value(array_quotation_request, '試験開始準備費用'), 'あり', get_s_p.getProperty('function_facilities'))],
+    [get_s_p.getProperty('cost_of_prepare_item'), get_count(get_quotation_request_value(array_quotation_request, get_s_p.getProperty('cost_of_prepare_quotation_request')), 'あり', get_s_p.getProperty('function_facilities'))],
     ['保険料', get_count_more_than(get_quotation_request_value(array_quotation_request, '保険料'), 0, 1)],
     ['治験薬管理（中央）', get_count(get_quotation_request_value(array_quotation_request, '治験薬管理'), 'あり', 1)],
     ['CDISC対応費', get_count(get_quotation_request_value(array_quotation_request, 'CDISC対応'), 'あり', 1)]
@@ -474,6 +504,7 @@ function set_registration_items(target_sheet, array_quotation_request){
   var crb_first_year = '';
   var crb_after_second_year = '';
   var monitoring_count = get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数');
+  var essential_documents_count = get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数');
   var set_items_list = [];
   // 中間解析
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
@@ -493,19 +524,25 @@ function set_registration_items(target_sheet, array_quotation_request){
   // 1例あたりの実地モニタリング回数
   if (monitoring_count > 0){
     monitoring_count = '=round(' + monitoring_count + ' * ' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')'
-  } 　else {
+  } else {
     monitoring_count = '';
   }
+  if (essential_documents_count > 0){
+    essential_documents_count = '=round(' + essential_documents_count + ' * ' + get_s_p.getProperty('function_facilities').substr(1) + ' / ' + temp_registration_year + ')'
+  } else {
+    essential_documents_count = '';
+  }
   set_items_list = [
-    ['開始前モニタリング・必須文書確認', get_count_more_than(get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数'), 0, 
-      get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数'))],
+    ['ミーティング準備・実行', get_count_more_than(get_quotation_request_value(array_quotation_request, 'その他会議（のべ回数）'), 0, 
+      Math.round(get_quotation_request_value(array_quotation_request, 'その他会議（のべ回数）') / temp_registration_year))],
+    ['開始前モニタリング・必須文書確認', essential_documents_count],
     ['症例モニタリング・SAE対応', monitoring_count],
     ['CRB申請費用(初年度)', crb_first_year],
     ['CRB申請費用(2年目以降)', crb_after_second_year],
     ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
     [interim_analysis, get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, get_s_p.getProperty('interim_table_count'))],
     ['中間解析報告書作成（出力結果＋表紙）', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
-    ['症例登録', get_count(get_quotation_request_value(array_quotation_request, '症例登録毎の支払'), 'あり', '=round(' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')')],
+    [get_s_p.getProperty('cost_of_registration_item'), get_count(get_quotation_request_value(array_quotation_request, get_s_p.getProperty('cost_of_registration_quotation_request')), 'あり', '=round(' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')')],
     ['施設監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 
       Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / temp_registration_year))],
     ['治験薬運搬', get_count(get_quotation_request_value(array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('function_facilities'))]
@@ -549,7 +586,7 @@ function set_closing_items(array_quotation_request){
     [final_analysis, get_count_more_than(final_analysis_table_count, 0, final_analysis_table_count)],
     ['最終解析報告書作成（出力結果＋表紙）', get_count_more_than(final_analysis_table_count, 0, 1)],
     [csr, csr_count],
-    ['症例報告', get_count(get_quotation_request_value(array_quotation_request, '症例最終報告書提出毎の支払'), 'あり', get_s_p.getProperty('function_number_of_cases'))],
+    [get_s_p.getProperty('cost_of_report_item'), get_count(get_quotation_request_value(array_quotation_request, get_s_p.getProperty('cost_of_report_quotation_request')), 'あり', get_s_p.getProperty('function_number_of_cases'))],
     ['外部監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 1)]
   ];
   return(set_items_list);  
@@ -579,7 +616,7 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
   var set_items_list = [];
   var temp_row;
   // registration期間があればセット
-  set_registration_term_items(target_sheet, array_item, project_management, array_quotation_request);
+  set_registration_term_items(target_sheet, array_item, project_management, array_quotation_request, trial_sheet, trial_target_row);
   switch(target_sheet.getSheetName()){
     case get_s_p.getProperty('setup_sheet_name'):
       set_items_list = set_setup_items(array_quotation_request);
@@ -602,7 +639,6 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
   }
   // 回数を再取得する
   array_count = target_range.getValues();
-  
   for (var i = 0; i < set_items_list.length; i++){
     temp_row = array_item[set_items_list[i][0]] - 1;
     if (temp_row != void 0){
@@ -612,9 +648,11 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
   target_range.setValues(array_count);
   // 数式のみ再設定
   for (var i = 0; i < set_items_list.length; i++){
-    if (set_items_list[i][0].substr(0, 1) == '='){
+    if (typeof(set_items_list[i][1]) == 'string'){
+      if (set_items_list[i][1].substr(0, 1) == '='){
       temp_row = array_item[set_items_list[i][0]] - 1;
-      target_range.GetRange(1, 1).offset(temp_row, 0).setFormula(set_items_list[i]);
+      target_range.offset(temp_row, 0, 1, 1).setFormula(set_items_list[i][1]);
+      }
     }
   }
 }
@@ -632,15 +670,25 @@ function quote_script_main(){
   const sheet = get_sheets();
   const quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   const array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
-  const array_target_sheet = [sheet.setup, sheet.registration_1, sheet.registration_2, sheet.interim_1, sheet.observation_1, sheet.interim_2, sheet.observation_2, sheet.closing];
+  const array_target_sheet = [sheet.setup, sheet.closing, sheet.observation_2, sheet.registration_2, sheet.registration_1, sheet.interim_1, sheet.observation_1, sheet.interim_2];
+  const sheet_name = array_target_sheet.map(function(x){ return(x.getName()); });
+  const target_values = sheet.trial.getRange(get_s_p.getProperty('trial_setup_row'), 1, parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1, 1).getValues();
+  const target_idx = [];
+  sheet_name.map(function(x){
+    this.forEach(function(y, idx){
+      if (y[0] == this){
+        target_idx.push(idx);
+      }
+    }, x);
+  }, target_values);
   // Quotation requestシートのA2セルが空白の場合、Quotation requestが入っていないものと判断して処理を終了する
   if (array_quotation_request[1][0] == ''){
     Browser.msgBox('Quotation requestシートの2行目に情報を貼り付けて再実行してください。');
     return;
   }
-  set_trial_sheet(sheet, array_quotation_request);
-  for (var i = 0; i < array_target_sheet.length; i++){
-    set_value_each_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + i);
-  }
   filtervisible();
+  set_trial_sheet(sheet, array_quotation_request);  
+  for (var i = 0; i < array_target_sheet.length; i++){
+    set_value_each_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + target_idx[i]);
+  }
 }
