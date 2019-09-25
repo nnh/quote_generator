@@ -625,7 +625,6 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
   }
   // 回数を再取得する
   array_count = target_range.getValues();
-  
   for (var i = 0; i < set_items_list.length; i++){
     temp_row = array_item[set_items_list[i][0]] - 1;
     if (temp_row != void 0){
@@ -635,9 +634,11 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
   target_range.setValues(array_count);
   // 数式のみ再設定
   for (var i = 0; i < set_items_list.length; i++){
-    if (set_items_list[i][0].substr(0, 1) == '='){
+    if (typeof(set_items_list[i][1]) == 'string'){
+      if (set_items_list[i][1].substr(0, 1) == '='){
       temp_row = array_item[set_items_list[i][0]] - 1;
-      target_range.GetRange(1, 1).offset(temp_row, 0).setFormula(set_items_list[i]);
+      target_range.offset(temp_row, 0, 1, 1).setFormula(set_items_list[i][1]);
+      }
     }
   }
 }
