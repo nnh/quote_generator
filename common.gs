@@ -363,12 +363,14 @@ function total2_3_add_del_cols(){
   // 試験期間年数を取得
   const row_count = parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1;
   const trial_term_info = sheet.trial.getRange(get_s_p.getProperty('trial_setup_row'), 1, row_count, 3).getValues();
+  filtervisible();
   trial_term_info.filter(function(x){ return(x[2] > 1) }).map(
     function(y){
       add_del_cols(sheet.total2, 2, y[0], y[2]);
       add_del_cols(sheet.total3, 2, y[0], y[2]);
     });
   total2_3_show_hidden_cols();
+  filterhidden();
 }
 /**
 * 指定した列に値が存在したらその行番号を返す。存在しなければ0を返す。
