@@ -84,7 +84,7 @@ function get_months(start_date, end_date){
   if (start_date == '' || end_date == ''){
     return(null);
   }
-  return(end_date.diff(start_date, 'months') + 1);
+  return(end_date.subtract(1, 'days').diff(start_date, 'months') + 1);
 }
 function get_years(start_date, end_date){
   var temp;
