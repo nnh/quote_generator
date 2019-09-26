@@ -80,16 +80,14 @@ function get_trial_start_end_date(input_trial_start_date, input_trial_end_date){
         observation_2_end_date = closing_start_date.clone().subtract(1, 'days');
         observation_2_start_date = closing_start_date.clone().subtract(1, 'years');
         registration_2_end_date = observation_2_start_date.clone().subtract(1, 'days');
-        temp_registration_end_date = observation_2_end_date;
+        temp_registration_end_date = observation_2_end_date.clone();
     } else {
       registration_2_end_date = closing_start_date.clone().subtract(1, 'days');
-      temp_registration_end_date = registration_2_end_date;
+      temp_registration_end_date = registration_2_end_date.clone();
     }
-//    registration_2_end_date = closing_start_date.clone().subtract(1, 'days');
-//    temp_registration_end_date = registration_2_end_date;
   }
   // registrationの年数を取得
-    get_s_p.setProperty('registration_years', get_years(registration_1_start_date, temp_registration_end_date));
+  get_s_p.setProperty('registration_years', get_years(registration_1_start_date, temp_registration_end_date));
   // closing年度とregistration_1年度の開始日が同じ場合trialシートのregistration_1試験期間年数を空白にする
   if (registration_1_start_date.isSame(closing_start_date)){
     registration_1_start_date = '';
