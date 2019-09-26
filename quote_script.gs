@@ -68,7 +68,7 @@ function get_trial_start_end_date(input_trial_start_date, input_trial_end_date){
   const registration_1_start_date = setup_end_date.clone().add(1, 'days');  
   // registration期間が1年以上あれば、1年めをregistration_1、残りをregistration_2とobservation_2にセットする
   var registration_1_end_date = registration_1_start_date.clone().add(1, 'years').subtract(1, 'days');
-  var temp_registration_end_date = registration_1_end_date;
+  var temp_registration_end_date = registration_1_end_date.clone();
   var registration_2_start_date = ''; 
   var registration_2_end_date = '';
   var observation_2_start_date = '';
