@@ -562,13 +562,15 @@ function set_closing_items(array_quotation_request){
   var final_analysis = '最終解析プログラム作成、解析実施（シングル）';
   var final_analysis_table_count = get_quotation_request_value(array_quotation_request, '統計解析に必要な帳票数');
   var clinical_conference = '';
+  var closing_meeting = '';
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
     csr = 'CSRの作成支援';
     csr_count = 1;
     final_analysis = '最終解析プログラム作成、解析実施（ダブル）';
-    // 医師主導治験で症例検討会ありの場合症例検討会資料作成に1をセット
+    // 医師主導治験で症例検討会ありの場合症例検討会資料作成に1をセット、ミーティング1回追加
     if (get_count(get_quotation_request_value(array_quotation_request, '症例検討会'), 'あり', 1) > 0){
       clinical_conference = 1;
+      closing_meeting = 1;
     }
     // 医師主導治験で統計解析に必要な帳票数が50未満であれば50をセットしtrialシートのコメントに追加
     if ((final_analysis_table_count > 0) && (final_analysis_table_count < 50)) {
@@ -577,6 +579,7 @@ function set_closing_items(array_quotation_request){
     }
   }
   set_items_list = [
+    ['ミーティング準備・実行', closing_meeting],
     ['データクリーニング', 1],
     ['データベース固定作業、クロージング', 1],
     ['症例検討会資料作成', clinical_conference],
