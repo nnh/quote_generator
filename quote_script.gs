@@ -508,8 +508,9 @@ function set_registration_items(target_sheet, array_quotation_request){
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
       interim_analysis = '中間解析プログラム作成、解析実施（ダブル）';
   }
-  if (target_sheet.getSheetName() == get_s_p.getProperty('interim_1_sheet_name') || target_sheet.getSheetName() == get_s_p.getProperty('interim_2_sheet_name')){
-    get_s_p.setProperty('interim_table_count', get_quotation_request_value(array_quotation_request, '中間解析に必要な帳票数'));
+  if ((target_sheet.getSheetName() == get_s_p.getProperty('interim_1_sheet_name') || target_sheet.getSheetName() == get_s_p.getProperty('interim_2_sheet_name')) && 
+    　get_quotation_request_value(array_quotation_request, '中間解析業務の依頼') == 'あり'){
+    get_s_p.setProperty('interim_table_count', get_quotation_request_value(array_quotation_request, '中間解析に必要な図表数'));
   } else {
     get_s_p.setProperty('interim_table_count', 0);
   }
@@ -560,7 +561,7 @@ function set_closing_items(array_quotation_request){
   // 医師主導治験のみ算定または名称が異なる項目に対応する
   var csr = '研究結果報告書の作成';
   var final_analysis = '最終解析プログラム作成、解析実施（シングル）';
-  var final_analysis_table_count = get_quotation_request_value(array_quotation_request, '統計解析に必要な帳票数');
+  var final_analysis_table_count = get_quotation_request_value(array_quotation_request, '統計解析に必要な図表数');
   var clinical_conference = '';
   var closing_meeting = '';
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
