@@ -665,10 +665,7 @@ function quote_script_main(){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const get_s_p = PropertiesService.getScriptProperties();
   // 初回のみsetProtectionEditusersを実行
-  if (get_s_p.getProperty('quote_sheet_name') === null){
-    setProtectionEditusers();
-    Utilities.sleep(10000);
-  }
+  initial_process();
   const sheet = get_sheets();
   const quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   const array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
