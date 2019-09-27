@@ -96,17 +96,40 @@ function add_del_cols(sheet, term_row, target_term_name, term_years){
 function total2_3_add_del_cols(){
   // 初回のみsetProtectionEditusersを実行
   initial_process();
+  filtervisible();
   const get_s_p = PropertiesService.getScriptProperties();
   const sheet = get_sheets();
+  // 見出しが空白の行を削除する
+  const total2_header_row = 2;
+  const total3_header_row = 2;
+  remove_cols_without_header(sheet.total2, total2_header_row);
+  remove_cols_without_header(sheet.total3, total3_header_row);
   // 試験期間年数を取得
   const row_count = parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1;
   const trial_term_info = sheet.trial.getRange(get_s_p.getProperty('trial_setup_row'), 1, row_count, 3).getValues();
-  filtervisible();
   trial_term_info.filter(function(x){ return(x[2] > 1) }).map(
     function(y){
-      add_del_cols(sheet.total2, 2, y[0], y[2]);
-      add_del_cols(sheet.total3, 2, y[0], y[2]);
+      add_del_cols(sheet.total2, total2_header_row, y[0], y[2]);
+      add_del_cols(sheet.total3, total3_header_row, y[0], y[2]);
     });
   total2_3_show_hidden_cols();
   filterhidden();
+}
+/**
+* Setup~Closingの間で見出しが空白の行は削除する。
+* @param {sheet} sheet Total2/Total3を指定
+* @param {number} term_row Total2/Total3シートの年度の上の行
+* @return {boolean}
+*/
+function remove_cols_without_header(sheet, term_row){
+  const header_t = sheet.getRange(term_row, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const setup_col = header_t.indexOf('Setup') + 1;
+  if (setup_col < 1) return;
+  const closing_col = header_t.indexOf('Closing') + 1;
+  if (closing_col < 1) return;
+  for (var i = (closing_col - 1); i > setup_col; i--){
+    if (sheet.getRange(term_row, i).getValue() == ''){
+      sheet.deleteColumn(i);
+    }
+  }
 }
