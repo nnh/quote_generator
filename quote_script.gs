@@ -349,7 +349,7 @@ function set_all_sheet_common_items(target_sheet, array_item, sheet_start_date, 
     investigator_initiated_trial_support = project_management;
   }
   set_items_list = [
-    ['プロジェクト管理', project_management],
+    ['プロジェクト管理', 1],
     ['事務局運営', clinical_trials_office],
     ['医師主導治験対応', investigator_initiated_trial_support]
   ];
@@ -541,6 +541,7 @@ function set_registration_items(target_sheet, array_quotation_request){
     ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
     [interim_analysis, get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, get_s_p.getProperty('interim_table_count'))],
     ['中間解析報告書作成（出力結果＋表紙）', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
+    ['データクリーニング', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
     [get_s_p.getProperty('cost_of_registration_item'), get_count(get_quotation_request_value(array_quotation_request, get_s_p.getProperty('cost_of_registration_quotation_request')), 'あり', '=round(' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')')],
     ['施設監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 
       Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / temp_registration_year))],
