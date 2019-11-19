@@ -458,7 +458,10 @@ function set_setup_items(array_quotation_request){
   var sop = '';
   var office_irb_str = 'IRB準備・承認確認';
   var office_irb = '';
-  var dm_irb = get_s_p.getProperty('function_facilities');
+  // trial!C29が空白でない場合は初期アカウント設定数をC29から取得する
+  var dm_irb = '=if(isblank(' + get_s_p.getProperty('trial_sheet_name') +'!C' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + '), ' + 
+                 get_s_p.getProperty('trial_sheet_name') + '!B' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + ',' + 
+                 get_s_p.getProperty('trial_sheet_name') + '!C' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + ')';
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
     sop = 1;
     office_irb_str = 'IRB承認確認、施設管理';
