@@ -61,9 +61,24 @@ function show_hidden_cols(target_sheet, start_col, header_row, header_col){
   }  
 }
 function total2_3_show_hidden_cols(){
-  const sheet = get_sheets();
-  show_hidden_cols(sheet.total2, 4, 4, 2);
-  show_hidden_cols(sheet.total3, 4, 3, 2);
+  const get_s_p = PropertiesService.getScriptProperties();
+  // 対象シート、Setup列の番号、見出し行の番号、見出し列の番号
+  const total_T = [[get_s_p.getProperty('total2_sheet_name'), 4, 4, 2], 
+                        [get_s_p.getProperty('total3_sheet_name'), 4, 3, 2]];
+  const total_foot_T = ['', '_' + get_s_p.getProperty('name_nmc'), '_' + get_s_p.getProperty('name_oscr')];
+  total_T.map(function(x){
+    total_foot_T.map(function(total_foot){
+      var total_name = x[0];
+      var setup_col = x[1];
+      var header_row = x[2];
+      var header_col = x[3];
+      var sheetname = total_name + total_foot;
+      var temp_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
+      if (temp_sheet != null){
+        show_hidden_cols(temp_sheet, setup_col, header_row, header_col);
+      }
+    }, x)
+  });
 }
 /**
 * Total2, Total3シート
@@ -102,15 +117,44 @@ function total2_3_add_del_cols(){
   // 見出しが空白の行を削除する
   const total2_header_row = 2;
   const total3_header_row = 2;
-  remove_cols_without_header(sheet.total2, total2_header_row);
-  remove_cols_without_header(sheet.total3, total3_header_row);
+  const total_T = [[get_s_p.getProperty('total2_sheet_name'), total2_header_row], 
+                        [get_s_p.getProperty('total3_sheet_name'), total3_header_row]];
+  const total_foot_T = ['', '_' + get_s_p.getProperty('name_nmc'), '_' + get_s_p.getProperty('name_oscr')];
+  total_T.map(function(x){
+    total_foot_T.map(function(total_foot){
+      var total_name = x[0];
+      var header_row = x[1];
+      var sheetname = total_name + total_foot;
+      var temp_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
+      if (temp_sheet != null){
+        remove_cols_without_header(temp_sheet, header_row);
+      }
+    }, x)
+  });
   // 試験期間年数を取得
   const row_count = parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1;
   const trial_term_info = sheet.trial.getRange(get_s_p.getProperty('trial_setup_row'), 1, row_count, 3).getValues();
   trial_term_info.filter(function(x){ return(x[2] > 1) }).map(
+//    function(y){
+//      add_del_cols(sheet.total2, total2_header_row, y[0], y[2]);
+//      add_del_cols(sheet.total3, total3_header_row, y[0], y[2]);
+//    });
     function(y){
-      add_del_cols(sheet.total2, total2_header_row, y[0], y[2]);
-      add_del_cols(sheet.total3, total3_header_row, y[0], y[2]);
+      total_T.map(function(total_T){
+        total_foot_T.map(function(total_foot){
+          var term_name = y[0];
+          var term_years = y[2];
+          var total_name = total_T[0];
+          var sheetname = total_name + total_foot;
+          Logger.log(sheetname);
+        }, y, total_T);
+      }, y);
+      
+//* @param {sheet} sheet Total2/Total3を指定
+//* @param {number} term_row Total2/Total3シートの年度の上の行
+//* @param {string} target_term_name 試験期間名（Setupなど）
+//* @param {number} term_years 試験期間年数
+      
     });
   total2_3_show_hidden_cols();
   filterhidden();
@@ -132,4 +176,31 @@ function remove_cols_without_header(sheet, term_row){
       sheet.deleteColumn(i);
     }
   }
+}
+
+
+function aaa(){  
+  const total2_header_row = 2;
+  const total3_header_row = 2;
+
+  const get_s_p = PropertiesService.getScriptProperties();
+  const total_T = [[get_s_p.getProperty('total2_sheet_name'), total2_header_row], 
+                        [get_s_p.getProperty('total3_sheet_name'), total3_header_row]];
+  const total_foot_T = ['', '_' + get_s_p.getProperty('name_nmc'), '_' + get_s_p.getProperty('name_oscr')];
+  var test2 = total_T.map(function(x){
+    var test = total_foot_T.map(function(total_foot){
+      var total_name = x[0];
+      var header_row = x[1];
+      var sheetname = total_name + total_foot;
+      var temp_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
+      if (temp_sheet != null){
+        return(temp_sheet);
+      } else { 
+        return null
+      }
+    }, x)
+    return test;
+  });
+  
+  Logger.log(test2);
 }
