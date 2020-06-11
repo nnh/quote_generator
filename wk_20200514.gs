@@ -1,6 +1,7 @@
 // Itemsシートへの追加作業
 function addNmcOscrToItemsSheet(){
   // itemsシートのU列の右側に2列追加する
+  const get_s_p = PropertiesService.getScriptProperties();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const items_sheet = ss.getSheetByName(get_s_p.getProperty('items_sheet_name'));
   const insert_col_idx = getColumnNumber('U');
@@ -256,6 +257,9 @@ function addNmcOscrSheet(str_foot){
   const sheetname_head = [get_s_p.getProperty('total_sheet_name'), get_s_p.getProperty('total2_sheet_name'), 
                           get_s_p.getProperty('quote_sheet_name')];
   sheetname_head.map(function(x, idx){
+    const total_idx = 0;
+    const total2_idx = 1;
+    const quote_idx = 2;
     // ”*_nmc", "*_oscr"シートが存在したら削除する
     // Quote, total, total2シートをコピー
     var sheetname = x + '_' + str_foot;
@@ -266,12 +270,11 @@ function addNmcOscrSheet(str_foot){
     var new_sheet = ss.getSheetByName(x).copyTo(ss);
     new_sheet.setName(sheetname);
     new_sheet.activate();
-    ss.moveActiveSheet(idx + 1); //順番は後で考えよう
     // 数式の変更
     switch(idx){
     // Quote
       // B7発行元
-      case 3:
+      case quote_idx:
         if (str_foot == get_s_p.getProperty('name_nmc')){
           new_sheet.getRange(7, 2).setFormula('=Trial!C5');
         } else {
@@ -285,56 +288,106 @@ function addNmcOscrSheet(str_foot){
         }
         break;
     // total
-      // D列 6~89行目まで
-      case 1:
-      // total2
-        // D~K列　6〜89行目まで
-      case 2:
+    // D列 5~89行目まで
+    // total2
+    // D~K列　5〜90行目まで
+      default:
         var start_col, end_col, start_row, end_row, reduce_num;
-        if (idx == 1){
+        if (idx == total_idx){
           start_col = 4;
           end_col = start_col;
-          start_row = 6;
+          start_row = 5;
           end_row = 89;
           reduce_num = 2;
         }
-        if (idx == 2){
+        if (idx == total2_idx){
           start_col = 4;
-          end_col = 8;
-          start_row = 6;
-          end_row = 89;
+          end_col = 11;
+          start_row = 5;
+          end_row = 90;
           reduce_num = 2;
         }
         for (var j = start_col; j <= end_col; j++){
           for (var i = start_row; i <= end_row; i++){
             if (new_sheet.getRange(i, j).getFormula().substr(0, 1) == '='){
               var temp_str = new_sheet.getRange(i, j).getFormula();
-              //temp_str = temp_str.substr(0, temp_str.length - 1);
+              if (idx == total2_idx){
+                temp_str = temp_str.substr(0, temp_str.length - 1)
+              }
               var temp_col;
               if (str_foot == get_s_p.getProperty('name_nmc')){
-                temp_col = 'V';
+                temp_col = '$V';
               } else {
-                temp_col = 'W';
+                temp_col = '$W';
               }
-              if (new_sheet.getRange(i, j).getValue() != ''){
-                var set_str = temp_str + '*(Items!' + temp_col + (i - reduce_num) + ' / 100)';
-                new_sheet.getRange(i, j).setFormula(set_str);
-                // 書式の設定　数値にする
-                var fmt = ss.getSheetByName(x).getRange(i, j).getNumberFormat();
-                new_sheet.getRange(i, j).setNumberFormat(fmt);
+//              if (new_sheet.getRange(i, j).getValue() != ''){
+              var set_str = temp_str + '*(Items!' + temp_col + (i - reduce_num) + ' / 100)';
+              if (idx == total_idx && new_sheet.getRange(i, j).getValue() == ''){
+                set_str = '';
               }
+              if (idx == total2_idx){
+                set_str = set_str + ')';
+                Logger.log(set_str);
+              }
+              new_sheet.getRange(i, j).setFormula(set_str);
+              // 書式の設定　数値にする
+              var fmt = ss.getSheetByName(x).getRange(i, j).getNumberFormat();
+              new_sheet.getRange(i, j).setNumberFormat(fmt);
+              //}
             }
           }
+          if (idx == total2_idx){
+            // 合計をsum関数に変更
+            var str_col = getColumnString(j);
+            var str_total2_sum = '=sum(' + str_col + parseInt(start_row) + ':' + str_col + parseInt(end_row) + ')';
+            new_sheet.getRange(parseInt(end_row + 1), j).setFormula(str_total2_sum);
+          }
         }
-        break;
-      default:
         break;
     }
   }, str_foot, ss);
 }
 function addNmcOscrSheet_main(){
   const get_s_p = PropertiesService.getScriptProperties();
+  addPrimaryItemsSheet();
   addNmcOscrSheet(get_s_p.getProperty('name_nmc'));
   addNmcOscrSheet(get_s_p.getProperty('name_oscr'));
+  sortSheets();
 }
 
+// 見出し項目リストシートの作成
+function addPrimaryItemsSheet(){
+  const str_formula = '=QUERY(Items!A:A, "where A <> ' + "'' and A <> '準備作業' and A <>'EDC構築' and A <> '中央モニタリング' and A <> '中央モニタリング' and A <> 'データセット作成' and A <> '合計'" + '")';
+  const insert_sheetname = 'PrimaryItems';
+  const get_s_p = PropertiesService.getScriptProperties();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const items_sheet = ss.getSheetByName(get_s_p.getProperty('items_sheet_name'));
+  const sheet_idx = items_sheet.getIndex();
+  const quote_sheet = ss.getSheetByName(get_s_p.getProperty('quote_sheet_name'));
+  const start_row = 11;
+  var temp_sheet = ss.getSheetByName(insert_sheetname);
+  if (temp_sheet != null){
+    ss.deleteSheet(temp_sheet);
+  }
+  ss.insertSheet(insert_sheetname, parseInt(sheet_idx));  
+  ss.getSheetByName(insert_sheetname).getRange(1, 1).setFormula(str_formula);
+  // QuoteシートC列更新
+  for (var i = 1; i <= 20; i++){
+    var temp = "=" + insert_sheetname + '!' + 'A' + i;
+    var target_row = parseInt(start_row + i);
+    quote_sheet.getRange(target_row, 3).setFormula(temp);
+  }
+}
+// シートの並べ替え
+function sortSheets(){
+  const sheetnames = ['Quote', 'Total', 'Total2',
+                      'Quote_nmc', 'Total_nmc', 'Total2_nmc',
+                      'Quote_oscr', 'Total_oscr', 'Total2_oscr',
+                      'Total3'];
+  sheetnames.map(function(x, idx){
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    ss.getSheetByName(x).activate();
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    ss.moveActiveSheet(parseInt(idx + 1));
+  });
+}

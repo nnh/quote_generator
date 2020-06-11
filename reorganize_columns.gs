@@ -180,27 +180,72 @@ function remove_cols_without_header(sheet, term_row){
 
 
 function aaa(){  
+  // 初回のみsetProtectionEditusersを実行
+  initial_process();
+  filtervisible();
   const total2_header_row = 2;
   const total3_header_row = 2;
-
   const get_s_p = PropertiesService.getScriptProperties();
-  const total_T = [[get_s_p.getProperty('total2_sheet_name'), total2_header_row], 
-                        [get_s_p.getProperty('total3_sheet_name'), total3_header_row]];
+  const sheet = get_sheets();
+  const total_T = [[get_s_p.getProperty('total2_sheet_name'), total2_header_row], [get_s_p.getProperty('total3_sheet_name'), total3_header_row]] 
   const total_foot_T = ['', '_' + get_s_p.getProperty('name_nmc'), '_' + get_s_p.getProperty('name_oscr')];
-  var test2 = total_T.map(function(x){
-    var test = total_foot_T.map(function(total_foot){
+  // 対象シート名を取得する
+  var target_sheets = total_T.map(function(x){
+    var sheet_T = total_foot_T.map(function(y){
+      var sheetname = (x[0] + y);
+      var temp_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
+      if (temp_sheet != null){
+        remove_cols_without_header(temp_sheet, x[1]);
+      }
+      return [temp_sheet, x[1]];
+    }, x)
+    return sheet_T
+  }, total_foot_T);
+  // 配列の次元を落とす
+  target_sheets = target_sheets.reduce(function(x, item){
+    x.push(...item);
+    return x;
+  }, []);
+  // total2_*, total3_* 存在しないシートを対象外にする
+  target_sheets = target_sheets.filter(function(x){
+    return(x[0] != null);
+  })
+/*  target_sheets.map(function(x){
+    Logger.log(x[0].getName());
+  });
+  return;*/
+  // Trialシートの試験期間、見出し、試験期間年数を取得する
+  const row_count = parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1;
+  var trial_term_info = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, row_count, 3).getValues();
+  // total2, total2_nmc, total2_oscr, total3シート
+/*  var target_sheets = total_T.map(function(x){
+    var target_sheet = total_foot_T.map(function(total_foot){
       var total_name = x[0];
       var header_row = x[1];
       var sheetname = total_name + total_foot;
       var temp_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
       if (temp_sheet != null){
-        return(temp_sheet);
+        remove_cols_without_header(temp_sheet, header_row);
+        return [temp_sheet, header_row];
       } else { 
-        return null
+        return [null, null];
       }
     }, x)
-    return test;
+    return target_sheet;
   });
-  
-  Logger.log(test2);
+*/
+  // 列の追加削除
+  trial_term_info.map(function(x){
+    if (!(x[2] > 0)){
+      // 試験期間年数が空白の場合は1列
+      x[2] = 1;
+    }
+    target_sheets.map(function(y){
+      var target_sheet = y[0];
+      var header_row = y[1];
+      var term = x[0];
+      var years = x[2];
+      add_del_cols(target_sheet, header_row, term, years);
+    }, x)
+  }, target_sheets);
 }
