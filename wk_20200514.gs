@@ -1,3 +1,13 @@
+// これを実行
+function addNmcOscrSheet_main(){
+  const get_s_p = PropertiesService.getScriptProperties();
+  addNmcOscrToItemsSheet();
+  addPrimaryItemsSheet();
+  addNmcOscrSheet(get_s_p.getProperty('name_nmc'));
+  addNmcOscrSheet(get_s_p.getProperty('name_oscr'));
+  sortSheets();
+}
+
 // Itemsシートへの追加作業
 function addNmcOscrToItemsSheet(){
   // itemsシートのU列の右側に2列追加する
@@ -256,10 +266,7 @@ function addNmcOscrSheet(str_foot){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetname_head = [get_s_p.getProperty('total_sheet_name'), get_s_p.getProperty('total2_sheet_name'), 
                           get_s_p.getProperty('quote_sheet_name')];
-  sheetname_head.map(function(x, idx){
-    const total_idx = 0;
-    const total2_idx = 1;
-    const quote_idx = 2;
+  sheetname_head.map(function(x, idx, array){
     // ”*_nmc", "*_oscr"シートが存在したら削除する
     // Quote, total, total2シートをコピー
     var sheetname = x + '_' + str_foot;
@@ -271,10 +278,10 @@ function addNmcOscrSheet(str_foot){
     new_sheet.setName(sheetname);
     new_sheet.activate();
     // 数式の変更
-    switch(idx){
+    switch(array[idx]){
     // Quote
       // B7発行元
-      case quote_idx:
+      case get_s_p.getProperty('quote_sheet_name'):
         if (str_foot == get_s_p.getProperty('name_nmc')){
           new_sheet.getRange(7, 2).setFormula('=Trial!C5');
         } else {
@@ -291,68 +298,26 @@ function addNmcOscrSheet(str_foot){
     // D列 5~89行目まで
     // total2
     // D~K列　5〜90行目まで
+      case get_s_p.getProperty('total_sheet_name'):
+      case get_s_p.getProperty('total2_sheet_name'):
+        var sheet_list = {
+          start_col : 4,
+          end_col : 4,
+          start_row : 5,
+          end_row : 89,
+          reduce_num : 2,
+          str_foot : str_foot
+        };
+        if (array[idx] == get_s_p.getProperty('total2_sheet_name')){
+          sheet_list.end_col = 11;
+          sheet_list.end_row = 91;
+        }        
+        setRangeTotal_Total2(new_sheet, sheet_list);
+        break;
       default:
-        var start_col, end_col, start_row, end_row, reduce_num;
-        if (idx == total_idx){
-          start_col = 4;
-          end_col = start_col;
-          start_row = 5;
-          end_row = 89;
-          reduce_num = 2;
-        }
-        if (idx == total2_idx){
-          start_col = 4;
-          end_col = 11;
-          start_row = 5;
-          end_row = 90;
-          reduce_num = 2;
-        }
-        for (var j = start_col; j <= end_col; j++){
-          for (var i = start_row; i <= end_row; i++){
-            if (new_sheet.getRange(i, j).getFormula().substr(0, 1) == '='){
-              var temp_str = new_sheet.getRange(i, j).getFormula();
-              if (idx == total2_idx){
-                temp_str = temp_str.substr(0, temp_str.length - 1)
-              }
-              var temp_col;
-              if (str_foot == get_s_p.getProperty('name_nmc')){
-                temp_col = '$V';
-              } else {
-                temp_col = '$W';
-              }
-//              if (new_sheet.getRange(i, j).getValue() != ''){
-              var set_str = temp_str + '*(Items!' + temp_col + (i - reduce_num) + ' / 100)';
-              if (idx == total_idx && new_sheet.getRange(i, j).getValue() == ''){
-                set_str = '';
-              }
-              if (idx == total2_idx){
-                set_str = set_str + ')';
-                Logger.log(set_str);
-              }
-              new_sheet.getRange(i, j).setFormula(set_str);
-              // 書式の設定　数値にする
-              var fmt = ss.getSheetByName(x).getRange(i, j).getNumberFormat();
-              new_sheet.getRange(i, j).setNumberFormat(fmt);
-              //}
-            }
-          }
-          if (idx == total2_idx){
-            // 合計をsum関数に変更
-            var str_col = getColumnString(j);
-            var str_total2_sum = '=sum(' + str_col + parseInt(start_row) + ':' + str_col + parseInt(end_row) + ')';
-            new_sheet.getRange(parseInt(end_row + 1), j).setFormula(str_total2_sum);
-          }
-        }
         break;
     }
   }, str_foot, ss);
-}
-function addNmcOscrSheet_main(){
-  const get_s_p = PropertiesService.getScriptProperties();
-  addPrimaryItemsSheet();
-  addNmcOscrSheet(get_s_p.getProperty('name_nmc'));
-  addNmcOscrSheet(get_s_p.getProperty('name_oscr'));
-  sortSheets();
 }
 
 // 見出し項目リストシートの作成
@@ -391,3 +356,63 @@ function sortSheets(){
     ss.moveActiveSheet(parseInt(idx + 1));
   });
 }
+
+function setRangeTotal_Total2(target_sheet, sheet_list){
+  const get_s_p = PropertiesService.getScriptProperties();
+  const target_range = target_sheet.getRange(sheet_list.start_row, sheet_list.start_col, parseInt(sheet_list.end_row - sheet_list.start_row + 1), parseInt(sheet_list.end_col - sheet_list.start_col + 1));
+  const format_template = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(get_s_p.getProperty('total_sheet_name')).getRange(6, 4).getNumberFormat();
+  // 数式の設定
+  var edit_formulas = target_range.getFormulas().map(function(x, row_idx){
+    var temp = x.map(function(target_formulas, col_idx){
+      return getEditedFormula(target_sheet, target_formulas, sheet_list, row_idx, col_idx);
+    }, target_sheet, sheet_list, row_idx);
+    return temp;
+  }, target_sheet, sheet_list);
+  target_range.setFormulas(edit_formulas);
+  // 書式の設定
+  var numericFormats = target_range.getNumberFormats().map(function(x){
+    var temp = x.map(function(y){
+      return '#,##0_);(#,##0)';
+    }, format_template)
+    return temp
+  }, format_template);
+  target_range.setNumberFormats(numericFormats);
+  // totalシートでE列が’x’でなければD列の数式を削除する
+  if (target_sheet.getName() == get_s_p.getProperty('total_sheet_name') + '_' + sheet_list.str_foot){
+    for (var i = 0; i <= sheet_list.end_row; i++){
+      if (target_range.offset(i, 1, 1, 1).getValue() != 'x'){
+        target_range.offset(i, 0, 1, 1).setFormula('');
+      }
+    }
+  }
+}
+
+function getEditedFormula(target_sheet, target_formula, sheet_list, row_idx, col_idx){
+  // 数式を編集して返す
+  const get_s_p = PropertiesService.getScriptProperties();
+  var temp_col;
+  var temp_foot = '';
+  var set_str = '';
+  if (target_formula.substr(0, 1) == '='){
+    if (sheet_list.str_foot == get_s_p.getProperty('name_nmc')){
+      temp_col = '$V';
+    } else {
+      temp_col = '$W';
+    }
+    if (target_sheet.getName() == get_s_p.getProperty('total2_sheet_name') + '_' + sheet_list.str_foot){
+      // Total2シートの合計行はsumで取るように変更する
+      if (row_idx != parseInt(sheet_list.end_row - sheet_list.start_row)){
+        target_formula = target_formula.substr(0, target_formula.length - 1);
+        temp_foot = ')';
+      } else {
+        temp_col = getColumnString(parseInt(col_idx + sheet_list.start_col));
+        set_str = '=sum(' + temp_col + sheet_list.start_row + ':' + temp_col + parseInt(sheet_list.end_row - 1) + ')';
+      }
+    }
+    if (set_str == ''){
+      set_str = target_formula + '*(Items!' + temp_col + parseInt(row_idx + sheet_list.start_row - sheet_list.reduce_num) + ' / 100)' + temp_foot;
+    }
+  }
+  return set_str;
+}
+
