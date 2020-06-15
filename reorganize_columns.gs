@@ -61,24 +61,14 @@ function show_hidden_cols(target_sheet, start_col, header_row, header_col){
   }  
 }
 function total2_3_show_hidden_cols(){
-  const get_s_p = PropertiesService.getScriptProperties();
-  // 対象シート、Setup列の番号、見出し行の番号、見出し列の番号
-  const total_T = [[get_s_p.getProperty('total2_sheet_name'), 4, 4, 2], 
-                        [get_s_p.getProperty('total3_sheet_name'), 4, 3, 2]];
-  const total_foot_T = ['', '_' + get_s_p.getProperty('name_nmc'), '_' + get_s_p.getProperty('name_oscr')];
-  total_T.map(function(x){
-    total_foot_T.map(function(total_foot){
-      var total_name = x[0];
-      var setup_col = x[1];
-      var header_row = x[2];
-      var header_col = x[3];
-      var sheetname = total_name + total_foot;
-      var temp_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
-      if (temp_sheet != null){
-        show_hidden_cols(temp_sheet, setup_col, header_row, header_col);
-      }
-    }, x)
-  });
+  const target_sheets = extract_target_sheet();
+  target_sheets.map(function(x){
+    var target_sheet = x[0];
+    var setup_col = x[1];
+    var header_row = x[2];
+    var header_col = x[3];
+    show_hidden_cols(target_sheet, setup_col, header_row, header_col);
+  })
 }
 /**
 * Total2, Total3シート
@@ -108,55 +98,43 @@ function add_del_cols(sheet, term_row, target_term_name, term_years){
   }
   add_del_cols(sheet, term_row, target_term_name, term_years);
 }
-function total2_3_add_del_cols(){
+/**
+* Trialシートの試験期間年数から列の追加削除を行う
+* @param none
+* @return none
+*/
+function total2_3_add_del_cols(){  
   // 初回のみsetProtectionEditusersを実行
   initial_process();
+  //　フィルタを解除し全行表示する
   filtervisible();
   const get_s_p = PropertiesService.getScriptProperties();
+  const target_sheets = extract_target_sheet();
   const sheet = get_sheets();
-  // 見出しが空白の行を削除する
-  const total2_header_row = 2;
-  const total3_header_row = 2;
-  const total_T = [[get_s_p.getProperty('total2_sheet_name'), total2_header_row], 
-                        [get_s_p.getProperty('total3_sheet_name'), total3_header_row]];
-  const total_foot_T = ['', '_' + get_s_p.getProperty('name_nmc'), '_' + get_s_p.getProperty('name_oscr')];
-  total_T.map(function(x){
-    total_foot_T.map(function(total_foot){
-      var total_name = x[0];
-      var header_row = x[1];
-      var sheetname = total_name + total_foot;
-      var temp_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
-      if (temp_sheet != null){
-        remove_cols_without_header(temp_sheet, header_row);
-      }
-    }, x)
-  });
-  // 試験期間年数を取得
+  // 'Setup'などの見出しが指定行にない列は削除する
+  target_sheets.map(function(x){
+    remove_cols_without_header(x[0], x[1]);
+  })
+  // Trialシートの試験期間、見出し、試験期間年数を取得する
   const row_count = parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1;
-  const trial_term_info = sheet.trial.getRange(get_s_p.getProperty('trial_setup_row'), 1, row_count, 3).getValues();
-  trial_term_info.filter(function(x){ return(x[2] > 1) }).map(
-//    function(y){
-//      add_del_cols(sheet.total2, total2_header_row, y[0], y[2]);
-//      add_del_cols(sheet.total3, total3_header_row, y[0], y[2]);
-//    });
-    function(y){
-      total_T.map(function(total_T){
-        total_foot_T.map(function(total_foot){
-          var term_name = y[0];
-          var term_years = y[2];
-          var total_name = total_T[0];
-          var sheetname = total_name + total_foot;
-          Logger.log(sheetname);
-        }, y, total_T);
-      }, y);
-      
-//* @param {sheet} sheet Total2/Total3を指定
-//* @param {number} term_row Total2/Total3シートの年度の上の行
-//* @param {string} target_term_name 試験期間名（Setupなど）
-//* @param {number} term_years 試験期間年数
-      
-    });
+  var trial_term_info = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, row_count, 3).getValues();
+  // 列の追加削除
+  trial_term_info.map(function(x){
+    if (!(x[2] > 0)){
+      // 試験期間年数が空白の場合は1列
+      x[2] = 1;
+    }
+    target_sheets.map(function(y){
+      var target_sheet = y[0];
+      var header_row = y[1];
+      var term = x[0];
+      var years = x[2];
+      add_del_cols(target_sheet, header_row, term, years);
+    }, x)
+  }, target_sheets);
+  // 列の表示／非表示の制御
   total2_3_show_hidden_cols();
+  //　0の行を非表示にするフィルタをセット
   filterhidden();
 }
 /**
@@ -177,27 +155,24 @@ function remove_cols_without_header(sheet, term_row){
     }
   }
 }
-
-
-function aaa(){  
-  // 初回のみsetProtectionEditusersを実行
-  initial_process();
-  filtervisible();
-  const total2_header_row = 2;
-  const total3_header_row = 2;
+/**
+* 対象シートを抽出し、対象シートオブジェクト、 シート名の列番号、　年度の開始列番号、　Setup列番号の一次元配列を返す
+* @param none
+* @return {[sheet, number, number, number]}
+*/
+function extract_target_sheet(){
   const get_s_p = PropertiesService.getScriptProperties();
   const sheet = get_sheets();
-  const total_T = [[get_s_p.getProperty('total2_sheet_name'), total2_header_row], [get_s_p.getProperty('total3_sheet_name'), total3_header_row]] 
+  // 対象シート、 シート名の列、　年度の開始列、　Setup列
+  const total_T = [[get_s_p.getProperty('total2_sheet_name'), 4, 4, 2], 
+                   [get_s_p.getProperty('total3_sheet_name'), 4, 3, 2]] 
   const total_foot_T = ['', '_' + get_s_p.getProperty('name_nmc'), '_' + get_s_p.getProperty('name_oscr')];
   // 対象シート名を取得する
   var target_sheets = total_T.map(function(x){
     var sheet_T = total_foot_T.map(function(y){
       var sheetname = (x[0] + y);
       var temp_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
-      if (temp_sheet != null){
-        remove_cols_without_header(temp_sheet, x[1]);
-      }
-      return [temp_sheet, x[1]];
+      return [temp_sheet, x[1], x[2], x[3]];
     }, x)
     return sheet_T
   }, total_foot_T);
@@ -210,42 +185,5 @@ function aaa(){
   target_sheets = target_sheets.filter(function(x){
     return(x[0] != null);
   })
-/*  target_sheets.map(function(x){
-    Logger.log(x[0].getName());
-  });
-  return;*/
-  // Trialシートの試験期間、見出し、試験期間年数を取得する
-  const row_count = parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1;
-  var trial_term_info = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, row_count, 3).getValues();
-  // total2, total2_nmc, total2_oscr, total3シート
-/*  var target_sheets = total_T.map(function(x){
-    var target_sheet = total_foot_T.map(function(total_foot){
-      var total_name = x[0];
-      var header_row = x[1];
-      var sheetname = total_name + total_foot;
-      var temp_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
-      if (temp_sheet != null){
-        remove_cols_without_header(temp_sheet, header_row);
-        return [temp_sheet, header_row];
-      } else { 
-        return [null, null];
-      }
-    }, x)
-    return target_sheet;
-  });
-*/
-  // 列の追加削除
-  trial_term_info.map(function(x){
-    if (!(x[2] > 0)){
-      // 試験期間年数が空白の場合は1列
-      x[2] = 1;
-    }
-    target_sheets.map(function(y){
-      var target_sheet = y[0];
-      var header_row = y[1];
-      var term = x[0];
-      var years = x[2];
-      add_del_cols(target_sheet, header_row, term, years);
-    }, x)
-  }, target_sheets);
+  return target_sheets;
 }
