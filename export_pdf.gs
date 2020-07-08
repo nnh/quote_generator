@@ -52,7 +52,8 @@ function ssToPdf(){
 function convertSpreadsheetToPdf(sheet_name, portrait, scale){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const folder_id = PropertiesService.getScriptProperties().getProperty("folder_id");
-  const output_folder = DriveApp.getFolderById(folder_id);
+  const output_folder = DriveApp.getRootFolder();
+//  const output_folder = DriveApp.getFolderById(folder_id);
   const url_base = ss.getUrl().replace(/edit$/,'');
   var pdfName = ss.getName();
   var str_id = '&id=' +ss.getId();
