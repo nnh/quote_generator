@@ -226,7 +226,7 @@ function set_trial_sheet(sheet, array_quotation_request){
         default:
           break;
       }
-      sheet.trial.getRange(trial_list[i][1], 2).setValue(temp_str);
+      sheet.trial.getRange(parseInt(trial_list[i][1]), 2).setValue(temp_str);
     } 
   }
   // 発行年月日
@@ -378,7 +378,7 @@ function set_registration_term_items(target_sheet, array_item, project_managemen
   const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
   const target_col = getColumnString(const_count_col);
   const target_range = target_sheet.getRange(target_col + ':' + target_col);
-  const target_fy = trial_sheet.getRange(trial_target_row, get_s_p.getProperty('trial_years_col')).getValue(); 
+  const target_fy = trial_sheet.getRange(parseInt(trial_target_row), parseInt(get_s_p.getProperty('trial_years_col'))).getValue(); 
   var array_count = target_range.getValues();
   var set_items_list = [];
   var temp_row;
@@ -614,8 +614,8 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
   const array_item = get_fy_items(target_sheet, get_s_p.getProperty('fy_sheet_items_col'));
   // このシートの全期間
   const project_management = set_all_sheet_common_items(target_sheet, array_item, 
-                                                      Moment.moment(trial_sheet.getRange(trial_target_row, const_trial_start_col).getValue()),
-                                                      Moment.moment(trial_sheet.getRange(trial_target_row, const_trial_end_col).getValue()));
+                                                      Moment.moment(trial_sheet.getRange(parseInt(trial_target_row), parseInt(const_trial_start_col)).getValue()),
+                                                      Moment.moment(trial_sheet.getRange(parseInt(trial_target_row), parseInt(const_trial_end_col)).getValue()));
   const target_col = getColumnString(const_count_col);
   const target_range = target_sheet.getRange(target_col + ':' + target_col);
   var array_count = target_range.getValues();
@@ -634,7 +634,7 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
       set_items_list = set_registration_items(target_sheet, array_quotation_request);
       // 期間が入っていない場合はシートを非表示にする
       // 中間解析ありの場合interim_1は非表示にしない
-      if ((trial_sheet.getRange(trial_target_row, const_trial_start_col).getValue() == '' && trial_sheet.getRange(trial_target_row, const_trial_end_col).getValue() == '') &&
+      if ((trial_sheet.getRange(parseInt(trial_target_row), parseInt(const_trial_start_col)).getValue() == '' && trial_sheet.getRange(parseInt(trial_target_row), parseInt(const_trial_end_col)).getValue() == '') &&
           (target_sheet.getName() != get_s_p.getProperty('interim_1_sheet_name') ||
            (target_sheet.getName() == get_s_p.getProperty('interim_1_sheet_name') && get_s_p.getProperty('interim_table_count') == 0))){
         target_sheet.hideSheet();
@@ -675,7 +675,7 @@ function quote_script_main(){
   const array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
   const array_target_sheet = [sheet.setup, sheet.closing, sheet.observation_2, sheet.registration_2, sheet.registration_1, sheet.interim_1, sheet.observation_1, sheet.interim_2];
   const sheet_name = array_target_sheet.map(function(x){ return(x.getName()); });
-  const target_values = sheet.trial.getRange(get_s_p.getProperty('trial_setup_row'), 1, parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1, 1).getValues();
+  const target_values = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1, 1).getValues();
   const target_idx = [];
   sheet_name.map(function(x){
     this.forEach(function(y, idx){

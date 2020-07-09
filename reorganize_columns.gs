@@ -156,6 +156,7 @@ function remove_cols_without_header(sheet, term_row){
   }
 }
 /**
+* Total2, Total3シートの列構成用
 * 対象シートを抽出し、対象シートオブジェクト、 シート名の列番号、　年度の開始列番号、　Setup列番号の一次元配列を返す
 * @param none
 * @return {[sheet, number, number, number]}
@@ -186,4 +187,18 @@ function extract_target_sheet(){
     return(x[0] != null);
   })
   return target_sheets;
+}
+
+function aaa(){
+  var aaaaa = extract_target_sheet();
+  aaaaa = aaaaa.map(function(x){return x[0]});
+  Logger.log(aaaaa);
+  
+
+}
+function bbb(){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws_t = ss.getSheets();
+  ws_t.map(function(x){x.showSheet();});
+  
 }

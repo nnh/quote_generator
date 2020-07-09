@@ -11,6 +11,7 @@ function ssToPdf(){
   const ws_t = ss.getSheets();
   const excluded_sheets = ['trial', 'items', 'quotation_request'];
   const pdf_h = [get_s_p.getProperty('total2_sheet_name'), get_s_p.getProperty('total3_sheet_name')];
+  const output_folder = DriveApp.getRootFolder();
   var temp_target_sheets = get_sheets();
   var target_sheetsName = [];
   var show_sheets;
@@ -32,13 +33,13 @@ function ssToPdf(){
   show_sheets = show_sheets.filter(Boolean);
   filterhidden();
   total2_3_show_hidden_cols();
-  convertSpreadsheetToPdf(null, true, 4);
+  convertSpreadsheetToPdf(null, true, 4, ss.getName(), output_folder);
   if (show_sheets !== void　0){
     show_sheets.map(function(x){ x.showSheet(); });
   }
   pdf_h.map(function(x){
     if (!(ss.getSheetByName(x).isSheetHidden())){
-      convertSpreadsheetToPdf(x, false, 4); 
+      convertSpreadsheetToPdf(x, false, 4, x, output_folder); 
     }
   });
 }
@@ -47,19 +48,17 @@ function ssToPdf(){
 * @param {string} sheet_name シート名
 * @param {boolean} portrait true:vertical false:Horizontal
 * @param {number} scale 1= 標準100%, 2= 幅に合わせる, 3= 高さに合わせる,  4= ページに合わせる
+* @param {string} pdf_name 出力するPDF名
+* @param {folder} output_folder_id GoogleDriveの出力フォルダ
 * @return none
 */
-function convertSpreadsheetToPdf(sheet_name, portrait, scale){
+function convertSpreadsheetToPdf(sheet_name, portrait, scale, pdf_name, output_folder){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const folder_id = PropertiesService.getScriptProperties().getProperty("folder_id");
-  const output_folder = DriveApp.getFolderById(folder_id);
   const url_base = ss.getUrl().replace(/edit$/,'');
-  var pdfName = ss.getName();
   var str_id = '&id=' +ss.getId();
   if (sheet_name != null){
     var sheet_id = ss.getSheetByName(sheet_name).getSheetId();
     str_id = '&gid=' + sheet_id;
-    pdfName = sheet_name;
   }
   const url_ext = 'export?exportFormat=pdf&format=pdf'
       + str_id
@@ -76,6 +75,6 @@ function convertSpreadsheetToPdf(sheet_name, portrait, scale){
     }
   }
   const response = UrlFetchApp.fetch(url_base + url_ext, options);
-  const blob = response.getBlob().setName(pdfName + '.pdf');
+  const blob = response.getBlob().setName(pdf_name + '.pdf');
   output_folder.createFile(blob);
 }

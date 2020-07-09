@@ -1,5 +1,6 @@
 // これを実行
 function addNmcOscrSheet_main(){
+  initial_process()
   const get_s_p = PropertiesService.getScriptProperties();
   addNmcOscrToItemsSheet();
   addPrimaryItemsSheet();
@@ -31,7 +32,8 @@ function addNmcOscrToItemsSheet(){
   // 2行目に「nmc(%)」「oscr(%)」
   i++;
   items_sheet.getRange(i, insert_col_idx + 1).setValue('nmc(%)');
-  items_sheet.getRange(i, insert_col_idx + 2).setValue('oscr(%)');  
+  items_sheet.getRange(i, insert_col_idx + 2).setValue('oscr(%)');
+  items_sheet.getRange('Y2').setValue('');  
   //プロトコル等作成支援	9：1デフォルト
   i++;
   //	プロトコルレビュー・作成支援（図表案、統計解析計画書案を含む）
