@@ -1,3 +1,12 @@
+/* nmc, oscrのPDF出力*/
+function ssToPdf_nmc_oscr(){
+  const target_sheets = ['Quote_nmc', 'Total_nmc', 'Total2_nmc', 'Quote_oscr', 'Total_oscr', 'Total2_oscr']
+  const output_folder = DriveApp.getRootFolder();
+  target_sheets.map(function(x){
+    convertSpreadsheetToPdf(x, true, 4, x, output_folder); 
+    convertSpreadsheetToPdf(x, false, 4, x + '_h', output_folder); 
+  });
+}
 /**
 * ブック全体のPDFとTotal2, Total3を横方向で出力したPDFを作成する
 * @param none
@@ -9,7 +18,7 @@ function ssToPdf(){
   const get_s_p = PropertiesService.getScriptProperties();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const ws_t = ss.getSheets();
-  const excluded_sheets = ['trial', 'items', 'quotation_request'];
+  const excluded_sheets = ['trial', 'items', 'quotation_request']; // oscr, nmcを除外対象に入れる必要がある
   const pdf_h = [get_s_p.getProperty('total2_sheet_name'), get_s_p.getProperty('total3_sheet_name')];
   const output_folder = DriveApp.getRootFolder();
   var temp_target_sheets = get_sheets();
