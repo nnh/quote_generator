@@ -673,7 +673,7 @@ function quote_script_main(){
   const sheet = get_sheets();
   const quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   const array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
-  const array_target_sheet = [sheet.setup, sheet.closing, sheet.observation_2, sheet.registration_2, sheet.registration_1, sheet.interim_1, sheet.observation_1, sheet.interim_2];
+  const array_target_sheet = get_target_term_sheets();
   const sheet_name = array_target_sheet.map(function(x){ return(x.getName()); });
   const target_values = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1, 1).getValues();
   const target_idx = [];

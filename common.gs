@@ -147,6 +147,16 @@ function get_sheets(){
   return(sheet);
 }
 /**
+* Setup〜Closingのシートを配列に格納する
+* @param none
+* @return シートの配列
+*/
+function get_target_term_sheets(){
+  const sheet = get_sheets();
+  const array_target_sheet = [sheet.setup, sheet.closing, sheet.observation_2, sheet.registration_2, sheet.registration_1, sheet.interim_1, sheet.observation_1, sheet.interim_2];
+  return array_target_sheet;
+}
+/**
 * スクリプトプロパティの設定
 */
 function register_script_property(){

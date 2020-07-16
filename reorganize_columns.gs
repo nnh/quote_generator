@@ -188,17 +188,3 @@ function extract_target_sheet(){
   })
   return target_sheets;
 }
-
-function aaa(){
-  var aaaaa = extract_target_sheet();
-  aaaaa = aaaaa.map(function(x){return x[0]});
-  Logger.log(aaaaa);
-  
-
-}
-function bbb(){
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const ws_t = ss.getSheets();
-  ws_t.map(function(x){x.showSheet();});
-  
-}
