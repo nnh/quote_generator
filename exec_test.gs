@@ -258,6 +258,19 @@ function call_test(){
   const const_ari_nashi = ['あり', 'なし'];
   const const_stat_table = [0, 1, 49, 50, 51, 100];
   const const_principal = ['営利企業原資（製薬企業等）', '公的資金（税金由来）'];
+  const output_sheet = ss.getSheetByName('Validation');
+  // 試験種別毎、パターン別
+  var condition_table = [];
+  for (var i = 0; i < const_pattern_index.length; i++){
+    for (var j = 0; j < const_trial_type.length; j++){
+      Logger.log(const_pattern_index[i]);
+      condition_table[i, j] = [const_pattern_index[i], const_trial_type[j]];
+    }
+  }
+  Logger.log(condition_table);
+  return;
+  var output_row = 1;
+  output_sheet.clear();
   var test_condition = {};
   test_condition.pattern_index = const_pattern_index[0];
   test_condition.trial_type = const_trial_type[0];
@@ -272,10 +285,11 @@ function call_test(){
   test_condition.registration_costs = const_ari_nashi[0];
   test_condition.report_costs = const_ari_nashi[0];
   test_condition.principal = const_principal[0];
-  const output_sheet = ss.getSheetByName('Validation');
-  output_sheet.clear();
+  test(test_condition);
   var test_result = total_check(test_condition, 'テスト1');
-  output_sheet.getRange(1, 1, test_result.length, test_result[0].length).setValues(test_result);
+  output_sheet.getRange(output_row, 1, test_result.length, test_result[0].length).setValues(test_result);
+  output_row = output_sheet.getLastRow() + 1;
+  Logger.log(output_row);
 
 }
 function compare_value(compare_list){
@@ -364,7 +378,7 @@ function total_check(test_condition, test_item){
   output_list.push([test_item, 'データベース管理料', months_from_registration_start_to_trial_end]);
 	//	中央モニタリング、定期モニタリングレポート作成が症例登録開始〜試験終了の月数である。医師主導治験なら項目名が中央モニタリングである。
   var temp_item_name = '中央モニタリング、定期モニタリングレポート作成';
-  if (test_condition.trial_type == '医師主導治験'){
+  if (test_condition.trial_type == get_s_p.getProperty('investigator_initiated_trial')){
     temp_item_name = '中央モニタリング';
   }
   output_list.push([test_item, temp_item_name, months_from_registration_start_to_trial_end]);
@@ -388,7 +402,7 @@ function total_check(test_condition, test_item){
         trial_report = 1;
       }
       output_list.push([test_item, 'PMDA相談資料作成支援', temp_count]);
-      output_list.push([test_item, '症例検討会', temp_count]);
+      output_list.push([test_item, '症例検討会資料作成', temp_count]);
       output_list.push([test_item, '治験薬管理（中央）', temp_count]);
       output_list.push([test_item, '治験薬運搬', investigational_drug_transport]);
       output_list.push([test_item, '症例検討会資料作成', temp_count]);
@@ -421,6 +435,7 @@ function total_check(test_condition, test_item){
       var temp_count = 0;
       var crb_after_2year = 0;
       var support_specified_clinical_trial = 0;
+      var trial_report = 0;
       if (get_s_p.getProperty('specified_clinical_trial')){
         temp_count = 1;
         support_specified_clinical_trial = facilities;
@@ -458,7 +473,7 @@ function total_check(test_condition, test_item){
 	//	症例報告が0である
       output_list.push([test_item, '症例報告', 0]);
     //  症例検討会が0である
-      output_list.push([test_item, '症例検討会', 0]);
+      output_list.push([test_item, '症例検討会資料作成', 0]);
     //  治験薬管理が0である
       output_list.push([test_item, '治験薬管理（中央）', 0]);
     //  治験薬運搬が0である
@@ -474,7 +489,7 @@ function total_check(test_condition, test_item){
       if (get_s_p.getProperty('investigator_initiated_trial')){
         temp_count = 1;
       }
-      output_list.push([test_item, 'PMDA相談資料作成支援', temp_count]);
+      output_list.push([test_item, '研究結果報告書の作成', temp_count]);
       break;
   }
 
@@ -492,52 +507,72 @@ function total_check(test_condition, test_item){
 	//	効果安全性評価委員会事務局業務が0である
     output_list.push([test_item, '効果安全性評価委員会事務局業務', 0]);
   }  
-  
+  var temp_interim_name = '中間解析プログラム作成、解析実施（シングル）';
+  var temp_stat_name = '最終解析プログラム作成、解析実施（シングル）';
+  var temp_stat_table_count = quotation_request_sheet.getRange('AD2').getValue();
+  // 医師主導治験ならダブル
+  if (get_s_p.getProperty('investigator_initiated_trial')){
+    temp_interim_name = '中間解析プログラム作成、解析実施（ダブル）';
+    temp_stat_name = '最終解析プログラム作成、解析実施（ダブル）';
+    if (temp_stat_table_count < 50){
+      temp_stat_table_count = 50;
+    }
+  }
+  var temp_stat_count = 0;
   if (test_condition.interim_table > 0){
-	//	統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成が1である
-	//	中間解析プログラム作成、解析実施（シングル）が帳票数と同じである。医師主導治験の場合項目名が中間解析プログラム作成、解析実施（ダブル）である。
+    temp_stat_count++;
+	//	中間解析プログラム作成、解析実施が帳票数と同じである。
+    output_list.push([test_item, temp_interim_name, quotation_request_sheet.getRange('AD2').getValue()]);
 	//	中間解析報告書作成（出力結果＋表紙）が1である
+    output_list.push([test_item, '中間解析報告書作成（出力結果＋表紙）', 1]);
 	//	データクリーニングが2である
+    output_list.push([test_item, 'データクリーニング', 2]);
   } else {
-	//	統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成が0である
 	//	中間解析プログラム作成、解析実施（シングル）が0である
+    output_list.push(['中間解析プログラム作成、解析実施（シングル）が0である', temp_interim_name, 0]);
 	//	中間解析報告書作成（出力結果＋表紙）が0である
+    output_list.push([test_item, '中間解析報告書作成（出力結果＋表紙）', 0]);
 	//	データクリーニングが1である
+    output_list.push([test_item, 'データクリーニング', 1]);
   }
   if (test_condition.stat_table > 0){
-	//	統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成が1である
-	//	最終解析プログラム作成、解析実施（シングル）が帳票数（医師主導治験で帳票数が49以下なら50）と同じである。医師主導治験の場合項目名が最終解析プログラム作成、解析実施（ダブル）である。
+    temp_stat_count++;
+	//	最終解析プログラム作成、解析実施が帳票数（医師主導治験で帳票数が49以下なら50）と同じである。。
+    output_list.push([test_item, temp_stat_name, temp_stat_table_count]);
 	//	最終解析報告書作成（出力結果＋表紙）が1である
+    output_list.push([test_item, '最終解析報告書作成（出力結果＋表紙）', 1]);
   } else {
-	//	統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成が0である
 	//	最終解析プログラム作成、解析実施（シングル）が0である
+    output_list.push(['最終解析プログラム作成、解析実施（シングル）', temp_stat_name, 0]);
 	//	最終解析報告書作成（出力結果＋表紙）が0である
+    output_list.push([test_item, '最終解析報告書作成（出力結果＋表紙）', 0]);
   }
+  //	統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成が統計解析の回数分である
+  output_list.push([test_item, '統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', temp_stat_count]);
 
   switch (test_condition.trial_type){
   case '観察研究・レジストリ':
-	//	事務局運営が0である
-	//	医師主導治験対応が0である
-	//	SOP一式、CTR登録案、TMF雛形が0である
-	//	IRB準備・承認確認が0である
-      break;
   case '介入研究（特定臨床研究以外）':
-	//	事務局運営が0である
-	//	医師主導治験対応が0である
-	//	SOP一式、CTR登録案、TMF雛形が0である
-	//	IRB準備・承認確認が0である
-      break;
   case '特定臨床研究':
 	//	事務局運営が0である
+      output_list.push([test_item, '事務局運営', 0]);
 	//	医師主導治験対応が0である
+      output_list.push([test_item, '医師主導治験対応', 0]);
 	//	SOP一式、CTR登録案、TMF雛形が0である
+      output_list.push([test_item, 'SOP一式、CTR登録案、TMF雛形', 0]);
 	//	IRB準備・承認確認が0である
+      output_list.push([test_item, 'IRB準備・承認確認', 0]);
       break;
   default:
-	//	事務局運営が全ての月数である
+    //  医師主導治験
+	//	事務局運営が全ての月数である　
+      output_list.push([test_item, '事務局運営', term_of_contract]);
 	//	医師主導治験対応が全ての月数である
+      output_list.push([test_item, '医師主導治験対応', term_of_contract]);
 	//	SOP一式、CTR登録案、TMF雛形が1である
+      output_list.push([test_item, 'SOP一式、CTR登録案、TMF雛形', 0]);
     //  IRB承認確認、施設管理が施設数である
+      output_list.push([test_item, 'IRB承認確認、施設管理', facilities]);
     break;
   }
   const test_result = output_list.map(function(x){
