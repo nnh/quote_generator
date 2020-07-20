@@ -126,7 +126,7 @@ function total2_3_add_del_cols(){
     }
     target_sheets.map(function(y){
       var target_sheet = y[0];
-      var header_row = y[1];
+      var header_row = y[3];
       var term = x[0];
       var years = x[2];
       add_del_cols(target_sheet, header_row, term, years);
