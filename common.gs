@@ -72,7 +72,7 @@ function getColumnNumber(column_name){
 */
 function getColumnString(column_number) {
   const temp_sheet = SpreadsheetApp.getActiveSheet();
-  const temp_range = temp_sheet.getRange(1, column_number);
+  const temp_range = temp_sheet.getRange(1, parseInt(column_number));
   var temp_res = temp_range.getA1Notation();
   temp_res = temp_res.replace(/\d/,'');
   return(temp_res);
@@ -104,7 +104,7 @@ function get_years(start_date, end_date){
 */
 function get_fy_items(sheet, target_col){
   const get_s_p = PropertiesService.getScriptProperties();
-  var temp_array = sheet.getRange(1, target_col, sheet.getDataRange().getLastRow(), 1).getValues();
+  var temp_array = sheet.getRange(1, parseInt(target_col), sheet.getDataRange().getLastRow(), 1).getValues();
   // 二次元配列から一次元配列に変換
   temp_array = Array.prototype.concat.apply([],temp_array);
   var array_fy_items = {};
@@ -116,14 +116,14 @@ function get_fy_items(sheet, target_col){
   return(array_fy_items);
 }
 /**
-* シート名を連想配列に格納する
+* シートを連想配列に格納する
 * @param none
-* @return シート名の連想配列
+* @return シートの連想配列
 */
 function get_sheets(){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const get_s_p = PropertiesService.getScriptProperties();
-  const sheet = {trial:ss.getSheetByName(get_s_p.getProperty('trial_sheet_name')),
+  var sheet = {trial:ss.getSheetByName(get_s_p.getProperty('trial_sheet_name')),
                quotation_request:ss.getSheetByName(get_s_p.getProperty('quotation_request_sheet_name')),
                total:ss.getSheetByName(get_s_p.getProperty('total_sheet_name')),
                total2:ss.getSheetByName(get_s_p.getProperty('total2_sheet_name')),
@@ -137,7 +137,24 @@ function get_sheets(){
                observation_2:ss.getSheetByName(get_s_p.getProperty('observation_2_sheet_name')),
                closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name')),
                items:ss.getSheetByName(get_s_p.getProperty('items_sheet_name'))}
+  var temp_sheet = ss.getSheetByName(get_s_p.getProperty('total_nmc_sheet_name'));
+  if (temp_sheet != null){
+    sheet.total_nmc = ss.getSheetByName(get_s_p.getProperty('total_nmc_sheet_name'));
+    sheet.total2_nmc = ss.getSheetByName(get_s_p.getProperty('total2_nmc_sheet_name'));
+    sheet.total_oscr = ss.getSheetByName(get_s_p.getProperty('total_oscr_sheet_name'));
+    sheet.total2_oscr = ss.getSheetByName(get_s_p.getProperty('total2_oscr_sheet_name'));
+  }
   return(sheet);
+}
+/**
+* Setup〜Closingのシートを配列に格納する
+* @param none
+* @return シートの配列
+*/
+function get_target_term_sheets(){
+  const sheet = get_sheets();
+  const array_target_sheet = [sheet.setup, sheet.closing, sheet.observation_2, sheet.registration_2, sheet.registration_1, sheet.interim_1, sheet.observation_1, sheet.interim_2];
+  return array_target_sheet;
 }
 /**
 * スクリプトプロパティの設定
@@ -182,6 +199,16 @@ function register_script_property(){
   get_s_p.setProperty('cost_of_prepare_item', '試験開始準備費用');
   get_s_p.setProperty('cost_of_registration_item', '症例登録');
   get_s_p.setProperty('cost_of_report_item', '症例報告');
+  get_s_p.setProperty('name_nmc', 'nmc');
+  get_s_p.setProperty('name_oscr', 'oscr');
+  get_s_p.setProperty('quote_nmc_sheet_name', 'Quote_' + get_s_p.getProperty('name_nmc'));
+  get_s_p.setProperty('total_nmc_sheet_name', 'Total_' + get_s_p.getProperty('name_nmc'));
+  get_s_p.setProperty('total2_nmc_sheet_name', 'Total2_' + get_s_p.getProperty('name_nmc'));
+  get_s_p.setProperty('total3_nmc_sheet_name', 'Total3_' + get_s_p.getProperty('name_nmc'));
+  get_s_p.setProperty('quote_oscr_sheet_name', 'Quote_' + get_s_p.getProperty('name_oscr'));
+  get_s_p.setProperty('total_oscr_sheet_name', 'Total_' + get_s_p.getProperty('name_oscr'));
+  get_s_p.setProperty('total2_oscr_sheet_name', 'Total2_' + get_s_p.getProperty('name_oscr'));
+  get_s_p.setProperty('total3_oscr_sheet_name', 'Total3_' + get_s_p.getProperty('name_oscr'));
 }
 /**
 * 指定した列に値が存在したらその行番号を返す。存在しなければ0を返す。
