@@ -261,38 +261,36 @@ function call_test(){
   const output_sheet = ss.getSheetByName('Validation');
   // 試験種別毎、パターン別
   var condition_table = [];
-  var cnt = -1;
-    for (var i = 0; i < const_pattern_index.length; i++){
-      for (var j = 0;　j < const_trial_type.length; j++){
-        var test_title = 'パターン:' + const_pattern_index[i] + ', 試験種別:' + const_trial_type[j];
-        condition_table.push([test_title, const_pattern_index[i], const_trial_type[j]]);
-      }
+  for (var i = 0; i < const_pattern_index.length; i++){
+    for (var j = 0; j < const_trial_type.length; j++){
+      Logger.log(const_pattern_index[i]);
+      condition_table[i, j] = [const_pattern_index[i], const_trial_type[j]];
     }
+  }
+  Logger.log(condition_table);
+  return;
   var output_row = 1;
   output_sheet.clear();
   var test_condition = {};
-  condition_table.map(function(x){
-    var test_title = x[0];
-    var pattern_index = x[1];
-    var trial_type = x[2];
-    test_condition.pattern_index = pattern_index;
-    test_condition.trial_type = trial_type;
-    test_condition.kouan = const_ari_nashi[0];
-    test_condition.ankan = const_ari_nashi[0]; 
-    test_condition.registration_start = '2030/1/1';
-    test_condition.registration_end = '2033/12/31';
-    test_condition.trial_end = '2035/10/30';
-    test_condition.interim_table = const_stat_table[0]; 
-    test_condition.stat_table = const_stat_table[0];
-    test_condition.preparation_costs = const_ari_nashi[0];
-    test_condition.registration_costs = const_ari_nashi[0];
-    test_condition.report_costs = const_ari_nashi[0];
-    test_condition.principal = const_principal[0];
-    test(test_condition);
-    var test_result = total_check(test_condition, test_title);
-    output_sheet.getRange(output_row, 1, test_result.length, test_result[0].length).setValues(test_result);
-    output_row = output_sheet.getLastRow() + 1;
-  }); 
+  test_condition.pattern_index = const_pattern_index[0];
+  test_condition.trial_type = const_trial_type[0];
+  test_condition.kouan = const_ari_nashi[0];
+  test_condition.ankan = const_ari_nashi[0]; 
+  test_condition.registration_start = '2030/1/1';
+  test_condition.registration_end = '2033/12/31';
+  test_condition.trial_end = '2035/10/30';
+  test_condition.interim_table = const_stat_table[0]; 
+  test_condition.stat_table = const_stat_table[0];
+  test_condition.preparation_costs = const_ari_nashi[0];
+  test_condition.registration_costs = const_ari_nashi[0];
+  test_condition.report_costs = const_ari_nashi[0];
+  test_condition.principal = const_principal[0];
+  test(test_condition);
+  var test_result = total_check(test_condition, 'テスト1');
+  output_sheet.getRange(output_row, 1, test_result.length, test_result[0].length).setValues(test_result);
+  output_row = output_sheet.getLastRow() + 1;
+  Logger.log(output_row);
+
 }
 function compare_value(compare_list){
   // 値が等しければOK, 異なればセルの内容を返す

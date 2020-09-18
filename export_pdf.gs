@@ -106,7 +106,7 @@ function ssToPdf(){
 */
 function convertSpreadsheetToPdf(sheet_name, portrait, scale, pdf_name, output_folder){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const url_base = ss.getUrl().replace(/edit$/,'');
+  const url_base = ss.getUrl().replace(/edit.*$/,'');
   var str_id = '&id=' +ss.getId();
   if (sheet_name != null){
     var sheet_id = ss.getSheetByName(sheet_name).getSheetId();
