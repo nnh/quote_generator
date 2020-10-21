@@ -1,4 +1,18 @@
 /**
+* 対象シートが全て非表示ならtrue, それ以外ならfalseを返す
+* @param {[sheet]} target_sheets PDF出力対象のシート
+* @return {boolean}
+*/
+function check_sheets_hidden(target_sheets){
+  var res = false;
+  var sheetVisible = target_sheets.map(x => x.isSheetHidden());
+  sheetVisible = sheetVisible.filter(x => !x);
+  if (sheetVisible.length == 0){
+    res = true;
+  }
+  return res;
+}
+/**
 * PDFを作成する
 * @param {[sheet]} target_sheets PDF出力対象のシート
 * @param {Object} pdf_settings PDF設定情報
@@ -6,6 +20,10 @@
 */
 function create_pdf_total_book(target_sheets, pdf_settings){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  // 出力対象シートが全て非表示ならば処理をスキップする
+  if (check_sheets_hidden(target_sheets)){
+    return;
+  }
   // スプレッドシート内の全シートを取得
   const ws_t = ss.getSheets();
   // 出力対象シートが非表示なら出力対象外とする
