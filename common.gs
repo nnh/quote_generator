@@ -136,7 +136,8 @@ function get_sheets(){
                interim_2:ss.getSheetByName(get_s_p.getProperty('interim_2_sheet_name')),
                observation_2:ss.getSheetByName(get_s_p.getProperty('observation_2_sheet_name')),
                closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name')),
-               items:ss.getSheetByName(get_s_p.getProperty('items_sheet_name'))}
+               items:ss.getSheetByName(get_s_p.getProperty('items_sheet_name')),
+               check:ss.getSheetByName(get_s_p.getProperty('value_check_sheet_name'))}
   var temp_sheet = ss.getSheetByName(get_s_p.getProperty('total_nmc_sheet_name'));
   if (temp_sheet != null){
     sheet.total_nmc = ss.getSheetByName(get_s_p.getProperty('total_nmc_sheet_name'));
@@ -209,6 +210,9 @@ function register_script_property(){
   get_s_p.setProperty('total_oscr_sheet_name', 'Total_' + get_s_p.getProperty('name_oscr'));
   get_s_p.setProperty('total2_oscr_sheet_name', 'Total2_' + get_s_p.getProperty('name_oscr'));
   get_s_p.setProperty('total3_oscr_sheet_name', 'Total3_' + get_s_p.getProperty('name_oscr'));
+  get_s_p.setProperty('value_check_sheet_name', 'Check');
+  get_s_p.setProperty('facilities_itemname', '実施施設数');
+  get_s_p.setProperty('number_of_cases_itemname', '目標症例数');
 }
 /**
 * 指定した列に値が存在したらその行番号を返す。存在しなければ0を返す。
@@ -230,4 +234,20 @@ function initial_process(){
     setProtectionEditusers();
     Utilities.sleep(10000);
   }
+}
+/**
+* quotation_requestの1行目（項目名）からフォーム入力情報を取得する
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @param {string} header_str 検索対象の値
+* @return 項目名が完全一致すればその項目の値を返す。一致しなければnullを返す。
+* @example 
+*   var trial_start_date = get_quotation_request_value(array_quotation_request, const_trial_start);
+*/
+function get_quotation_request_value(array_quotation_request, header_str){
+  const temp_col = array_quotation_request[0].indexOf(header_str);
+  if (temp_col > -1){
+    return(array_quotation_request[1][temp_col]);
+  } else {
+    return null;
+  }  
 }
