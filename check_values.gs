@@ -25,7 +25,6 @@ function check_output_values() {
   initial_process();
   filterhidden();
   const get_s_p = PropertiesService.getScriptProperties();
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = get_sheets();
   const array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, sheet.quotation_request.getDataRange().getLastColumn()).getValues();
   const facilities_value = get_quotation_request_value(array_quotation_request, get_s_p.getProperty('facilities_itemname'));  
@@ -173,7 +172,7 @@ function check_output_values() {
   total_checkitems.push({itemname:'バリデーション報告書', value:1});  
   total_checkitems.push({itemname:'初期アカウント設定（施設・ユーザー）、IRB承認確認', value:facilities_value});  
   total_checkitems.push({itemname:'入力の手引作成', value:1});  
-  var temp_value = facilities_value;
+  var temp_value = trial_months;
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
     var temp_name = '中央モニタリング';
   } else {
