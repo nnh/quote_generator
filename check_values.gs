@@ -301,7 +301,7 @@ function check_output_values() {
   var temp_name = 'CRB申請費用(2年目以降)';
   if (get_quotation_request_value(array_quotation_request, 'CRB申請') == 'あり'){
     if (trial_months > 12){
-      var temp_year = Math.trunc(trial_months / 12);
+      var temp_year = Math.trunc(trial_months / 12) - 1;
     } else {
       var temp_year = '';
     }
