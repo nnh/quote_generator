@@ -137,6 +137,7 @@ function get_sheets(){
                observation_2:ss.getSheetByName(get_s_p.getProperty('observation_2_sheet_name')),
                closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name')),
                items:ss.getSheetByName(get_s_p.getProperty('items_sheet_name')),
+               quote:ss.getSheetByName(get_s_p.getProperty('quote_sheet_name')),
                check:ss.getSheetByName(get_s_p.getProperty('value_check_sheet_name'))}
   var temp_sheet = ss.getSheetByName(get_s_p.getProperty('total_nmc_sheet_name'));
   if (temp_sheet != null){
