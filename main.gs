@@ -10,15 +10,19 @@ function onOpen() {
     {name: "フィルタ:0を非表示", functionName: "filterhidden"},
     {name: "フィルタ:全て表示", functionName: "filtervisible"}
   ];
+  const arr3 = [
+    {name:"Total2,3列再構成", functionName:"total2_3_add_del_cols"}
+  ];
   const arr4 = [
     {name: "PDF出力", functionName: "ssToPdf"}
   ];
-  const arr3 = [
-    {name:"Total2,3列再構成", functionName:"total2_3_add_del_cols"}
+  const arr5 = [
+    {name: "出力結果チェック", functionName: "check_output_values"}
   ];
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   ss.addMenu("見積作成", arr);
   ss.addMenu("フィルタ", arr2);
   ss.addMenu("列再構成", arr3);
   ss.addMenu("PDF出力", arr4);
+  ss.addMenu("出力結果チェック", arr5);
 }

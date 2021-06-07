@@ -3,22 +3,6 @@
 * ライブラリキー：MHMchiX6c1bwSqGM1PZiW_PxhMjh3Sh48
 */
 /**
-* quotation_requestの1行目（項目名）からフォーム入力情報を取得する
-* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
-* @param {string} header_str 検索対象の値
-* @return 項目名が完全一致すればその項目の値を返す。一致しなければnullを返す。
-* @example 
-*   var trial_start_date = get_quotation_request_value(array_quotation_request, const_trial_start);
-*/
-function get_quotation_request_value(array_quotation_request, header_str){
-  const temp_col = array_quotation_request[0].indexOf(header_str);
-  if (temp_col > -1){
-    return(array_quotation_request[1][temp_col]);
-  } else {
-    return null;
-  }  
-}
-/**
 * 試験種別からSetup、Closing期間の判定を行いスクリプトプロパティに格納する
 * @param {string} temp_str 試験種別 
 * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
@@ -137,8 +121,8 @@ function set_trial_sheet(sheet, array_quotation_request){
   const const_trial_start = '症例登録開始日';
   const const_registration_end = '症例登録終了日';
   const const_trial_end = '試験終了日';
-  const const_facilities = '実施施設数';
-  const const_number_of_cases = '目標症例数';
+  const const_facilities = get_s_p.getProperty('facilities_itemname');
+  const const_number_of_cases = get_s_p.getProperty('number_of_cases_itemname');
   const const_coefficient = '原資';
   const const_trial_start_col = parseInt(get_s_p.getProperty('trial_start_col'));
   const const_trial_end_col = parseInt(get_s_p.getProperty('trial_end_col'));
