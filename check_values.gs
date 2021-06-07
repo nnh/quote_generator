@@ -1,5 +1,10 @@
 function check_itemName_and_value(target, item_name, value_ok){
-  const res_message = 'シート名:' + target.sheet.getName() + ',項目名:' + item_name + ',想定値:' + value_ok;
+  if (target.footer != null){
+    var temp_item_name = item_name + target.footer; 
+  } else {
+    var temp_item_name = item_name; 
+  }
+  const res_message = 'シート名:' + target.sheet.getName() + ',項目名:' + temp_item_name + ',想定値:' + value_ok;
   if (!(target.array_item[item_name] > 0)){
     return ['NG：該当する項目名なし', res_message];
   }
@@ -16,7 +21,7 @@ function get_total_amount(target){
   const target_col = header.indexOf(target.total_col_itemname) + 1;
   return target.sheet.getRange(target_row, target_col).getValue();
 } 
-function myFunction() {
+function check_output_values() {
   initial_process();
   filterhidden();
   const get_s_p = PropertiesService.getScriptProperties();
@@ -30,11 +35,9 @@ function myFunction() {
   var output_col = 1;
   var setup_closing_months = 0;
   sheet.check.clear();
-  // １行目は見出し
-  // ２行目に試験開始〜終了までの月数を出力
   const trial_start_end = [['OK/NG', '詳細', '', ''],
                            ['',
-                            '症例登録開始〜試験終了日の月数チェック',
+                            '症例登録開始〜試験終了日の月数チェック（作業用）',
                             get_quotation_request_value(array_quotation_request, '症例登録開始日').toLocaleDateString("ja"),
                             get_quotation_request_value(array_quotation_request, '試験終了日').toLocaleDateString("ja")]];
   sheet.check.getRange(output_row, output_col, trial_start_end.length, trial_start_end[0].length).setValues(trial_start_end);
@@ -68,7 +71,15 @@ function myFunction() {
   output_row++;
   sheet.check.getRange(output_row, 1, 1, ammount_check[0].length).setValues([ammount_check]);
   var total_checkitems = [];
-  const target_total = {sheet:sheet.total, array_item:get_fy_items(sheet.total, get_s_p.getProperty('fy_sheet_items_col')), col:parseInt(get_s_p.getProperty('fy_sheet_count_col'))};
+  var total_ammount_checkitems = [];
+  const target_total = {sheet:sheet.total, 
+                        array_item:get_fy_items(sheet.total, get_s_p.getProperty('fy_sheet_items_col')), 
+                        col:parseInt(get_s_p.getProperty('fy_sheet_count_col')), 
+                        footer:null};
+  const target_total_ammount = {sheet:sheet.total, 
+                                array_item:get_fy_items(sheet.total, 2), 
+                                col:9, 
+                                footer:'（金額）'};
   total_checkitems.push({itemname:'プロトコルレビュー・作成支援（図表案、統計解析計画書案を含む）', value:1});  
   total_checkitems.push({itemname:'検討会実施（TV会議等）', value:4}); 
   var temp_name = 'PMDA相談資料作成支援';
@@ -89,7 +100,8 @@ function myFunction() {
   total_checkitems.push({itemname:'システム開発', value:''});  
   total_checkitems.push({itemname:'プロジェクト管理', value:1});  
   var temp_name = '事務局運営';
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
+  if ((get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')) | 
+      ((get_quotation_request_value(array_quotation_request, '調整事務局設置の有無') == 'あり'))){
     var temp_value = total_months;
   } else {
     var temp_value = '';
@@ -316,10 +328,13 @@ function myFunction() {
   var temp_name = '保険料';
   if (get_quotation_request_value(array_quotation_request, temp_name) > 0){
     var temp_value = 1;
+    var temp_total_ammount = get_quotation_request_value(array_quotation_request, temp_name);
   } else {
     var temp_value = '';
+    var temp_total_ammount = 0;
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
+  total_ammount_checkitems.push({itemname:temp_name, value:temp_total_ammount});
   total_checkitems.push({itemname:'QOL調査', value:''});  
   var temp_name = '治験薬運搬';
   if (get_quotation_request_value(array_quotation_request, temp_name) > 0){
@@ -338,8 +353,15 @@ function myFunction() {
   total_checkitems.push({itemname:'翻訳', value:''});  
   total_checkitems.push({itemname:'CDISC対応費', value:''});  
   total_checkitems.push({itemname:'中央診断謝金', value:''});  
+  if (get_quotation_request_value(array_quotation_request, '研究協力費、負担軽減費配分管理') == 'あり'){
+    var total_ammount = get_quotation_request_value(array_quotation_request, '研究協力費、負担軽減費');
+  } else {
+    var total_ammount = 0;
+  }
+  total_ammount_checkitems.push({itemname:'研究協力費', value:total_ammount});
   const res_total = total_checkitems.map(checkitems => check_itemName_and_value(target_total, checkitems.itemname, checkitems.value)); 
+  const res_total_ammount = total_ammount_checkitems.map(total_ammount_checkitems => check_itemName_and_value(target_total_ammount, total_ammount_checkitems.itemname, total_ammount_checkitems.value)); 
+  const output_values = res_total.concat(res_total_ammount);
   output_row++;
-  sheet.check.getRange(output_row, 1, res_total.length, res_total[0].length).setValues(res_total);
-  // 単価チェック：保険料、研究協力費
+  sheet.check.getRange(output_row, 1, output_values.length, output_values[0].length).setValues(output_values);
 }
