@@ -123,7 +123,7 @@ function set_trial_sheet(sheet, array_quotation_request){
   const const_trial_end = '試験終了日';
   const const_facilities = get_s_p.getProperty('facilities_itemname');
   const const_number_of_cases = get_s_p.getProperty('number_of_cases_itemname');
-  const const_coefficient = '原資';
+  const const_coefficient = get_s_p.getProperty('coefficient');
   const const_trial_start_col = parseInt(get_s_p.getProperty('trial_start_col'));
   const const_trial_end_col = parseInt(get_s_p.getProperty('trial_end_col'));
   const const_trial_setup_row = parseInt(get_s_p.getProperty('trial_setup_row'));
@@ -201,7 +201,7 @@ function set_trial_sheet(sheet, array_quotation_request){
           sheet.trial.getRange(save_row, const_trial_years_col).setFormula('=trunc(' + temp_total.getA1Notation() + '/12) & "年" & if(mod(' + temp_total.getA1Notation() + ',12)<>0,mod(' + temp_total.getA1Notation() + ',12) & "ヶ月","")');
           break;
         case const_coefficient:
-          if (temp_str == '営利企業原資（製薬企業等）'){
+          if (temp_str == get_s_p.getProperty('commercial_company_coefficient')){
             temp_str = 1.5;
           } else {
             temp_str = 1;
@@ -317,6 +317,9 @@ function set_all_sheet_common_items(target_sheet, array_item, sheet_start_date, 
   const temp_months = get_months(sheet_start_date, sheet_end_date);
   const target_col = getColumnString(const_count_col);
   const target_range = target_sheet.getRange(target_col + ':' + target_col);
+  const sheet = get_sheets();
+  const quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
+  const array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
   var project_management = 12;
   var clinical_trials_office = ''; 
   var investigator_initiated_trial_support = '';
@@ -327,7 +330,16 @@ function set_all_sheet_common_items(target_sheet, array_item, sheet_start_date, 
   if ((temp_months != null) && (temp_months < 12)){
     project_management = temp_months;
   }
-  // 医師主導治験のみ
+  // 企業原資または調整事務局の有無が「あり」なら事務局運営をとる
+  var temp_str = get_quotation_request_value(array_quotation_request, get_s_p.getProperty('coefficient'));
+  if (temp_str == get_s_p.getProperty('commercial_company_coefficient')){
+    clinical_trials_office = project_management; 
+  }
+  var temp_str = get_quotation_request_value(array_quotation_request, '調整事務局設置の有無');
+  if (temp_str == 'あり'){
+    clinical_trials_office = project_management; 
+  }
+  // 医師主導治験
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
     clinical_trials_office = project_management; 
     investigator_initiated_trial_support = project_management;
@@ -442,6 +454,7 @@ function set_setup_items(array_quotation_request){
   var sop = '';
   var office_irb_str = 'IRB準備・承認確認';
   var office_irb = '';
+  var set_accounts = '初期アカウント設定（施設・ユーザー）、IRB承認確認';
   // trial!C29が空白でない場合は初期アカウント設定数をC29から取得する
   var dm_irb = '=if(isblank(' + get_s_p.getProperty('trial_sheet_name') +'!C' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + '), ' + 
                  get_s_p.getProperty('trial_sheet_name') + '!B' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + ',' + 
@@ -450,7 +463,7 @@ function set_setup_items(array_quotation_request){
     sop = 1;
     office_irb_str = 'IRB承認確認、施設管理';
     office_irb = get_s_p.getProperty('function_facilities');
-    dm_irb = '';
+    set_accounts = '初期アカウント設定（施設・ユーザー）';
   }
   set_items_list = [
     ['プロトコルレビュー・作成支援（図表案、統計解析計画書案を含む）', 1],
@@ -466,7 +479,7 @@ function set_setup_items(array_quotation_request){
     ['業務分析・DM計画書の作成・CTR登録案の作成', 1],
     ['DB作成・eCRF作成・バリデーション', 1],
     ['バリデーション報告書', 1],
-    ['初期アカウント設定（施設・ユーザー）、IRB承認確認', dm_irb],
+    [set_accounts, dm_irb],
     ['入力の手引作成', 1],
     ['外部監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 1)],
     [get_s_p.getProperty('cost_of_prepare_item'), get_count(get_quotation_request_value(array_quotation_request, get_s_p.getProperty('cost_of_prepare_quotation_request')), 'あり', get_s_p.getProperty('function_facilities'))],
