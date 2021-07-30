@@ -304,7 +304,7 @@ class Set_trial_comments {
     const comment_length = array_comment.length;
     this.clear_comments();
     if (comment_length <= 0){
-      return null;
+      return;
     }
     this.sheet.trial.getRange(start_row, start_col, comment_length, 1).setValues(array_comment);
   }

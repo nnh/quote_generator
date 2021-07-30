@@ -80,12 +80,12 @@ function total2_3_show_hidden_cols(){
 * @return none
 */
 function add_del_cols(sheet, term_row, target_term_name, term_years){
-  const term_str = sheet.getRange(term_row, 1, 1, sheet.getLastColumn()).getValues();
-  const term_str_first = term_str[0].indexOf(target_term_name);
+  const term_str = sheet.getRange(term_row, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const term_str_first = term_str.indexOf(target_term_name);
   if (term_str_first == -1){
     return;
   }
-  const term_str_count = term_str[0].filter(function(x){return(x == target_term_name)}).length;
+  const term_str_count = term_str.filter(x => x == target_term_name).length;
   if (term_str_count > term_years){
     // 試験期間年数より列数が多ければ列の削除を行う
     sheet.deleteColumn(term_str_first + 1);
@@ -112,23 +112,19 @@ function total2_3_add_del_cols(){
   const target_sheets = extract_target_sheet();
   const sheet = get_sheets();
   // 'Setup'などの見出しが指定行にない列は削除する
-  target_sheets.map(function(x){
-    remove_cols_without_header(x[0], x[1]);
-  })
+  target_sheets.forEach(x => new Add_del_columns(x[0], x[3]).remove_cols_without_header());
   // Trialシートの試験期間、見出し、試験期間年数を取得する
   const row_count = parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1;
-  var trial_term_info = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, row_count, 3).getValues();
+  let trial_term_info = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, row_count, 3).getValues();
+  // 試験期間年数が空白の場合は1列
+  trial_term_info.forEach(x => x[2] = x[2] > 0 ? x[2] : 1);
   // 列の追加削除
-  trial_term_info.map(function(x){
-    if (!(x[2] > 0)){
-      // 試験期間年数が空白の場合は1列
-      x[2] = 1;
-    }
-    target_sheets.map(function(y){
-      var target_sheet = y[0];
-      var header_row = y[3];
-      var term = x[0];
-      var years = x[2];
+  trial_term_info.forEach(function(x){
+    target_sheets.forEach(function(y){
+      const target_sheet = y[0];
+      const header_row = y[3];
+      const term = x[0];
+      const years = x[2];
       add_del_cols(target_sheet, header_row, term, years);
     }, x)
   }, target_sheets);
@@ -143,48 +139,85 @@ function total2_3_add_del_cols(){
 * @param {number} term_row Total2/Total3シートの年度の上の行
 * @return {boolean}
 */
-function remove_cols_without_header(sheet, term_row){
-  const header_t = sheet.getRange(term_row, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const setup_col = header_t.indexOf('Setup') + 1;
-  if (setup_col < 1) return;
-  const closing_col = header_t.indexOf('Closing') + 1;
-  if (closing_col < 1) return;
-  for (var i = (closing_col - 1); i > setup_col; i--){
-    if (sheet.getRange(term_row, i).getValue() == ''){
-      sheet.deleteColumn(i);
-    }
+class Add_del_columns {
+  constructor(sheet, term_row) {
+    this.sheet = sheet;
+    this.term_row = term_row;
   }
+/**
+* 見出し行の文字列を取得する。Setupより左、Closingより右の情報はダミーに置き換える。
+*/
+  get_setup_closing_range(){
+    const dummy_str = '***dummy***';
+    const header_t = this.sheet.getRange(this.term_row, 1, 1, this.sheet.getLastColumn()).getValues()[0];
+    const setup_idx = header_t.indexOf('Setup');
+    const closing_idx = header_t.indexOf('Closing');
+    if (setup_idx < 0 || closing_idx < 0){
+      return;
+    };
+    const res = header_t.map((x, idx) => idx < setup_idx || closing_idx < idx ? dummy_str : x);
+    return res;
+  }
+/**
+* Setup~Closingの間で見出しが空白の行は削除する。
+*/
+  remove_cols_without_header(){
+    // Setup、Closingの見出しがなければ処理しない
+    const header_t = this.get_setup_closing_range();
+    if (!header_t){
+      return;
+    }
+    // 見出しが空白の行がなければ処理しない
+    if (header_t.every(x => x)){
+      return;
+    }
+    this.sheet.deleteColumn(header_t.indexOf('') + 1);
+    this.remove_cols_without_header();
+  }
+}
+function getSetupClosingRange(){
+  const sheet = get_sheets();
+const aaa = new Add_del_columns(sheet.total2, 2);
+const bbb = aaa.remove_cols_without_header();
+}
+/**
+* Setup~Closingの間で見出しが空白の行は削除する。
+* @param {sheet} sheet Total2/Total3を指定
+* @param {number} term_row Total2/Total3シートの年度の上の行
+* @return {boolean}
+*/
+function remove_cols_without_header(sheet, term_row){
+/*  const header_t = sheet.getRange(term_row, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const setup_idx = header_t.indexOf('Setup');
+  const closing_idx = header_t.indexOf('Closing');
+  if (setup_idx < 0 || closing_idx < 0){
+    return;
+  };
+  const target = header_t.slice(setup_idx, closing_idx + 1);
+  // 見出しが空白の行がなければ処理しない
+  if (target.every(x => x)){
+    return;
+  }
+  sheet.deleteColumn(header_t.indexOf('', setup_idx) + 1);
+  remove_cols_without_header(sheet, term_row);*/
 }
 /**
 * Total2, Total3シートの列構成用
-* 対象シートを抽出し、対象シートオブジェクト、 シート名の列番号、　年度の開始列番号、　Setup列番号の一次元配列を返す
+* 対象シートを抽出し、対象シートオブジェクト、 シート名の列番号、　年度の開始列番号、　シート名の行番号の一次元配列を返す
 * @param none
 * @return {[sheet, number, number, number]}
 */
 function extract_target_sheet(){
   const get_s_p = PropertiesService.getScriptProperties();
   const sheet = get_sheets();
-  // 対象シート、 シート名の列、　年度の開始列、　Setup列
-  const total_T = [[get_s_p.getProperty('total2_sheet_name'), 4, 4, 2], 
-                   [get_s_p.getProperty('total3_sheet_name'), 4, 3, 2]] 
+  // 対象シート、 シート名の列、　年度の開始列、　シート名の行番号
+  const total_T = [[get_s_p.getProperty('total2_sheet_name').toLowerCase(), 4, 4, 2], 
+                   [get_s_p.getProperty('total3_sheet_name').toLowerCase(), 4, 3, 2]] 
   const total_foot_T = ['', '_' + get_s_p.getProperty('name_nmc'), '_' + get_s_p.getProperty('name_oscr')];
-  // 対象シート名を取得する
-  var target_sheets = total_T.map(function(x){
-    var sheet_T = total_foot_T.map(function(y){
-      var sheetname = (x[0] + y);
-      var temp_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
-      return [temp_sheet, x[1], x[2], x[3]];
-    }, x)
-    return sheet_T
-  }, total_foot_T);
-  // 配列の次元を落とす
-  target_sheets = target_sheets.reduce(function(x, item){
-    x.push(...item);
-    return x;
+  const target_sheets = total_T.reduce((res, total) => {
+    total_foot_T.forEach(foot => res.push([sheet[total[0] + foot], total[1], total[2], total[3]]));
+    // total2_*, total3_* 存在しないシートを対象外にする
+    return res.filter(x => x[0] != null);
   }, []);
-  // total2_*, total3_* 存在しないシートを対象外にする
-  target_sheets = target_sheets.filter(function(x){
-    return(x[0] != null);
-  })
   return target_sheets;
 }
