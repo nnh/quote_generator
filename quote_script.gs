@@ -212,7 +212,7 @@ function set_trial_sheet(sheet, array_quotation_request){
         case const_crf:
           temp_str_2 = get_quotation_request_value(array_quotation_request, 'CDISC対応');
           if (temp_str_2 == 'あり'){
-            delete_trial_comment("CRFのべ項目数を一症例あたり" + temp_str + "項目と仮定しております。");
+            delete_trial_comment('="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"');
             temp_str = '=' + temp_str + ' * ' + cdisc_addition;
             set_trial_comment('="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"');
           } else {
@@ -312,9 +312,14 @@ class Set_trial_comments {
     this.delete_target = target;
   }
   delete_comment() {
-    const before_delete_comments = this.sheet.trial.getRange(this.const_range).getValues();
-    const comment_values = before_delete_comments.filter(x => x != this.delete_target && x != '');
-    return comment_values;
+    const comment_formulas = this.sheet.trial.getRange(this.const_range).getFormulas();
+    const comment_values =  this.sheet.trial.getRange(this.const_range).getValues();
+    let before_delete_comments = [];
+    for (let i = 0; i < comment_formulas.length; i++){
+      before_delete_comments[i] = comment_formulas[i] != '' ? comment_formulas[i] : comment_values[i]; 
+    }
+    const del_comment = before_delete_comments.filter(x => x != this.delete_target && x != '');
+    return del_comment;
   }
 }
 /**
