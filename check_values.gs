@@ -100,12 +100,19 @@ function check_output_values() {
   total_checkitems.push({itemname:'プロジェクト管理', value:1});  
   var temp_name = '事務局運営';
   if ((get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')) | 
-      ((get_quotation_request_value(array_quotation_request, '調整事務局設置の有無') == 'あり'))){
+      ((get_quotation_request_value(array_quotation_request, '調整事務局設置の有無') == 'あり')) |
+      ((get_quotation_request_value(array_quotation_request, get_s_p.getProperty('coefficient')) == get_s_p.getProperty('commercial_company_coefficient')))
+     ){
     var temp_value = total_months;
   } else {
     var temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
+    var temp_value = total_months;
+  } else {
+    var temp_value = '';
+  }
   total_checkitems.push({itemname:'医師主導治験対応', value:temp_value});
   var temp_name = 'ミーティング準備・実行';
   var temp_value = 0;
@@ -170,7 +177,12 @@ function check_output_values() {
   total_checkitems.push({itemname:'紙CRFのEDC代理入力（含む問合せ）', value:''});  
   total_checkitems.push({itemname:'DB作成・eCRF作成・バリデーション', value:1});  
   total_checkitems.push({itemname:'バリデーション報告書', value:1});  
-  total_checkitems.push({itemname:'初期アカウント設定（施設・ユーザー）、IRB承認確認', value:facilities_value});  
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
+    var temp_name = '初期アカウント設定（施設・ユーザー）';
+  } else {
+    var temp_name = '初期アカウント設定（施設・ユーザー）、IRB承認確認';
+  }
+  total_checkitems.push({itemname:temp_name, value:facilities_value});
   total_checkitems.push({itemname:'入力の手引作成', value:1});  
   var temp_value = trial_months;
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){

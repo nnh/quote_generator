@@ -123,7 +123,7 @@ function get_fy_items(sheet, target_col){
 function get_sheets(){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const get_s_p = PropertiesService.getScriptProperties();
-  var sheet = {trial:ss.getSheetByName(get_s_p.getProperty('trial_sheet_name')),
+  let sheet = {trial:ss.getSheetByName(get_s_p.getProperty('trial_sheet_name')),
                quotation_request:ss.getSheetByName(get_s_p.getProperty('quotation_request_sheet_name')),
                total:ss.getSheetByName(get_s_p.getProperty('total_sheet_name')),
                total2:ss.getSheetByName(get_s_p.getProperty('total2_sheet_name')),
@@ -139,14 +139,14 @@ function get_sheets(){
                items:ss.getSheetByName(get_s_p.getProperty('items_sheet_name')),
                quote:ss.getSheetByName(get_s_p.getProperty('quote_sheet_name')),
                check:ss.getSheetByName(get_s_p.getProperty('value_check_sheet_name'))}
-  var temp_sheet = ss.getSheetByName(get_s_p.getProperty('total_nmc_sheet_name'));
+  const temp_sheet = ss.getSheetByName(get_s_p.getProperty('total_nmc_sheet_name'));
   if (temp_sheet != null){
     sheet.total_nmc = ss.getSheetByName(get_s_p.getProperty('total_nmc_sheet_name'));
     sheet.total2_nmc = ss.getSheetByName(get_s_p.getProperty('total2_nmc_sheet_name'));
     sheet.total_oscr = ss.getSheetByName(get_s_p.getProperty('total_oscr_sheet_name'));
     sheet.total2_oscr = ss.getSheetByName(get_s_p.getProperty('total2_oscr_sheet_name'));
   }
-  return(sheet);
+  return sheet;
 }
 /**
 * Setup〜Closingのシートを配列に格納する
@@ -214,6 +214,8 @@ function register_script_property(){
   get_s_p.setProperty('value_check_sheet_name', 'Check');
   get_s_p.setProperty('facilities_itemname', '実施施設数');
   get_s_p.setProperty('number_of_cases_itemname', '目標症例数');
+  get_s_p.setProperty('coefficient', '原資');
+  get_s_p.setProperty('commercial_company_coefficient', '営利企業原資（製薬企業等）');
 }
 /**
 * 指定した列に値が存在したらその行番号を返す。存在しなければ0を返す。

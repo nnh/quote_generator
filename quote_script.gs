@@ -121,9 +121,10 @@ function set_trial_sheet(sheet, array_quotation_request){
   const const_trial_start = '症例登録開始日';
   const const_registration_end = '症例登録終了日';
   const const_trial_end = '試験終了日';
+  const const_crf = 'CRF項目数';
   const const_facilities = get_s_p.getProperty('facilities_itemname');
   const const_number_of_cases = get_s_p.getProperty('number_of_cases_itemname');
-  const const_coefficient = '原資';
+  const const_coefficient = get_s_p.getProperty('coefficient');
   const const_trial_start_col = parseInt(get_s_p.getProperty('trial_start_col'));
   const const_trial_end_col = parseInt(get_s_p.getProperty('trial_end_col'));
   const const_trial_setup_row = parseInt(get_s_p.getProperty('trial_setup_row'));
@@ -139,7 +140,7 @@ function set_trial_sheet(sheet, array_quotation_request){
     [const_trial_type, 27],
     [const_number_of_cases, get_s_p.getProperty('trial_number_of_cases_row')],
     [const_facilities, get_s_p.getProperty('trial_const_facilities_row')], 
-    ['CRF項目数', 30],
+    [const_crf, 30],
     [const_coefficient, 44]
   ];
   const cost_of_cooperation = '研究協力費、負担軽減費';
@@ -151,6 +152,7 @@ function set_trial_sheet(sheet, array_quotation_request){
     [get_s_p.getProperty('cost_of_registration_quotation_request'), get_s_p.getProperty('cost_of_registration_item')],
     [get_s_p.getProperty('cost_of_report_quotation_request'), get_s_p.getProperty('cost_of_report_item')]
   ];
+  const cdisc_addition = 7;
   var temp_str, temp_str_2, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total, trial_start_date, registration_end_date, trial_end_date, array_trial_date, date_of_issue;
   for (var i = 0; i < trial_list.length; i++){
     temp_str = get_quotation_request_value(array_quotation_request, trial_list[i][0]);
@@ -201,10 +203,20 @@ function set_trial_sheet(sheet, array_quotation_request){
           sheet.trial.getRange(save_row, const_trial_years_col).setFormula('=trunc(' + temp_total.getA1Notation() + '/12) & "年" & if(mod(' + temp_total.getA1Notation() + ',12)<>0,mod(' + temp_total.getA1Notation() + ',12) & "ヶ月","")');
           break;
         case const_coefficient:
-          if (temp_str == '営利企業原資（製薬企業等）'){
+          if (temp_str == get_s_p.getProperty('commercial_company_coefficient')){
             temp_str = 1.5;
           } else {
             temp_str = 1;
+          }
+          break;
+        case const_crf:
+          temp_str_2 = get_quotation_request_value(array_quotation_request, 'CDISC対応');
+          if (temp_str_2 == 'あり'){
+            delete_trial_comment('="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"');
+            temp_str = '=' + temp_str + ' * ' + cdisc_addition;
+            set_trial_comment('="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"');
+          } else {
+            temp_str = temp_str;
           }
           break;
         default:
@@ -276,27 +288,62 @@ function get_count_more_than(subject_of_condition, object_of_condition, return_v
   return(temp);
 }
 /**
+* trialシートのコメントを追加・削除する。
+*/
+class Set_trial_comments {
+  constructor() {
+    this.sheet = get_sheets();
+    this.const_range = PropertiesService.getScriptProperties().getProperty('trial_comment_range');
+  }
+  clear_comments(){
+    this.sheet.trial.getRange(this.const_range).clearContent();
+  }
+  set_range_values(array_comment) {
+    const start_row = this.sheet.trial.getRange(this.const_range).getCell(1, 1).getRow();
+    const start_col = this.sheet.trial.getRange(this.const_range).getCell(1, 1).getColumn();
+    const comment_length = array_comment.length;
+    this.clear_comments();
+    if (comment_length <= 0){
+      return;
+    }
+    this.sheet.trial.getRange(start_row, start_col, comment_length, 1).setValues(array_comment);
+  }
+  set set_delete_comment(target) {
+    this.delete_target = target;
+  }
+  delete_comment() {
+    const comment_formulas = this.sheet.trial.getRange(this.const_range).getFormulas();
+    const comment_values =  this.sheet.trial.getRange(this.const_range).getValues();
+    let before_delete_comments = [];
+    for (let i = 0; i < comment_formulas.length; i++){
+      before_delete_comments[i] = comment_formulas[i] != '' ? comment_formulas[i] : comment_values[i]; 
+    }
+    const del_comment = before_delete_comments.filter(x => x != this.delete_target && x != '');
+    return del_comment;
+  }
+}
+/**
 * trialシートのコメントを追加する。
 * @param {string} str_comment コメント文字列
 * @return none
 */
 function set_trial_comment(str_comment){
-  const sheet = get_sheets();
-  const get_s_p = PropertiesService.getScriptProperties();
-  const const_range = get_s_p.getProperty('trial_comment_range');
-  const start_range = sheet.trial.getRange(const_range).getCell(1, 1);
-  var temp_row;  
-  // 既にその文言がコメントに入っていたらスキップする
- 　　var temp_array_values = sheet.trial.getRange(const_range).getValues();
-  temp_row = Array.prototype.concat.apply([],temp_array_values).indexOf(str_comment);
-  if (temp_row == -1){
-    for (var i = 0; i < temp_array_values.length; i++){
-      if (temp_array_values[i][0] == ''){
-        start_range.offset(i, 0).setValue(str_comment);
-        break;
-      }
-    }
-  } 
+  const setComment = new Set_trial_comments();
+  setComment.set_delete_comment = str_comment;
+  const comments = setComment.delete_comment();
+  comments.push([str_comment]);
+  setComment.set_range_values(comments);
+}
+/**
+* trialシートのコメントを削除する。
+* @param {string} str_comment コメント文字列
+* @return none
+*/
+function delete_trial_comment(str_comment){
+  const setComment = new Set_trial_comments();
+  setComment.set_delete_comment = str_comment;
+  const comments = setComment.delete_comment();
+  setComment.set_range_values(comments);
 }
 /**
 * Setup〜Closing共通項目の設定
@@ -317,6 +364,9 @@ function set_all_sheet_common_items(target_sheet, array_item, sheet_start_date, 
   const temp_months = get_months(sheet_start_date, sheet_end_date);
   const target_col = getColumnString(const_count_col);
   const target_range = target_sheet.getRange(target_col + ':' + target_col);
+  const sheet = get_sheets();
+  const quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
+  const array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
   var project_management = 12;
   var clinical_trials_office = ''; 
   var investigator_initiated_trial_support = '';
@@ -327,7 +377,16 @@ function set_all_sheet_common_items(target_sheet, array_item, sheet_start_date, 
   if ((temp_months != null) && (temp_months < 12)){
     project_management = temp_months;
   }
-  // 医師主導治験のみ
+  // 企業原資または調整事務局の有無が「あり」なら事務局運営をとる
+  var temp_str = get_quotation_request_value(array_quotation_request, get_s_p.getProperty('coefficient'));
+  if (temp_str == get_s_p.getProperty('commercial_company_coefficient')){
+    clinical_trials_office = project_management; 
+  }
+  var temp_str = get_quotation_request_value(array_quotation_request, '調整事務局設置の有無');
+  if (temp_str == 'あり'){
+    clinical_trials_office = project_management; 
+  }
+  // 医師主導治験
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
     clinical_trials_office = project_management; 
     investigator_initiated_trial_support = project_management;
@@ -442,6 +501,7 @@ function set_setup_items(array_quotation_request){
   var sop = '';
   var office_irb_str = 'IRB準備・承認確認';
   var office_irb = '';
+  var set_accounts = '初期アカウント設定（施設・ユーザー）、IRB承認確認';
   // trial!C29が空白でない場合は初期アカウント設定数をC29から取得する
   var dm_irb = '=if(isblank(' + get_s_p.getProperty('trial_sheet_name') +'!C' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + '), ' + 
                  get_s_p.getProperty('trial_sheet_name') + '!B' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + ',' + 
@@ -450,7 +510,7 @@ function set_setup_items(array_quotation_request){
     sop = 1;
     office_irb_str = 'IRB承認確認、施設管理';
     office_irb = get_s_p.getProperty('function_facilities');
-    dm_irb = '';
+    set_accounts = '初期アカウント設定（施設・ユーザー）';
   }
   set_items_list = [
     ['プロトコルレビュー・作成支援（図表案、統計解析計画書案を含む）', 1],
@@ -466,13 +526,13 @@ function set_setup_items(array_quotation_request){
     ['業務分析・DM計画書の作成・CTR登録案の作成', 1],
     ['DB作成・eCRF作成・バリデーション', 1],
     ['バリデーション報告書', 1],
-    ['初期アカウント設定（施設・ユーザー）、IRB承認確認', dm_irb],
+    [set_accounts, dm_irb],
     ['入力の手引作成', 1],
     ['外部監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 1)],
     [get_s_p.getProperty('cost_of_prepare_item'), get_count(get_quotation_request_value(array_quotation_request, get_s_p.getProperty('cost_of_prepare_quotation_request')), 'あり', get_s_p.getProperty('function_facilities'))],
     ['保険料', get_count_more_than(get_quotation_request_value(array_quotation_request, '保険料'), 0, 1)],
     ['治験薬管理（中央）', get_count(get_quotation_request_value(array_quotation_request, '治験薬管理'), 'あり', 1)],
-    ['CDISC対応費', get_count(get_quotation_request_value(array_quotation_request, 'CDISC対応'), 'あり', 1)]
+    //['CDISC対応費', get_count(get_quotation_request_value(array_quotation_request, 'CDISC対応'), 'あり', 1)]
   ];
   return(set_items_list);
 }
