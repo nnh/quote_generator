@@ -108,6 +108,11 @@ function check_output_values() {
     var temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
+    var temp_value = total_months;
+  } else {
+    var temp_value = '';
+  }
   total_checkitems.push({itemname:'医師主導治験対応', value:temp_value});
   var temp_name = 'ミーティング準備・実行';
   var temp_value = 0;
