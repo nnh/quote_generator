@@ -22,7 +22,7 @@ function fix20211209(){
     ss.getSheetByName('Trial').getRange('B47').setValue('=if(not(ISBLANK(B46)),(Quote!D32-(B46/(1+$B$45)))/Quote!D32,if(COUNTBLANK(G32:G39)<>rows(G32:G39), sum(H32:H39)/counta(H32:H39), 0))');
     ss.getSheetByName('Trial').getRange('B47').setNumberFormat('0%');
     // 各シートへの割引後金額の反映
-    ss.getSheetByName(x).getRange('H92').setValue('=if(Trial!$B$47>0, H91*(1-Trial!$B$47), if(Trial!$H$' + parseInt(trialYearsStartRow + idx) + '>0, H91*(1-Trial!$H$' + parseInt(trialYearsStartRow + idx) + '), ""))');
+    ss.getSheetByName(x).getRange('H92').setValue('=if(Trial!H$' + parseInt(trialYearsStartRow + idx) + '>0, H91*(1-Trial!$H$' + parseInt(trialYearsStartRow + idx) + '), if(Trial!$B$47>0, H91*(1-Trial!$B$47), ""))');
     // フィルタ条件の修正
     ss.getSheetByName(x).getRange('L92').setValue('=if(H92<>"", 1, 0)');
   });
@@ -53,18 +53,25 @@ function test_fix20211209(){
   const targetSheetsName = ['Setup', 'Registration_1', 'Registration_2', 'Interim_1', 'Observation_1', 'Interim_2', 'Observation_2', 'Closing'];
   const trialYearsStartRow = 32;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  targetSheetsName.forEach((x, idx) => {
-    // 全シートに金額を入力する
-    ss.getSheetByName(x).getRange('F9').setValue(2);
+  console.log('割引後金額（年度毎）が0以上の場合は正しい割引率（年度毎）が出力されていることを確認する');
+  const const_itemsAmount = 1100000;
+  const res1 = targetSheetsName.map((x, idx) => {
+    // Setup~Closingまでの全シートに金額を入力する
+    ss.getSheetByName(x).getRange('F9').setValue(2);  // 税込110万円の項目
     ss.getSheetByName('Trial').getRange(trialYearsStartRow + idx, 4).setValue(new Date(2020 + idx, 3, 1));
     ss.getSheetByName('Trial').getRange(trialYearsStartRow + idx, 5).setValue(new Date(2021 + idx, 2, 31));
-    // 割引後金額を設定
-    ss.getSheetByName('Trial').getRange(trialYearsStartRow + idx, 7).setValue(100000 * (idx + 1));
+    // 割引後金額（年度毎）を設定
+    ss.getSheetByName('Trial').getRange(trialYearsStartRow + idx, 7).setValue((const_itemsAmount / 10) * (idx + 1));
+    const temp = ss.getSheetByName('Trial').getRange(trialYearsStartRow + idx, 8).getValue();
+    const temp2 = 1 - (ss.getSheetByName('Trial').getRange(trialYearsStartRow + idx, 7).getValue() / const_itemsAmount);
+    return Math.round(temp, 0,001) == Math.round(temp2, 0.001) ? true : false;
   });
-  //
-//  sheets.setup.getRange('F9').setValue(2);
+  if (!res1.every(x => x)){
+    console.log('割引率（年度）：NG');
+  }
+  filterhidden();
 
-  console.log('割引後金額（年度毎）が0以上の場合は正しい割引率（年度毎）が出力されていることを確認する');
+
   console.log('割引後金額（年度毎）が空白の場合は割引率（年度毎）が0であることを確認する');
   console.log('割引後金額（年度毎）が0の場合は割引率（年度毎）が0であることを確認する');
   console.log('Trials!C列が空白であれば割引後金額が入力されていても割引率が空白であることを確認する');
