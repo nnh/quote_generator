@@ -33,25 +33,21 @@ function fix20211209(){
   // Total2
   const total2Sheets = ['Total2', 'Total2_nmc', 'Total2_oscr'];
   total2Sheets.forEach(x => {
-    const targetRange = ss.getSheetByName(x).getRange('D92:K92');
-    for (let i = 0; i < targetRange.getNumColumns(); i++){
-      const targetCell = targetRange.getCell(1, 1 + i);
-      const colName = getColumnString(targetCell.getColumn());
-      targetCell.setValue('=if(' + colName + '91<>"", if(Trial!$G$' + parseInt(trialYearsStartRow + i) + '>0, ' + colName + '91*(1-Trial!$H$' + parseInt(trialYearsStartRow + i) + '), if(Trial!$B$46>0, ' + colName + '91*(1-Trial!$B$47), ' + colName + '91)), "")');
-    }
-    // 合計
-    ss.getSheetByName(x).getRange('L92').setValue('=sum(D92:K92)');
+    fix20211209_total2total3(ss.getSheetByName(x), 92, 32);
   });
   // Total3
-  const total3TargetRange = ss.getSheetByName('Total3').getRange('D28:K28');
-    for (let i = 0; i < total3TargetRange.getNumColumns(); i++){
-      const total3TargetCell = total3TargetRange.getCell(1, 1 + i);
-      const total3ColName = getColumnString(total3TargetCell.getColumn());
-      total3TargetCell.setValue('=if(' + total3ColName + '27<>"", if(Trial!$G$' + parseInt(trialYearsStartRow + i) + '>0, ' + total3ColName + '27*(1-Trial!$H$' + parseInt(trialYearsStartRow + i) + '), if(Trial!$B$46>0, ' + total3ColName + '27*(1-Trial!$B$47), ' + total3ColName + '27)), "")');
-    }
-    // 合計
-    ss.getSheetByName('Total3').getRange('L28').setValue('=sum(D28:K28)');
-
+  fix20211209_total2total3(sheets.total3, 28, 32);
+}
+function fix20211209_total2total3(inputSheet, targetRow, trialYearsStartRow){
+  const targetRange = inputSheet.getRange(targetRow, 4, 1, 8);
+  const sumRow = targetRow - 1;
+  for (let i = 0; i < targetRange.getNumColumns(); i++){
+    const targetCell = targetRange.getCell(1, 1 + i);
+    const colName = getColumnString(targetCell.getColumn());
+    targetCell.setValue('=if(' + colName + sumRow + '<>"", if(Trial!$G$' + parseInt(trialYearsStartRow + i) + '>0, ' + colName + sumRow + '*(1-Trial!$H$' + parseInt(trialYearsStartRow + i) + '), if(Trial!$B$46>0, ' + colName + sumRow + '*(1-Trial!$B$47), ' + colName + sumRow + ')), "")');
+  }
+  // 合計
+  inputSheet.getRange(targetRow, 12).setValue('=sum(D' + targetRow + ':' + 'K' + targetRow + ')');
 }
 function test_fix20211209(){
   const targetSheetsName = ['Setup', 'Registration_1', 'Registration_2', 'Interim_1', 'Observation_1', 'Interim_2', 'Observation_2', 'Closing'];
