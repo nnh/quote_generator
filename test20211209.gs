@@ -1,5 +1,6 @@
 function fix20211209(){
   initial_process();
+  filtervisible();
   const sheets = get_sheets();
   if (sheets.trial.getMaxColumns() <= 6){
     sheets.trial.insertColumnsAfter(6, 2);
@@ -19,7 +20,8 @@ function fix20211209(){
     ss.getSheetByName('Trial').getRange('B47').setValue('=if(not(ISBLANK(B46)),(Quote!D32-(B46/(1+$B$45)))/Quote!D32,if(COUNTBLANK(G32:G39)<>rows(G32:G39), sum(H32:H39)/counta(H32:H39), 0))');
     ss.getSheetByName('Trial').getRange('B47').setNumberFormat('0%');
     // 各シートへの割引後金額の反映
-    ss.getSheetByName(x).getRange('H92').setValue('=if(Trial!H$' + parseInt(trialYearsStartRow + idx) + '>0, H91*(1-Trial!$H$' + parseInt(trialYearsStartRow + idx) + '), if(Trial!$B$47>0, H91*(1-Trial!$B$47), ""))');
+    //'=if(Trial!H$' + parseInt(trialYearsStartRow + idx) + '>0, H91*(1-Trial!$H$' + parseInt(trialYearsStartRow + idx) + '), "")'
+    ss.getSheetByName(x).getRange('H92').setValue('=if(Trial!H$' + parseInt(trialYearsStartRow + idx) + '>0, H91*(1-Trial!$H$' + parseInt(trialYearsStartRow + idx) + '), "")');
     // フィルタ条件の修正
     ss.getSheetByName(x).getRange('L92').setValue('=if(H92<>"", 1, 0)');
   });
@@ -41,26 +43,27 @@ function fix20211209_total2total3_(inputSheet, targetRow, trialYearsStartRow){
   for (let i = 0; i < targetRange.getNumColumns(); i++){
     const targetCell = targetRange.getCell(1, 1 + i);
     const colName = getColumnString(targetCell.getColumn());
-    targetCell.setValue('=if(' + colName + sumRow + '<>"", if(Trial!$G$' + parseInt(trialYearsStartRow + i) + '>0, ' + colName + sumRow + '*(1-Trial!$H$' + parseInt(trialYearsStartRow + i) + '), if(Trial!$B$46>0, ' + colName + sumRow + '*(1-Trial!$B$47), ' + colName + sumRow + ')), "")');
+    targetCell.setValue('=if(' + colName + sumRow + '<>"", if(Trial!$G$' + parseInt(trialYearsStartRow + i) + '>0, ' + colName + sumRow + '*(1-Trial!$H$' + parseInt(trialYearsStartRow + i) + '), ' + colName + sumRow + '), "")');
   }
   // 合計
   inputSheet.getRange(targetRow, 12).setValue('=sum(D' + targetRow + ':' + 'K' + targetRow + ')');
 }
 function test_fix20211209(){
+  filtervisible();
   const targetSheetsName = ['Setup', 'Registration_1', 'Registration_2', 'Interim_1', 'Observation_1', 'Interim_2', 'Observation_2', 'Closing'];
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const setVal = new SetTestValues();
-  let temp_res;
+  let testResults = [];
   // 初期処理 
   setVal.delDiscountAllPeriod();
   targetSheetsName.forEach((x, idx) => {
     setVal.delTrialYears(idx);
     setVal.delDiscountByYear(idx);     
   });
+  // Setup~Closingまでの全シートに金額を入力する
   targetSheetsName.forEach(x => {
-    // Setup~Closingまでの全シートに金額を入力する
-    setVal.setTestValue(ss.getSheetByName(x).getRange('F9'), 2)  // 税込110万円の項目
+    setVal.setTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x).getRange('F9'), 2)  // 税込110万円の項目
   });
+  /* テスト１ */
   console.log('割引後金額（年度毎）が0以上の場合は正しい割引率（年度毎）が出力されていることを確認する');
   const res1 = targetSheetsName.map((x, idx) => {
     // 試験年数を設定
@@ -69,28 +72,35 @@ function test_fix20211209(){
     setVal.setDiscountByYear(idx);
     return setVal.getDiscountRateValue(idx) == setVal.getComputeDiscountRateByDiscountValue(idx) ? true : false;
   });
-  temp_res = isAllTrue_(res1, '割引率（年度）：NG');
+  testResults.push(isAllTrue_(res1, '割引率（年度）：NG'));
+  testResults.push(checkSheetInfo_(targetSheetsName));
+  /* テスト2 */
   console.log('割引後金額（年度毎）が空白の場合は割引率（年度毎）が0であることを確認する');
   const res2 = targetSheetsName.map((x, idx) => {
     // 割引後金額（年度毎）を削除
     setVal.delDiscountByYear(idx);
     return setVal.getDiscountRateValue(idx) == 0 ? true : false;
   });
-  temp_res = isAllTrue_(res2, '割引率（年度）：NG');
+  testResults.push(isAllTrue_(res2, '割引率（年度）：NG'));  
+  testResults.push(checkSheetInfo_(targetSheetsName));
+  return null;
+  /* テスト3 */
   console.log('試験年数が入っていない場合割引率（年度毎）が空白であることを確認する');
   const res3 = targetSheetsName.map((x, idx) => {
     // 試験年数を削除
     setVal.delTrialYears(idx);
     return setVal.getDiscountRateValue(idx) == '' ? true : false;
   });
-  temp_res = isAllTrue_(res3, '割引率（年度）：NG');
+  testResults.push(isAllTrue_(res3, '割引率（年度）：NG'));  
+  /* テスト4 */
   console.log('試験年数が入っていない場合割引後金額（年度毎）が入力されていても割引率（年度毎）が空白であることを確認する');
   const res4 = targetSheetsName.map((x, idx) => {
     // 割引後金額（年度毎）を設定
     setVal.setDiscountByYear(idx);
     return setVal.getDiscountRateValue(idx) == '' ? true : false;
   });
-  temp_res = isAllTrue_(res4, '割引率（年度）：NG');
+  testResults.push(isAllTrue_(res4, '割引率（年度）：NG'));  
+  /* テスト5 */
   console.log('割引後金額（合計）が空白でなければ個別の割引が適用されないことを確認する');
   setVal.setDiscountAllPeriod();
   targetSheetsName.forEach((x, idx) => {
@@ -100,7 +110,8 @@ function test_fix20211209(){
   const res5 = targetSheetsName.map((x, idx) => {
     return setVal.getDiscountRateValue(idx) != setVal.getComputeDiscountRateByDiscountValue(idx) && setVal.getDiscountRateValue(idx) == setVal.getDiscountRateValueAllPeriod() ? true : false;
   });
-  temp_res = isAllTrue_(res5, '割引率（年度）：NG');
+  testResults.push(isAllTrue_(res5, '割引率（年度）：NG')); 
+  testResults.every(x => x) ? console.log('*** TEST OK **+') : console.log('*** TEST NG ***') 
 }
 function isAllTrue_(target, message){
   const res = target.every(x => x);
@@ -169,4 +180,33 @@ class SetTestValues{
     const temp = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr).offset(1, 0).getValue();
     return Number.isFinite(temp) ? parseFloat(temp).toFixed(4) : temp;
   }
+}
+function checkAmountByYearSheet_(sheetName, discountRate){
+  const sumRow = 91;
+  const sumCol = 8;
+  const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  const sumValue = targetSheet.getRange(sumRow, sumCol).getValue();
+  const discountValue = targetSheet.getRange(sumRow + 1, sumCol).getValue();
+  return Math.round(sumValue * (1 - discountRate)) == Math.round(discountValue) ? true : false;
+}
+function checkQuoteSum_(){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const checkAmount = [ss.getSheetByName('Quote').getRange('D32').getValue(),
+                       ss.getSheetByName('Total').getRange('H91').getValue(),
+                       ss.getSheetByName('Total2').getRange('L91').getValue(),
+                       ss.getSheetByName('Total3').getRange('L27').getValue()].every(x => x);
+  const checkDiscount = [ss.getSheetByName('Quote').getRange('D34').getValue(),
+                         ss.getSheetByName('Total').getRange('H92').getValue(),
+                         ss.getSheetByName('Total2').getRange('L92').getValue(),
+                         ss.getSheetByName('Total3').getRange('L28').getValue()].every(x => x);
+  return [checkAmount, checkDiscount];
+}
+function checkSheetInfo_(targetSheetsName){
+  let testResults = [];
+  const setVal = new SetTestValues;
+  const res1 = targetSheetsName.map((x, idx) => checkAmountByYearSheet_(x, setVal.getDiscountRateValue(idx)));
+  testResults.push(isAllTrue_(res1, 'Setup~Closingの各シートの割引後合計チェック：NG'));
+  const res2 = checkQuoteSum_();
+  testResults.push(isAllTrue_(res2, 'Quote, total, total2, total3の合計一致チェック：NG'));
+  return testResults.every(x => x) ? true : false;
 }
