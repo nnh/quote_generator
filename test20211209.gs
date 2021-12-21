@@ -54,16 +54,10 @@ function fix20211209_total2total3_(inputSheet, targetRow, trialYearsStartRow){
   }
 }
 function test_fix20211209_1(){
-  filtervisible();
-  const targetSheetsName = ['Setup', 'Registration_1', 'Registration_2', 'Interim_1', 'Observation_1', 'Interim_2', 'Observation_2', 'Closing'];
-  const setVal = new SetTestValues();
+  const temp_init = routineTestInit();
+  const targetSheetsName = temp_init.targetSheetsName;
+  const setVal = temp_init.setVal;
   let testResults = [];
-  // 初期処理 
-  setVal.delDiscountAllPeriod();
-  targetSheetsName.forEach((x, idx) => {
-    setVal.delTrialYears(idx);
-    setVal.delDiscountByYear(idx);     
-  });
   // Setup~Closingまでの全シートに金額を入力する
   targetSheetsName.forEach(x => {
     setVal.setTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x).getRange('F9'), 2)  // 税込110万円の項目
@@ -122,8 +116,8 @@ function test_fix20211209_1(){
   testResults.every(x => x) ? console.log('*** TEST OK **+') : console.log('*** TEST NG ***') 
 }
 function test_fix20211209_2(){
-  // 実データでのテストを行う
-  setQuotationRequestValuesForTest();
-//  const requestSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Quotation Request');
+
+}
+function test_fix20211209_init(){
 
 }
