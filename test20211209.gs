@@ -1,4 +1,5 @@
 function fix20211209(){
+  PropertiesService.getScriptProperties().deleteAllProperties();
   initial_process();
   filtervisible();
   const sheets = get_sheets();
@@ -117,104 +118,10 @@ function test_fix20211209(){
   });
   testResults.push(isAllTrue_(res5, '割引率（年度）：NG')); 
   testResults.push(checkSheetInfo_(targetSheetsName));
+  /* テスト6 */
+  console.log('割引後金額（合計）が空白でなければ個別の割引が適用されないことを確認する');
+  const requestSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Quotation Request');
+
   /* over all */
   testResults.every(x => x) ? console.log('*** TEST OK **+') : console.log('*** TEST NG ***') 
-}
-function isAllTrue_(target, message){
-  const res = target.every(x => x);
-  if (!res){
-    console.log(message);
-  }
-  return res;
-}
-class SetTestValues{
-  constructor(){
-    this.trialYearsStartRow = 32;
-    this.trialYearsStartCol = 4;
-    this.trialYearsDiscountCol = 7;
-    this.trialYearsDiscountRateCol = 8;
-    this.const_itemsDiscount = 1100000;
-    this.constDiscountAllPeriodRangeAddr = 'B46';
-  }
-  setTestValue(targetRange, strValue){
-    targetRange.setValue(strValue);
-    SpreadsheetApp.flush();
-  }
-  delTestValue(targetRange){
-    targetRange.clearContent();
-  }
-  getTrialYearStartRange(idx){
-    this.idx = idx;
-    return SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow +this.idx, this.trialYearsStartCol);
-  }
-  setTrialYears(idx){
-    this.idx = idx;
-    const yearStartRange = this.getTrialYearStartRange(this.idx);
-    this.setTestValue(yearStartRange, new Date(2020 + this.idx, 3, 1));
-    this.setTestValue(yearStartRange.offset(0, 1), new Date(2021 + this.idx, 2, 31));
-  }
-  delTrialYears(idx){
-    this.idx = idx;
-    const yearStartRange = this.getTrialYearStartRange(this.idx);
-    this.delTestValue(yearStartRange);
-    this.delTestValue(yearStartRange.offset(0, 1));
-  }
-  setDiscountByYear(idx){
-    this.idx = idx;
-    this.setTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow + this.idx, this.trialYearsDiscountCol), (this.const_itemsDiscount / 10) * (idx + 1)); 
-  }
-  delDiscountByYear(idx){
-    this.idx = idx;
-    this.delTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow + this.idx, this.trialYearsDiscountCol));
-  }
-  getDiscountRateValue(idx){
-    this.idx = idx;
-    const temp = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow + this.idx, this.trialYearsDiscountRateCol).getValue();
-    return Number.isFinite(temp) ? parseFloat(temp).toFixed(4) : temp;
-  }
-  getComputeDiscountRateByDiscountValue(idx){
-    this.idx = idx;
-    const temp = 1 - (SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow + idx, this.trialYearsDiscountCol).getValue() / this.const_itemsDiscount);
-    return temp.toFixed(4);
-  }
-  setDiscountAllPeriod(){
-    this.setTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr), 440000);
-  }
-  delDiscountAllPeriod(){
-    this.delTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr));
-  }
-  getDiscountRateValueAllPeriod(){
-    const temp = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr).offset(1, 0).getValue();
-    return Number.isFinite(temp) ? parseFloat(temp).toFixed(4) : temp;
-  }
-}
-function checkAmountByYearSheet_(sheetName, discountRate){
-  const sumRow = 91;
-  const sumCol = 8;
-  const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-  const sumValue = targetSheet.getRange(sumRow, sumCol).getValue();
-  const discountValue = targetSheet.getRange(sumRow + 1, sumCol).getValue();
-  const discountCheck = discountRate > 0 || SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange('B2').getValue() == '' ? Math.round(sumValue * (1 - discountRate)) == Math.round(discountValue) : discountValue == '';
-  return discountCheck;
-}
-function checkQuoteSum_(){
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const checkAmount = [ss.getSheetByName('Quote').getRange('D32').getValue(),
-                       ss.getSheetByName('Total').getRange('H91').getValue(),
-                       ss.getSheetByName('Total2').getRange('L91').getValue(),
-                       ss.getSheetByName('Total3').getRange('L27').getValue()].map(x => x == '' ? 0 : Math.round(x));
-  const checkDiscount = [ss.getSheetByName('Quote').getRange('D34').getValue(),
-                         ss.getSheetByName('Total').getRange('H92').getValue(),
-                         ss.getSheetByName('Total2').getRange('L92').getValue(),
-                         ss.getSheetByName('Total3').getRange('L28').getValue()].map(x => x == '' ? 0 : Math.round(x));
-  return [checkAmount.every(x => (x, idx, arr) => x == arr[0]), checkDiscount.every((x, idx, arr) => x == arr[0])];
-}
-function checkSheetInfo_(targetSheetsName){
-  let testResults = [];
-  const setVal = new SetTestValues;
-  const res1 = targetSheetsName.map((x, idx) => checkAmountByYearSheet_(x, setVal.getDiscountRateValue(idx)));
-  testResults.push(isAllTrue_(res1, 'Setup~Closingの各シートの割引後合計チェック：NG'));
-  const res2 = checkQuoteSum_();
-  testResults.push(isAllTrue_(res2, 'Quote, total, total2, total3の合計一致チェック：NG'));
-  return testResults.every(x => x);
 }
