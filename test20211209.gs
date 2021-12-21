@@ -115,9 +115,3 @@ function test_fix20211209_1(){
   /* over all */
   testResults.every(x => x) ? console.log('*** TEST OK **+') : console.log('*** TEST NG ***') 
 }
-function test_fix20211209_2(){
-
-}
-function test_fix20211209_init(){
-
-}
