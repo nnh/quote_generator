@@ -53,7 +53,7 @@ function fix20211209_total2total3_(inputSheet, targetRow, trialYearsStartRow){
     targetCell.setValue('=if(' + colName + sumRow + '<>"", if(Trial!$G$' + parseInt(trialYearsStartRow + i) + '>0, ' + colName + sumRow + '*(1-Trial!$H$' + parseInt(trialYearsStartRow + i) + '), ' + colName + sumRow + '), "")');
   }
 }
-function test_fix20211209(){
+function test_fix20211209_1(){
   filtervisible();
   const targetSheetsName = ['Setup', 'Registration_1', 'Registration_2', 'Interim_1', 'Observation_1', 'Interim_2', 'Observation_2', 'Closing'];
   const setVal = new SetTestValues();
@@ -118,10 +118,12 @@ function test_fix20211209(){
   });
   testResults.push(isAllTrue_(res5, '割引率（年度）：NG')); 
   testResults.push(checkSheetInfo_(targetSheetsName));
-  /* テスト6 */
-  console.log('割引後金額（合計）が空白でなければ個別の割引が適用されないことを確認する');
-  const requestSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Quotation Request');
-
   /* over all */
   testResults.every(x => x) ? console.log('*** TEST OK **+') : console.log('*** TEST NG ***') 
+}
+function test_fix20211209_2(){
+  // 実データでのテストを行う
+  setQuotationRequestValuesForTest();
+//  const requestSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Quotation Request');
+
 }

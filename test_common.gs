@@ -130,11 +130,16 @@ function getQuotationRequestValues_(){
   const sheetname = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('wk_property').getRange('B3').getValue();
   const requestValues = SpreadsheetApp.openByUrl(url).getSheetByName(sheetname).getDataRange().getValues();
   // Output only those records for which "Existence of Coordination Office" has been entered.
-  return requestValues.filter((x, idx) => idx > 25);
+  return requestValues.filter((x, idx) => idx > 25 || idx == 0);
 }
-function setQuotationRequestValuesForTest(){
+/**
+ * @param none.
+ * @return none. 
+ */
+function setQuotationRequestValuesForTest(target_idx=-1){
   const requestValues = getQuotationRequestValues_();
   const sheetQuotationRequest = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Quotation Request');
-  sheetQuotationRequest.getRange(2, 1, 1, sheetQuotationRequest.getDataRange().getLastColumn()).clearContent;
-  sheetQuotationRequest.getRange(2, 1, requestValues.length, requestValues[0].length).setValues(requestValues);
+  sheetQuotationRequest.clearContents();
+  const target = target_idx > -1 ? requestValues.filter((x, idx) => idx == target_idx || idx == 0) : requestValues;
+  sheetQuotationRequest.getRange(1, 1, target.length, target[0].length).setValues(target);
 }
