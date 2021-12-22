@@ -1,5 +1,5 @@
 /**
- * 
+ * routine test
  */
 class RoutineTest{
   setQuote(idx){
@@ -24,10 +24,10 @@ class RoutineTest{
     total2_3_add_del_cols();
   }
   execRoutineTest(targetValues){
-    const res = targetValues.map((x, idx) => {
+    const res = targetValues.map((_, idx) => {
       if (idx > 0) {
         setQuotationRequestValuesForTest(idx)
-        this.setQuote(idx)
+        this.setQuote(idx);
         check_output_values();
         return this.getCheckResult_();
       } else {
@@ -38,7 +38,7 @@ class RoutineTest{
   }
   routineTestInit(){
     filtervisible();
-    const targetSheetsName = ['Setup', 'Registration_1', 'Registration_2', 'Interim_1', 'Observation_1', 'Interim_2', 'Observation_2', 'Closing'];
+    const targetSheetsName = get_target_term_sheets().map(x => x.getName());
     const setVal = new SetTestValues();
     // Initial processing 
     setVal.delDiscountAllPeriod();
@@ -63,11 +63,16 @@ class RoutineTest{
     return checkSheetValue.every(x => x == 'OK');
   }
 }
+/**
+ * If all test results are True, output OK. Otherwise, it will output the test results.
+ * @param none.
+ * @return none.
+ */
 function routineTest(){
   const test = new RoutineTest();
   const targetValues = getQuotationRequestValues_();
   const testResults = test.execRoutineTest(targetValues);
-  console.log(testResults);
+  testResults.every(x => x) ? console.log('*** test ok. ***') : console.log(testResults);
 }
 /**
  * If the first arguments are all True, return True. Otherwise, it outputs a message and returns False.
@@ -168,33 +173,37 @@ function checkAmountByYearSheet_(sheetName, discountRate){
  */
 function checkQuoteSum_(){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const total2_goukei_col = get_years_target_col(ss.getSheetByName('Total2'), '合計');
+  const total3_goukei_col = get_years_target_col(ss.getSheetByName('Total3'), '合計');
   const checkAmount = [ss.getSheetByName('Quote').getRange('D32').getValue(),
                        ss.getSheetByName('Total').getRange('H91').getValue(),
-                       ss.getSheetByName('Total2').getRange('L91').getValue(),
-                       ss.getSheetByName('Total3').getRange('L27').getValue()].map(x => x == '' ? 0 : Math.round(x));
+                       ss.getSheetByName('Total2').getRange(91, total2_goukei_col).getValue(),
+                       ss.getSheetByName('Total3').getRange(27, total3_goukei_col).getValue()].map(x => x == '' ? 0 : Math.round(x));
   const checkDiscount = [ss.getSheetByName('Quote').getRange('D34').getValue(),
                          ss.getSheetByName('Total').getRange('H92').getValue(),
-                         ss.getSheetByName('Total2').getRange('L92').getValue(),
-                         ss.getSheetByName('Total3').getRange('L28').getValue()].map(x => x == '' ? 0 : Math.round(x));
-  return [checkAmount.every(x => (x, idx, arr) => x == arr[0]), checkDiscount.every((x, idx, arr) => x == arr[0])];
+                         ss.getSheetByName('Total2').getRange(92, total2_goukei_col).getValue(),
+                         ss.getSheetByName('Total3').getRange(28, total3_goukei_col).getValue()].map(x => x == '' ? 0 : Math.round(x));
+  return [checkAmount.every(x => (x, _, arr) => x == arr[0]), checkDiscount.every((x, _, arr) => x == arr[0])];
 }
 /**
  * Check the output for total and discount totals.
  * @param {string} <array> The sheet name.
  * @return {boolean} <array> Return True if OK, False otherwise.
  */
-function checkSheetInfo_(targetSheetsName = ['Setup', 'Registration_1', 'Registration_2', 'Interim_1', 'Observation_1', 'Interim_2', 'Observation_2', 'Closing']){
+function checkSheetInfo_(targetSheetsName = null){
   let testResults = [];
   const setVal = new SetTestValues;
-  const res1 = targetSheetsName.map((x, idx) => checkAmountByYearSheet_(x, setVal.getDiscountRateValue(idx)));
+  const target = targetSheetsName ? targetSheetsName : get_target_term_sheets().map(x => x.getSheetName());
+  const res1 = target.map((x, idx) => checkAmountByYearSheet_(x, setVal.getDiscountRateValue(idx)));
   testResults.push(isAllTrue_(res1, 'Setup~Closingの各シートの割引後合計チェック：NG'));
   const res2 = checkQuoteSum_();
   testResults.push(isAllTrue_(res2, 'Quote, total, total2, total3の合計一致チェック：NG'));
   return testResults.every(x => x);
 }
 /**
+ * Get the value from "Quotation Request".
  * @param none.
- * @return {string} <array>
+ * @return {string} <array> The value of "Quotation Request".
  */
 function getQuotationRequestValues_(){
   const url = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('wk_property').getRange('B2').getValue();
@@ -204,7 +213,8 @@ function getQuotationRequestValues_(){
   return requestValues.filter((x, idx) => idx > 25 || idx == 0);
 }
 /**
- * @param none.
+ * Output the values retrieved from the "Quotation Request" spreadsheet to the "Quotation Request" sheet.
+ * @param {number=} If specified in the argument, outputs the value at the specified index. Otherwise, all values are output.
  * @return none. 
  */
 function setQuotationRequestValuesForTest(target_idx=-1){

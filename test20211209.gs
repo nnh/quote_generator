@@ -18,7 +18,8 @@ function fix20211209(){
     ss.getSheetByName('Trial').getRange(trialTargetRow, 8).setValue('=if(C' + trialTargetRow + '<>"", if(not(isblank($B$46)), $B$47, if(and(not(ISBLANK($G$' + trialTargetRow + ')), ' + x + '!$H$91 > 0), (' + x + '!$H$91 - ($G$' + trialTargetRow + ' / (1 + $B$45))) / ' + x + '!$H$91, 0)), "")');
     ss.getSheetByName('Trial').getRange(trialTargetRow, 8).setNumberFormat('0%');
     ss.getSheetByName('Trial').getRange(trialTargetRow, 7).setNumberFormat('#,##0');
-    ss.getSheetByName('Trial').getRange('B47').setValue('=if(not(ISBLANK(B46)),(Quote!D32-(B46/(1+$B$45)))/Quote!D32,if(COUNTBLANK(G32:G39)<>rows(G32:G39), sum(H32:H39)/counta(H32:H39), 0))');
+    // =if(not(ISBLANK(B46)),(Quote!D32-(B46/(1+$B$45)))/Quote!D32,if(COUNTBLANK(G32:G39)<>rows(G32:G39), 1-(Total2!L92/Total2!L91), 0))
+    ss.getSheetByName('Trial').getRange('B47').setValue('=if(not(ISBLANK(B46)),(Quote!D32-(B46/(1+$B$45)))/Quote!D32,if(COUNTBLANK(G32:G39)<>rows(G32:G39), 1-(Total2!L92/Total2!L91), 0))');
     ss.getSheetByName('Trial').getRange('B47').setNumberFormat('0%');
     // 各シートへの割引後金額の反映
     //'=if(Trial!H$' + parseInt(trialYearsStartRow + idx) + '>0, H91*(1-Trial!$H$' + parseInt(trialYearsStartRow + idx) + '), "")'
@@ -114,4 +115,30 @@ function test_fix20211209_1(){
   testResults.push(checkSheetInfo_(targetSheetsName));
   /* over all */
   testResults.every(x => x) ? console.log('*** TEST OK **+') : console.log('*** TEST NG ***') 
+}
+class Test_fix20211209_2 extends RoutineTest{
+  test_fix20211209_2(idx){
+    setQuotationRequestValuesForTest(idx)
+    super.setQuote(idx);
+    return checkSheetInfo_();
+  }
+}
+function test_fix20211209_2(){
+  const targetValues = getQuotationRequestValues_();
+  const test = new Test_fix20211209_2;
+  const trialSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial');
+  // setup 単年度
+  trialSheet.getRange('G32:G39').clearContent()
+  trialSheet.getRange('G32').setValue(5000000);
+  const testResults = test.test_fix20211209_2(1);
+  console.log(testResults);
+}
+function test_fix20211209_3(){
+  const test = new Test_fix20211209_2;
+  const trialSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial');
+  // Registration_2 複数年度
+  trialSheet.getRange('G32:G39').clearContent()
+  trialSheet.getRange('G34').setValue(4000000);
+  const testResults = test.test_fix20211209_2(2);
+  console.log(testResults);
 }
