@@ -18,7 +18,8 @@ function fix20211209(){
     ss.getSheetByName('Trial').getRange(trialTargetRow, 8).setValue('=if(C' + trialTargetRow + '<>"", if(not(isblank($B$46)), $B$47, if(and(not(ISBLANK($G$' + trialTargetRow + ')), ' + x + '!$H$91 > 0), round((' + x + '!$H$91 - ($G$' + trialTargetRow + ' / (1 + $B$45))) / ' + x + '!$H$91, 4), 0)), "")');
     ss.getSheetByName('Trial').getRange(trialTargetRow, 8).setNumberFormat('0%');
     ss.getSheetByName('Trial').getRange(trialTargetRow, 7).setNumberFormat('#,##0');
-    ss.getSheetByName('Trial').getRange('B47').setValue('=if(not(ISBLANK(B46)),(Quote!D32-(B46/(1+$B$45)))/Quote!D32,if(COUNTBLANK(G32:G39)<>rows(G32:G39), 1-(Total2!L92/Total2!L91), 0))');
+    //=if(not(ISBLANK(B46)),(Quote!D32-(B46/(1+$B$45)))/Quote!D32,if(and(COUNTBLANK(G32:G39)<>rows(G32:G39), Total2!L91<>""), 1-(Total2!L92/Total2!L91), 0))
+    ss.getSheetByName('Trial').getRange('B47').setValue('=if(not(ISBLANK(B46)),(Quote!D32-(B46/(1+$B$45)))/Quote!D32,if(and(COUNTBLANK(G32:G39)<>rows(G32:G39), Total2!L91<>""), 1-(Total2!L92/Total2!L91), 0))');
     ss.getSheetByName('Trial').getRange('B47').setNumberFormat('0%');
     // 各シートへの割引後金額の反映
     ss.getSheetByName(x).getRange('H92').setValue('=if(Trial!H$' + parseInt(trialYearsStartRow + idx) + '>0, H91*(1-Trial!$H$' + parseInt(trialYearsStartRow + idx) + '), "")');
@@ -49,7 +50,7 @@ function fix20211209_total2total3_(inputSheet, targetRow, trialYearsStartRow){
   for (let i = 0; i < targetRange.getNumColumns(); i++){
     const targetCell = targetRange.getCell(1, 1 + i);
     const colName = getColumnString(targetCell.getColumn());
-    targetCell.setValue('=if(' + colName + sumRow + '<>"", if(Trial!$G$' + parseInt(trialYearsStartRow + i) + '>0, ' + colName + sumRow + '*(1-Trial!$H$' + parseInt(trialYearsStartRow + i) + '), ' + colName + sumRow + '), "")');
+    targetCell.setValue('=if(' + colName + sumRow + '<>"", if(Trial!$H$' + parseInt(trialYearsStartRow + i) + '<>"", ' + colName + sumRow + '*(1-Trial!$H$' + parseInt(trialYearsStartRow + i) + '), ' + colName + sumRow + '), "")');
   }
 }
 function test_fix20211209_1(){
@@ -125,6 +126,11 @@ class Test_fix20211209_2 extends RoutineTest{
     temp.setVal.setDiscountByYear(idx, price);
     return checkSheetInfo_();
   }
+  test_all(price){
+    const temp = this.routineTestDiscountInit();
+    temp.setVal.setDiscountAllPeriod(price);
+    return checkSheetInfo_();
+  }
 }
 function test_fix20211209_2(){
   const targetValues = getQuotationRequestValues_();
@@ -139,20 +145,10 @@ function test_fix20211209_2(){
 function test_fix20211209_3(){
   const test = new Test_fix20211209_2;
   let testResults = [];
-  let temp;
   test.test_fix20211209_2(2);
-  // Registration_2 複数年度
+  console.log('Registration_2 複数年度');
   testResults.push(test.test_byYears(0, 4000000));
-  return null;
-/*  temp = test.routineTestDiscountInit();
-  temp.setVal.setDiscountByYear(0, 4000000);
-  testResults.push(checkSheetInfo_());*/
-  // 全体割引
-  temp = test.routineTestDiscountInit();
-  temp.setVal.setDiscountAllPeriod(40000000);
-  testResults.push(checkSheetInfo_());
+  console.log('全体割引');
+  testResults.push(test.test_all(40000000));
   console.log(testResults);
-}
-function aaa(){
-  checkSheetInfo_();
 }

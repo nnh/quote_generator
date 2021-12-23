@@ -37,8 +37,8 @@ class RoutineTest{
     return res;
   }
   routineTestDiscountInit(){
-    const targetSheetsName = get_target_term_sheets().map(x => x.getName());
     const setVal = new SetTestValues();
+    const targetSheetsName = setVal.getTrialYearsItemsName();
     setVal.delDiscountAllPeriod();
     targetSheetsName.forEach((_, idx) => {
       setVal.delDiscountByYear(idx);  
@@ -160,6 +160,12 @@ class SetTestValues{
     const temp = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr).offset(1, 0).getValue();
     return Number.isFinite(temp) ? parseFloat(temp).toFixed(4) : temp;
   }
+  getTrialYearsItemsName(){
+    return SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(parseInt(PropertiesService.getScriptProperties().getProperty('trial_setup_row')), 
+                                                                                  1, 
+                                                                                  parseInt(PropertiesService.getScriptProperties().getProperty('trial_closing_row')) - parseInt(PropertiesService.getScriptProperties().getProperty('trial_setup_row')) + 1,
+                                                                                  1).getValues().flat();
+  }
 }
 /**
  * Check that the total and the discounted total on each sheet from Setup to Closing are output correctly.
@@ -203,7 +209,7 @@ function checkQuoteSum_(){
 function checkSheetInfo_(targetSheetsName = null){
   let testResults = [];
   const setVal = new SetTestValues;
-  const target = targetSheetsName ? targetSheetsName : get_target_term_sheets().map(x => x.getSheetName());
+  const target = targetSheetsName ? targetSheetsName : setVal.getTrialYearsItemsName();
   const res1 = target.map((x, idx) => checkAmountByYearSheet_(x, setVal.getDiscountRateValue(idx)));
   testResults.push(isAllTrue_(res1, 'Setup~Closingの各シートの割引後合計チェック：NG'));
   const res2 = checkQuoteSum_();
