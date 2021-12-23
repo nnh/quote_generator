@@ -36,15 +36,24 @@ class RoutineTest{
     });
     return res;
   }
-  routineTestInit(){
-    filtervisible();
+  routineTestDiscountInit(){
     const targetSheetsName = get_target_term_sheets().map(x => x.getName());
     const setVal = new SetTestValues();
-    // Initial processing 
     setVal.delDiscountAllPeriod();
+    targetSheetsName.forEach((_, idx) => {
+      setVal.delDiscountByYear(idx);  
+    });
+    const res = {targetSheetsName:targetSheetsName, setVal:setVal};
+    return(res);
+  }
+  routineTestInit(){
+    filtervisible();
+    const temp_init = this.routineTestDiscountInit();
+    const targetSheetsName = temp_init.targetSheetsName;
+    const setVal = temp_init.setVal;
+    // Initial processing 
     targetSheetsName.forEach((x, idx) => {
       setVal.delTrialYears(idx);
-      setVal.delDiscountByYear(idx);  
       setVal.delTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x).getRange('F5:F89'));   
     });
     const res = {targetSheetsName:targetSheetsName, setVal:setVal};
@@ -122,9 +131,10 @@ class SetTestValues{
     this.delTestValue(yearStartRange);
     this.delTestValue(yearStartRange.offset(0, 1));
   }
-  setDiscountByYear(idx){
+  setDiscountByYear(idx, setPrice = null){
     this.idx = idx;
-    this.setTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow + this.idx, this.trialYearsDiscountCol), (this.const_itemsDiscount / 10) * (idx + 1)); 
+    const setPrice_ = setPrice ? setPrice : (this.const_itemsDiscount / 10) * (idx + 1); 
+    this.setTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow + this.idx, this.trialYearsDiscountCol), setPrice_); 
   }
   delDiscountByYear(idx){
     this.idx = idx;
@@ -140,8 +150,8 @@ class SetTestValues{
     const temp = 1 - (SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow + idx, this.trialYearsDiscountCol).getValue() / this.const_itemsDiscount);
     return temp.toFixed(4);
   }
-  setDiscountAllPeriod(){
-    this.setTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr), 440000);
+  setDiscountAllPeriod(setPrice = 440000){
+    this.setTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr), setPrice);
   }
   delDiscountAllPeriod(){
     this.delTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr));
@@ -198,7 +208,11 @@ function checkSheetInfo_(targetSheetsName = null){
   testResults.push(isAllTrue_(res1, 'Setup~Closingの各シートの割引後合計チェック：NG'));
   const res2 = checkQuoteSum_();
   testResults.push(isAllTrue_(res2, 'Quote, total, total2, total3の合計一致チェック：NG'));
-  return testResults.every(x => x);
+  const res3 = testResults.every(x => x);
+  if (!res3) {
+    console.log([res1, res2]);
+  } 
+  return res3;
 }
 /**
  * Get the value from "Quotation Request".

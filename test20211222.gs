@@ -15,14 +15,12 @@ function fix20211209(){
   targetSheetsName.forEach((x, idx) => {
     // Trialシート
     const trialTargetRow = parseInt(trialYearsStartRow + idx);
-    ss.getSheetByName('Trial').getRange(trialTargetRow, 8).setValue('=if(C' + trialTargetRow + '<>"", if(not(isblank($B$46)), $B$47, if(and(not(ISBLANK($G$' + trialTargetRow + ')), ' + x + '!$H$91 > 0), (' + x + '!$H$91 - ($G$' + trialTargetRow + ' / (1 + $B$45))) / ' + x + '!$H$91, 0)), "")');
+    ss.getSheetByName('Trial').getRange(trialTargetRow, 8).setValue('=if(C' + trialTargetRow + '<>"", if(not(isblank($B$46)), $B$47, if(and(not(ISBLANK($G$' + trialTargetRow + ')), ' + x + '!$H$91 > 0), round((' + x + '!$H$91 - ($G$' + trialTargetRow + ' / (1 + $B$45))) / ' + x + '!$H$91, 4), 0)), "")');
     ss.getSheetByName('Trial').getRange(trialTargetRow, 8).setNumberFormat('0%');
     ss.getSheetByName('Trial').getRange(trialTargetRow, 7).setNumberFormat('#,##0');
-    // =if(not(ISBLANK(B46)),(Quote!D32-(B46/(1+$B$45)))/Quote!D32,if(COUNTBLANK(G32:G39)<>rows(G32:G39), 1-(Total2!L92/Total2!L91), 0))
     ss.getSheetByName('Trial').getRange('B47').setValue('=if(not(ISBLANK(B46)),(Quote!D32-(B46/(1+$B$45)))/Quote!D32,if(COUNTBLANK(G32:G39)<>rows(G32:G39), 1-(Total2!L92/Total2!L91), 0))');
     ss.getSheetByName('Trial').getRange('B47').setNumberFormat('0%');
     // 各シートへの割引後金額の反映
-    //'=if(Trial!H$' + parseInt(trialYearsStartRow + idx) + '>0, H91*(1-Trial!$H$' + parseInt(trialYearsStartRow + idx) + '), "")'
     ss.getSheetByName(x).getRange('H92').setValue('=if(Trial!H$' + parseInt(trialYearsStartRow + idx) + '>0, H91*(1-Trial!$H$' + parseInt(trialYearsStartRow + idx) + '), "")');
     // フィルタ条件の修正
     ss.getSheetByName(x).getRange('L92').setValue('=if(H92<>"", 1, 0)');
@@ -55,7 +53,8 @@ function fix20211209_total2total3_(inputSheet, targetRow, trialYearsStartRow){
   }
 }
 function test_fix20211209_1(){
-  const temp_init = routineTestInit();
+  const test = new RoutineTest;
+  const temp_init = test.routineTestInit();
   const targetSheetsName = temp_init.targetSheetsName;
   const setVal = temp_init.setVal;
   let testResults = [];
@@ -120,6 +119,10 @@ class Test_fix20211209_2 extends RoutineTest{
   test_fix20211209_2(idx){
     setQuotationRequestValuesForTest(idx)
     super.setQuote(idx);
+  }
+  test_byYears(idx, price){
+    const temp = this.routineTestDiscountInit();
+    temp.setVal.setDiscountByYear(idx, price);
     return checkSheetInfo_();
   }
 }
@@ -135,10 +138,21 @@ function test_fix20211209_2(){
 }
 function test_fix20211209_3(){
   const test = new Test_fix20211209_2;
-  const trialSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial');
+  let testResults = [];
+  let temp;
+  test.test_fix20211209_2(2);
   // Registration_2 複数年度
-  trialSheet.getRange('G32:G39').clearContent()
-  trialSheet.getRange('G34').setValue(4000000);
-  const testResults = test.test_fix20211209_2(2);
+  testResults.push(test.test_byYears(0, 4000000));
+  return null;
+/*  temp = test.routineTestDiscountInit();
+  temp.setVal.setDiscountByYear(0, 4000000);
+  testResults.push(checkSheetInfo_());*/
+  // 全体割引
+  temp = test.routineTestDiscountInit();
+  temp.setVal.setDiscountAllPeriod(40000000);
+  testResults.push(checkSheetInfo_());
   console.log(testResults);
+}
+function aaa(){
+  checkSheetInfo_();
 }
