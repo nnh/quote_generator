@@ -142,13 +142,11 @@ class SetTestValues{
   }
   getDiscountRateValue(idx){
     this.idx = idx;
-    const temp = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow + this.idx, this.trialYearsDiscountRateCol).getValue();
-    return Number.isFinite(temp) ? parseFloat(temp).toFixed(4) : temp;
+    return SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow + this.idx, this.trialYearsDiscountRateCol).getValue();
   }
   getComputeDiscountRateByDiscountValue(idx){
     this.idx = idx;
-    const temp = 1 - (SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow + idx, this.trialYearsDiscountCol).getValue() / this.const_itemsDiscount);
-    return temp.toFixed(4);
+    return 1 - (SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.trialYearsStartRow + idx, this.trialYearsDiscountCol).getValue() / this.const_itemsDiscount);
   }
   setDiscountAllPeriod(setPrice = 440000){
     this.setTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr), setPrice);
@@ -157,8 +155,7 @@ class SetTestValues{
     this.delTestValue(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr));
   }
   getDiscountRateValueAllPeriod(){
-    const temp = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr).offset(1, 0).getValue();
-    return Number.isFinite(temp) ? parseFloat(temp).toFixed(4) : temp;
+    return SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(this.constDiscountAllPeriodRangeAddr).offset(1, 0).getValue();
   }
   getTrialYearsItemsName(){
     return SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange(parseInt(PropertiesService.getScriptProperties().getProperty('trial_setup_row')), 
@@ -179,7 +176,9 @@ function checkAmountByYearSheet_(sheetName, discountRate){
   const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   const sumValue = targetSheet.getRange(sumRow, sumCol).getValue();
   const discountValue = targetSheet.getRange(sumRow + 1, sumCol).getValue();
-  const discountCheck = discountRate > 0 || SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange('B2').getValue() == '' ? Math.round(sumValue * (1 - discountRate)) == Math.round(discountValue) : discountValue == '';
+  const test1 = Math.trunc(sumValue * (1 - discountRate));
+  const test2 = Math.trunc(discountValue);
+  const discountCheck = discountRate > 0 || SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange('B2').getValue() == '' ? test1 == test2 : discountValue == '';
   return discountCheck;
 }
 /**
