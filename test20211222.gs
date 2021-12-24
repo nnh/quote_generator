@@ -155,3 +155,22 @@ function test_fix20211209_3(){
   testResults.push(Math.round(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Quote').getRange('D34').getValue()) == 36363636);
   console.log(testResults);
 }
+/**
+ * Check the output for total and discount totals.
+ * @param {string} <array> The sheet name.
+ * @return {boolean} <array> Return True if OK, False otherwise.
+ */
+function checkSheetInfo_(targetSheetsName = null){
+  let testResults = [];
+  const setVal = new SetTestValues;
+  const target = targetSheetsName ? targetSheetsName : setVal.getTrialYearsItemsName();
+  const res1 = checkDiscountByYearSheet_(target);
+  testResults.push(isAllTrue_(res1, 'Setup~Closingの各シートの割引後合計チェック：NG'));
+  const res2 = checkQuoteSum_();
+  testResults.push(isAllTrue_(res2, 'Quote, total, total2, total3の合計一致チェック：NG'));
+  const res3 = testResults.every(x => x);
+  if (!res3) {
+    console.log([res1, res2]);
+  } 
+  return res3;
+}

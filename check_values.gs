@@ -1,26 +1,3 @@
-function check_itemName_and_value(target, item_name, value_ok){
-  if (target.footer != null){
-    var temp_item_name = item_name + target.footer; 
-  } else {
-    var temp_item_name = item_name; 
-  }
-  const res_message = 'シート名:' + target.sheet.getName() + ',項目名:' + temp_item_name + ',想定値:' + value_ok;
-  if (!(target.array_item[item_name] > 0)){
-    return ['NG：該当する項目名なし', res_message];
-  }
-  var check_value = target.sheet.getRange(target.array_item[item_name], target.col).getValue();
-  if (check_value != value_ok){
-    return ['NG：値が想定と異なる', res_message];
-  }
-  return ['OK', res_message];
-}
-function get_total_amount(target){
-  const items = target.sheet.getRange(target.item_cols).getValues().flat();
-  const target_row = items.indexOf(target.total_row_itemname) + 1;
-  const header = target.sheet.getRange(target.header_row, 1, 1, target.sheet.getLastColumn()).getValues().flat();
-  const target_col = header.indexOf(target.total_col_itemname) + 1;
-  return target.sheet.getRange(target_row, target_col).getValue();
-} 
 function check_output_values() {
   initial_process();
   filterhidden();
@@ -370,9 +347,56 @@ function check_output_values() {
     var total_ammount = 0;
   }
   total_ammount_checkitems.push({itemname:'研究協力費', value:total_ammount});
+  const discount_byYear = checkDiscountByYearSheet_().every(x => x) ? 'OK' : 'NG'; 
+  let temp_check_1= [];
+  temp_check_1.push([discount_byYear, 'Setup〜Closingシートの割引後合計のチェック']);  
+  temp_check_1.push(compareTotalSheetTotaltoVerticalTotal_());  
+  temp_check_1.push(compareTotal2Total3SheetVerticalTotalToHorizontalTotal_());
+  temp_check_1.push([checkQuoteSum_().every(x => x) ? 'OK' : 'NG', 'Quote, total, total2, total3の合計・割引後合計一致チェック']);
+  // over all
   const res_total = total_checkitems.map(checkitems => check_itemName_and_value(target_total, checkitems.itemname, checkitems.value)); 
   const res_total_ammount = total_ammount_checkitems.map(total_ammount_checkitems => check_itemName_and_value(target_total_ammount, total_ammount_checkitems.itemname, total_ammount_checkitems.value)); 
-  const output_values = res_total.concat(res_total_ammount);
+  const output_values_1 = res_total.concat(res_total_ammount);
+  const output_values =  output_values_1.concat(temp_check_1);
   output_row++;
   sheet.check.getRange(output_row, 1, output_values.length, output_values[0].length).setValues(output_values);
+}
+/**
+ * In the Total sheet, compare the total to the vertical total.
+ * @param none.
+ * @return {string} <array> output message.
+ */
+function compareTotalSheetTotaltoVerticalTotal_(){
+  const sheet = get_sheets();
+  const GetRowCol = new GetTargetRowCol;
+  const goukeikingakuCol = GetRowCol.getTargetCol(sheet.total, 4, '金額');
+  const totalValues = sheet.total.getDataRange().getValues();
+  const sum = totalValues.filter(x => x[1] == '合計')[0][goukeikingakuCol - 1];
+  const arrayGoukeikingaku = totalValues.filter(x => x[goukeikingakuCol] != '' && x[goukeikingakuCol] != '　合計金額').map(x => x[goukeikingakuCol]);
+  const sumGoukeikingaku = arrayGoukeikingaku.reduce((x, y) => x + y, 0); 
+  return [sum == sumGoukeikingaku ? 'OK' : 'NG', 'Totalシートの縦計と合計金額のチェック'];
+}
+/**
+ * In the Total2 sheet and Total3 sheet, compare the horizontal total to the vertical total.
+ * @param none.
+ * @return {string} <array> output message.
+ */
+function compareTotal2Total3SheetVerticalTotalToHorizontalTotal_(){
+  const sheet = get_sheets();
+  const targetSheet = [[sheet.total2, 3],
+                       [sheet.total3, 2]]; 
+  const GetRowCol = new GetTargetRowCol; 
+  const res = targetSheet.map(x => {
+    const targetSheet = x[0];
+    const termRowIdx = x[1];
+    const setupIdx = 3
+    const totalValues = targetSheet.getDataRange().getValues();
+    const goukeiCol = GetRowCol.getTargetColIndex(targetSheet, termRowIdx, '合計');
+    const goukeiRow = GetRowCol.getTargetRowIndex(targetSheet, 1, '合計');
+    const targetSum = totalValues[goukeiRow].slice(setupIdx, goukeiCol);
+    const horizontalTotal = targetSum.filter(x => x > 0).reduce((x, y) => x + y, 0);
+    const verticalTotal = totalValues.filter((x, idx) => x[goukeiCol] > 0 && idx < goukeiRow).map(x => x[goukeiCol]).reduce((x, y) => x + y, 0);
+    return verticalTotal == horizontalTotal;
+  });
+  return [res.every(x => x) ? 'OK' : 'NG', 'Total2, Total3の縦計と横計のチェック'];
 }
