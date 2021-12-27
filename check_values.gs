@@ -382,25 +382,6 @@ function compareTotalSheetTotaltoVerticalTotal_(){
  * @param none.
  * @return {string} <array> output message.
  */
-function compareTotal2Total3SheetVerticalTotalToHorizontalTotal_(){
-  const sheet = get_sheets();
-  const targetSheet = [[sheet.total2, 3],
-                       [sheet.total3, 2]]; 
-  const GetRowCol = new GetTargetRowCol; 
-  const res = targetSheet.map(x => {
-    const targetSheet = x[0];
-    const termRowIdx = x[1];
-    const setupIdx = 3
-    const totalValues = targetSheet.getDataRange().getValues();
-    const goukeiCol = GetRowCol.getTargetColIndex(targetSheet, termRowIdx, '合計');
-    const goukeiRow = GetRowCol.getTargetRowIndex(targetSheet, 1, '合計');
-    const targetSum = totalValues[goukeiRow].slice(setupIdx, goukeiCol);
-    const horizontalTotal = targetSum.filter(x => x > 0).reduce((x, y) => x + y, 0);
-    const verticalTotal = totalValues.filter((x, idx) => x[goukeiCol] > 0 && idx < goukeiRow).map(x => x[goukeiCol]).reduce((x, y) => x + y, 0);
-    return verticalTotal == horizontalTotal;
-  });
-  return [res.every(x => x) ? 'OK' : 'NG', 'Total2, Total3の縦計と横計のチェック'];
-}
 class CompareTotal2Total3SheetVerticalTotalToHorizontal{
   constructor(){
     const st = get_sheets();
@@ -460,6 +441,10 @@ class CompareTotal2Total3SheetVerticalTotalToHorizontal{
   getComparisonResultEqual(compareTarget){
     return compareTarget.horizontalTotal == compareTarget.verticalTotal;
   }
+}
+function compareTotal2Total3SheetVerticalTotalToHorizontalTotal_(){
+  const cp = new CompareTotal2Total3SheetVerticalTotalToHorizontal;
+  return cp.compareTotal();
 }
 function compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_(){
   const cp = new CompareTotal2Total3SheetVerticalTotalToHorizontal;
