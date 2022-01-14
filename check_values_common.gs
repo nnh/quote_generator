@@ -131,7 +131,7 @@ function checkAmountByYearSheet_(sheetName, discountRate){
   const discountValue = targetSheet.getRange(sumRow + 1, sumCol).getValue();
   const test1 = Math.trunc(sumValue * (1 - discountRate));
   const test2 = Math.trunc(discountValue);
-  const discountCheck = discountRate > 0 || SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange('B2').getValue() == '' ? test1 == test2 : discountValue == '';
+  const discountCheck = discountRate >= 0 || SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange('B2').getValue() == '' ? test1 == test2 : discountValue == '';
   return discountCheck;
 }
 /**
