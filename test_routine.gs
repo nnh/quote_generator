@@ -23,9 +23,9 @@ class RoutineTest{
     }
     total2_3_add_del_cols();
   }
-  execRoutineTest(targetValues){
+  execRoutineTest(targetValues, targetIdx){
     const res = targetValues.map((_, idx) => {
-      if (idx > 0) {
+      if (idx == targetIdx) {
         setQuotationRequestValuesForTest(idx)
         this.setQuote(idx);
         check_output_values();
@@ -36,10 +36,16 @@ class RoutineTest{
     });
     return res;
   }
+  execTestMain(idx, discountValue){
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange('B46').setValue(discountValue);
+    const targetValues = getQuotationRequestValues_();
+    const testResults = this.execRoutineTest(targetValues, idx);
+    testResults.every(x => x) ? console.log('*** test ok. ***') : console.log(testResults);
+  }
   routineTestDiscountInit(){
     const setVal = new SetTestValues();
     const targetSheetsName = setVal.getTrialYearsItemsName();
-    setVal.delDiscountAllPeriod();
+    //setVal.delDiscountAllPeriod();
     targetSheetsName.forEach((_, idx) => {
       setVal.delDiscountByYear(idx);  
     });
@@ -79,7 +85,7 @@ class RoutineTest{
  */
 function routineTest(){
   const test = new RoutineTest();
-  const targetValues = getQuotationRequestValues_();
+/*  const targetValues = getQuotationRequestValues_();
   const testResults = test.execRoutineTest(targetValues);
-  testResults.every(x => x) ? console.log('*** test ok. ***') : console.log(testResults);
+  testResults.every(x => x) ? console.log('*** test ok. ***') : console.log(testResults);*/
 }

@@ -9,7 +9,7 @@ function fix20220113(){
   sheets.trial.getRange('G31:H31').setValues([['現在未使用：割引後金額（年度毎）', '現在未使用：割引率（年度毎）']]);
   for (let i = 32; i < 40; i++){
     sheets.trial.getRange(i, 8).setValue('=$B$47');
-    sheets.trial.getRange(i, 8).setNumberFormat('0%');;
+    sheets.trial.getRange(i, 8).setNumberFormat('0%');
   }
   // Total2
   const get_s_p = PropertiesService.getScriptProperties();

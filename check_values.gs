@@ -41,8 +41,9 @@ function check_output_values() {
   var ammount_check = [null, 'Total, Total2, Total3の合計金額チェック'];
   if ((total_total_ammount == total2_total_ammount) & (total_total_ammount == total3_total_ammount)){
     ammount_check[0] = 'OK';
+    ammount_check[1] = ammount_check[1] + ' ,想定値:' + total_total_ammount;
   } else {
-    ammount_check[0] = 'NG';
+    ammount_check[0] = 'NG：値が想定と異なる';
   }
   output_row++;
   sheet.check.getRange(output_row, 1, 1, ammount_check[0].length).setValues([ammount_check]);
@@ -347,12 +348,12 @@ function check_output_values() {
     var total_ammount = 0;
   }
   total_ammount_checkitems.push({itemname:'研究協力費', value:total_ammount});
-  const discount_byYear = checkDiscountByYearSheet_().every(x => x) ? 'OK' : 'NG'; 
+  const discount_byYear = checkDiscountByYearSheet_().every(x => x) ? 'OK' : 'NG：値が想定と異なる'; 
   let temp_check_1= [];
   temp_check_1.push([discount_byYear, 'Setup〜Closingシートの割引後合計のチェック']);  
   temp_check_1.push(compareTotalSheetTotaltoVerticalTotal_());  
   temp_check_1.push(compareTotal2Total3SheetVerticalTotalToHorizontalTotal_());
-  temp_check_1.push([checkQuoteSum_().every(x => x) ? 'OK' : 'NG', 'Quote, total, total2, total3の合計・割引後合計一致チェック']);
+  temp_check_1.push([checkQuoteSum_().every(x => x) ? 'OK' : 'NG：値が想定と異なる', 'Quote, total, total2, total3の合計・割引後合計一致チェック']);
   temp_check_1.push(compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_());
   // over all
   const res_total = total_checkitems.map(checkitems => check_itemName_and_value(target_total, checkitems.itemname, checkitems.value)); 
@@ -375,7 +376,7 @@ function compareTotalSheetTotaltoVerticalTotal_(){
   const sum = totalValues.filter(x => x[1] == '合計')[0][goukeikingakuCol - 1];
   const arrayGoukeikingaku = totalValues.filter(x => x[goukeikingakuCol] != '' && x[goukeikingakuCol] != '　合計金額').map(x => x[goukeikingakuCol]);
   const sumGoukeikingaku = arrayGoukeikingaku.reduce((x, y) => x + y, 0); 
-  return [sum == sumGoukeikingaku ? 'OK' : 'NG', 'Totalシートの縦計と合計金額のチェック'];
+  return [sum == sumGoukeikingaku ? 'OK' : 'NG：値が想定と異なる', 'Totalシートの縦計と合計金額のチェック, 縦計:' +  + sumGoukeikingaku + ', 合計金額:' + sum];
 }
 /**
  * In the Total2 sheet and Total3 sheet, compare the horizontal total to the vertical total.
@@ -423,11 +424,11 @@ class CompareTotal2Total3SheetVerticalTotalToHorizontal{
       const compareTarget = this.getVerticalHorizontalTotal(x, goukeiRowCol);
       return this.getComparisonResultEqual(compareTarget);
     });
-    return [res.every(x => x) ? 'OK' : 'NG', 'Total2, Total3の縦計と横計のチェック']; 
+    return [res.every(x => x) ? 'OK' : 'NG：値が想定と異なる', 'Total2, Total3の縦計と横計のチェック']; 
   }
   compareDiscountTotal(){
-    // Total2, 3の縦計に全体の割引額をかけたものとTotal2, 3の割引後合計の比較を行う
-    // 誤差1円までOK
+    // Compare the vertical totals of Total2 and 3 multiplied by the overall discount with the discounted totals of Total2 and 3.
+    // An error of 1 yen is acceptable.
     const res = this.target.map(x => {
       let res = {};
       const goukeiRowCol = this.getTargetRowCol(x, '合計', '合計');
