@@ -40,7 +40,9 @@ class RoutineTest{
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial').getRange('B46').setValue(discountValue);
     const targetValues = getQuotationRequestValues_();
     const testResults = this.execRoutineTest(targetValues, idx);
-    testResults.every(x => x) ? console.log('*** test ok. ***') : console.log(testResults);
+    const res = testResults.every(x => x);
+    res ? console.log('*** test ok. ***') : console.log('!!! execTestMain ng. ' + testResults + ' !!!');
+    return res;
   }
   routineTestDiscountInit(){
     const setVal = new SetTestValues();
@@ -50,7 +52,7 @@ class RoutineTest{
       setVal.delDiscountByYear(idx);  
     });
     const res = {targetSheetsName:targetSheetsName, setVal:setVal};
-    return(res);
+    return res;
   }
   routineTestInit(){
     filtervisible();
@@ -85,7 +87,13 @@ class RoutineTest{
  */
 function routineTest(){
   const test = new RoutineTest();
-/*  const targetValues = getQuotationRequestValues_();
-  const testResults = test.execRoutineTest(targetValues);
-  testResults.every(x => x) ? console.log('*** test ok. ***') : console.log(testResults);*/
+  const targetValues = getQuotationRequestValues_();
+  const testResults = targetValues.map((_, idx) => {
+    if (idx > 0){
+      console.log('test' + idx);
+      const res = test.execTestMain(idx, '');
+      return res;
+    }
+  });
+  //testResults.every(x => x) ? console.log('*** test ok. ***') : console.log(testResults);
 }

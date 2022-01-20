@@ -315,9 +315,10 @@ function check_output_values() {
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
   var temp_name = '保険料';
-  if (get_quotation_request_value(array_quotation_request, temp_name) > 0){
+  const insuranceFee = get_quotation_request_value(array_quotation_request, temp_name);
+  if (insuranceFee > 0){    
     var temp_value = 1;
-    var temp_total_ammount = get_quotation_request_value(array_quotation_request, temp_name);
+    var temp_total_ammount = insuranceFee;
   } else {
     var temp_value = '';
     var temp_total_ammount = 0;
