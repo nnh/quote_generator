@@ -1,4 +1,5 @@
-/*function test20220119_1_1(){
+// 医師主導治験
+function test20220119_1_1(){
   const test = new RoutineTest();
   test.execTestMain(1, '');
 }
@@ -6,6 +7,7 @@ function test20220119_1_2(){
   const test = new RoutineTest();
   test.execTestMain(1, 100000000);
 }
+// 特定臨床研究
 function test20220119_2_1(){
   const test = new RoutineTest();
   test.execTestMain(2, '');
@@ -54,7 +56,6 @@ function test20220119_7_2(){
   const test = new RoutineTest();
   test.execTestMain(7, 21470000);
 }
-*/
 function test20220119_8_1(){
   const test = new RoutineTest();
   test.execTestMain(8, '');

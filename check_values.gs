@@ -34,6 +34,7 @@ function check_output_values() {
   // 試験月数, setup~closing月数を取得
   const trial_months = sheet.check.getRange(output_row, trial_months_col).getValue();
   const total_months = trial_months + setup_closing_months;
+  const trial_year = trial_months > 12 ? Math.trunc(trial_months / 12) : ''; 
   sheet.check.getRange(output_row, output_col).setValue(total_months);
   const total_total_ammount = get_total_amount({sheet:sheet.total, item_cols:'B:B', total_row_itemname:'合計', header_row:4, total_col_itemname:'金額'});
   const total2_total_ammount = get_total_amount({sheet:sheet.total2, item_cols:'B:B', total_row_itemname:'合計', header_row:4, total_col_itemname:'合計'});
@@ -272,7 +273,7 @@ function check_output_values() {
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   var temp_name = '症例報告';
-  if (get_quotation_request_value(array_quotation_request, '症例最終報告書提出毎の支払い') == 'あり'){
+  if (get_quotation_request_value(array_quotation_request, '症例最終報告書提出毎の支払') == 'あり'){
     var temp_value = number_of_cases_value;
   } else {
     var temp_value = '';
@@ -290,12 +291,7 @@ function check_output_values() {
   total_checkitems.push({itemname:temp_name, value:temp_value});
   var temp_name = 'CRB申請費用(2年目以降)';
   if (get_quotation_request_value(array_quotation_request, 'CRB申請') == 'あり'){
-    if (trial_months > 12){
-      var temp_year = Math.trunc(trial_months / 12) - 1;
-    } else {
-      var temp_year = '';
-    }
-    var temp_value = temp_year;
+    var temp_value = trial_year > 1 ? trial_year - 1 : '';
   } else {
     var temp_value = '';
   }
@@ -327,14 +323,14 @@ function check_output_values() {
   total_ammount_checkitems.push({itemname:temp_name, value:temp_total_ammount});
   total_checkitems.push({itemname:'QOL調査', value:''});  
   var temp_name = '治験薬運搬';
-  if (get_quotation_request_value(array_quotation_request, temp_name) > 0){
-    var temp_value = facilities_value;
+  if (get_quotation_request_value(array_quotation_request, temp_name) == 'あり'){
+    var temp_value = facilities_value * trial_year;
   } else {
     var temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
   var temp_name = '治験薬管理（中央）';
-  if (get_quotation_request_value(array_quotation_request, '治験薬管理') > 0){
+  if (get_quotation_request_value(array_quotation_request, '治験薬管理') == 'あり'){
     var temp_value = 1;
   } else {
     var temp_value = '';
