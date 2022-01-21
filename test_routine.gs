@@ -104,7 +104,9 @@ function routineTest(){
       console.log('test' + idx);
       const res = test.execTestMain(idx, '');
       return res;
+    } else {
+      return true;
     }
   });
-  //testResults.every(x => x) ? console.log('*** test ok. ***') : console.log(testResults);
+  testResults.every(x => x) ? console.log('*** All tests OK. ***') : console.log(testResults);
 }
