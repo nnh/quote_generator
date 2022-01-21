@@ -60,3 +60,7 @@ function test20220119_8_1(){
   const test = new RoutineTest();
   test.execTestMain(8, '');
 }
+function test20220119_8_2(){
+  const test = new RoutineTest();
+  test.execTestMain(8, 150000000);
+}

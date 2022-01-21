@@ -21,6 +21,17 @@ class RoutineTest{
       this.setTestInterimValues(sheets.observation_2);
       sheets.observation_2.getRange('F21').setValue(1);
     }
+    if (idx == 8){
+      sheets.registration_1.getRange('F21').setValue(1);
+      sheets.registration_1.getRange('F28').setValue(1);
+      sheets.registration_1.getRange('F29').setValue(54);
+      sheets.registration_2.getRange('F33').setValue(10);
+      sheets.registration_2.getRange('F44').setValue(10);
+      sheets.registration_2.getRange('F50').setValue(10);
+      sheets.registration_2.getRange('F51').setValue(10);
+      sheets.items.getRange('C63').setValue(2000000);
+      sheets.items.getRange('C65').setValue(500000);
+    }
     total2_3_add_del_cols();
   }
   execRoutineTest(targetValues, targetIdx){
