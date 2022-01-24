@@ -47,13 +47,16 @@ function filterhidden(){
 * @return none
 */
 function setProtectionEditusers(){
+  setEditUsers_();
+  register_script_property();
+}
+function setEditUsers_(){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const users = ss.getEditors();
   const protections = ss.getProtections(SpreadsheetApp.ProtectionType.SHEET);
-  for (var i = 0; i < protections.length; i++){
-   protections[i].addEditors(users)
-  }
-  register_script_property();
+  protections.forEach(protection => {
+    users.forEach(user => protection.addEditor(user));
+  });
 }
 /**
 * 列名から列番号を返す
@@ -229,13 +232,15 @@ function get_row_num_matched_value(target_sheet, target_col_num, target_value){
   return(col_values.indexOf(target_value) + 1);
 }
 /**
-* スクリプトプロパティとシート保護権限を設定して10秒待機する
+* Set script properties and sheet protection permissions. Wait 10 seconds after setting the script properties.
 */
 function initial_process(){
   const get_s_p = PropertiesService.getScriptProperties();
   if (get_s_p.getProperty('quote_sheet_name') === null){
     setProtectionEditusers();
     Utilities.sleep(10000);
+  } else {
+    setEditUsers_();
   }
 }
 /**
