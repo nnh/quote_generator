@@ -97,6 +97,7 @@ class RoutineTest{
  * @return none.
  */
 function routineTest(){
+  initial_process();
   const test = new RoutineTest();
   const targetValues = getQuotationRequestValues_();
   const testResults = targetValues.map((_, idx) => {
