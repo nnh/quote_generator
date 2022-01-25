@@ -1,12 +1,7 @@
-function test(){
-  const aaa = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Total2').getRange('D87').getFormula();
-  const bbb = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Total2').getRange('D88').getFormula();
-  console.log(aaa);
-  console.log(bbb);
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Total2').getRange('D87').copyTo(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Total2').getRange('D88'));
-}
 function fix20220124(){
-  // 85行目以降に5行追加する
+  PropertiesService.getScriptProperties().deleteAllProperties();
+  initial_process();
+  filtervisible();
   let sheetsAddRow = get_sheets();
   sheetsAddRow.items.getRange('B85').setValue('TV会議');
   sheetsAddRow.items.getRange('S85').setValue(65000);
@@ -14,55 +9,45 @@ function fix20220124(){
   sheetsAddRow.items.getRange('U85').setValue(5);
   sheetsAddRow.items.getRange('V85').setValue(90);
   sheetsAddRow.items.getRange('W85').setValue(10);
-  const insertTargetRow = 87;
-  const total2Sheets = Object.keys(sheetsAddRow).map(x => sheetsAddRow[x].getName().toLowerCase()).filter(x => x.match('total2'));
-  const excludeSheets = ['trial', 'quotation_request', 'total3', 'quote', 'check', 'items'].concat(total2Sheets);
-  excludeSheets.forEach(x => delete sheetsAddRow[x]);
-  Object.keys(sheetsAddRow).forEach(x => {
-    const targetSheet = sheetsAddRow[x];
+  const targetSheets = [ 'Items',
+  'Setup',
+  'Registration_1',
+  'Registration_2',
+  'Interim_1',
+  'Observation_1',
+  'Interim_2',
+  'Observation_2',
+  'Closing',
+  'Total',
+  'Total2',
+  'Total_nmc',
+  'Total2_nmc',
+  'Total_oscr',
+  'Total2_oscr' ];
+  targetSheets.forEach(x => {
+    const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x);
+    const insertTargetRow = targetSheet.getName() == 'Items' ? 87 : 89;
     targetSheet.insertRowsAfter(insertTargetRow, 5);
+    const copyFromRow = insertTargetRow;
+    const lastCol = targetSheet.getLastColumn();
     for (let i = 1; i <= 5; i++){
       let rowNumber = insertTargetRow + i;
-      let itemsRowNumber = rowNumber - 2;
-      if (targetSheet.getName() != 'items'){
-        targetSheet.getRange(rowNumber, 2).setValue('=Items!A' + itemsRowNumber); 
-        targetSheet.getRange(rowNumber, 3).setValue('=Items!B' + itemsRowNumber); 
-        targetSheet.getRange(rowNumber, 4).setValue('=Items!C' + itemsRowNumber); 
-        targetSheet.getRange(rowNumber, 5).setValue('x'); 
-        targetSheet.getRange(rowNumber, 7).setValue('=Items!D' + itemsRowNumber); 
-        targetSheet.getRange(rowNumber, 8).setValue('=IF(F' + rowNumber + '="","",D' + rowNumber + '*F' + rowNumber + '))'); 
-        targetSheet.getRange(rowNumber, 12).setValue('=if(F' + rowNumber + '="",0,1)'); 
-      }
-      if (targetSheet.getName() == 'Total'){
-        // F列
+      targetSheet.getRange(copyFromRow, 1, 1, lastCol).copyTo(targetSheet.getRange(rowNumber, 1, 1, lastCol));  
+      if (targetSheet.getName() == 'Total' || targetSheet.getName() == 'Total_nmc' || targetSheet.getName() == 'Total_oscr'){
         let totalCol6Value = '=Setup!F' + rowNumber + '*Trial!C32+Registration_1!F' + rowNumber + '*Trial!C33+Registration_2!F' + rowNumber + '*Trial!C34+Interim_1!F' + rowNumber + '*Trial!C35+Observation_1!F' + rowNumber + '*Trial!C36+Interim_2!F' + rowNumber + '*Trial!C37+Observation_2!F' + rowNumber + '*Trial!C38+Closing!F' + rowNumber + '*Trial!C39'; 
         targetSheet.getRange(rowNumber, 6).setValue(totalCol6Value); 
       }
-      if (targetSheet.getName() == 'items'){
-        let rowNumber = insertTargetRow + i;
-        sheetsAddRow.items.getRange(rowNumber, 3).setValue('=round(R' + rowNumber + '*Trial!$B$44, -3)');
-        sheetsAddRow.items.getRange(rowNumber, 4).setValue('回');
-        sheetsAddRow.items.getRange(rowNumber, 3).setValue('=round(S' + rowNumber + '*T' + rowNumber + '*U' + rowNumber + ', -3)');
+      if (targetSheet.getName() != 'Total2' && targetSheet.getName() != 'Total2_nmc' && targetSheet.getName() != 'Total2_oscr' && targetSheet.getName() != 'Items'){
+        targetSheet.getRange(96, 8).setValue('=sum(H6:H95)'); 
+        targetSheet.getRange(80, 9).setValue('=sum(H81:H94)'); 
+        targetSheet.getRange(80, getColumnNumber('L')).setValue('=if(I80 > 0, 2, 0)');
       }
     }
   });
-  total2Sheets.forEach(x => {
-    const targetSheet = sheetsAddRow[x];
-    targetSheet.insertRowsAfter(insertTargetRow, 5);
-    for (let i = 1; i <= 5; i++){
-      let rowNumber = insertTargetRow + i;
-      let itemsRowNumber = rowNumber - 2;
-      targetSheet.getRange(rowNumber, 2).setValue('=Items!A' + itemsRowNumber); 
-      targetSheet.getRange(rowNumber, 3).setValue('=Items!B' + itemsRowNumber); 
-
-
-    }
-  });
-  PropertiesService.getScriptProperties().deleteAllProperties();
-  initial_process();
-  filtervisible();
-  // 85行目以降に5行追加する
-
+  let temp = Array(7);
+  temp.fill(100);
+  const percentageValues = temp.map(x => [x, 0]);
+  sheetsAddRow.items.getRange('V86:W92').setValues(percentageValues);
 }
 function fix20220113_(){
   PropertiesService.getScriptProperties().deleteAllProperties();
