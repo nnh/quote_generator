@@ -167,14 +167,12 @@ function total2_3_add_del_cols(){
   initial_process();
   //　フィルタを解除し全行表示する
   filtervisible();
-  const get_s_p = PropertiesService.getScriptProperties();
   const target_sheets = extract_target_sheet();
   const sheet = get_sheets();
   // 列を初期化する
   target_sheets.forEach(x => new Add_del_columns(x).init_cols());
   // Trialシートの試験期間、見出し、試験期間年数を取得する
-  const row_count = parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1;
-  const trial_term_info = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, row_count, 3).getValues();
+  const trial_term_info = getTrialTermInfo();
   // 列の追加
   const add_columns = trial_term_info.filter(x => x[2] > 1);
   if (add_columns.length > 0){

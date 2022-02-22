@@ -259,3 +259,53 @@ function get_quotation_request_value(array_quotation_request, header_str){
     return null;
   }  
 }
+/**
+ * Retrieve the trial period, heading, and number of years of trial period on the Trial sheet.
+ * @param none.
+ * @return {Array.<string>} the trial period, heading, and number of years of trial period on the Trial sheet.
+ */
+function getTrialTermInfo(){
+  const get_s_p = PropertiesService.getScriptProperties();
+  const sheet = get_sheets();
+  const row_count = parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1;
+  const trial_term_info = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, row_count, 3).getValues();
+  return trial_term_info;
+}
+function getArrayDividedItemsCount(){
+  const yearIdx = 2;
+  const input = 5;
+  const trialTermInfo = getTrialTermInfo();
+  // registration_1~observation_2
+  const target = trialTermInfo.filter((x, idx) => x[yearIdx] != '' && idx > 0 && idx < trialTermInfo.length - 1);
+  const totalYear = target.map(x => x[yearIdx]).reduce((x, y) => x + y, 0);
+  let tempSum = Math.round(input / totalYear);
+  let setValueList = Array(target.length);
+  setValueList.fill(tempSum);
+  for (let i = 0; i < target.length; i++){
+    tempSum = setValueList.reduce((x, y, idx) => x + (y * target[idx][yearIdx]), 0);
+    let insufficient = input - tempSum;
+    if (insufficient < 0){
+      setValueList[target.length - i - 1] = setValueList[target.length - i - 1] + Math.round(insufficient / target[i][yearIdx]);
+    } else if (insufficient > 0){
+      setValueList[i] = setValueList[i] + Math.round(insufficient / target[i][yearIdx]);
+    }
+    else{
+      break;
+    }
+  }
+  const res = target.map((x, idx) => {
+    x[2] = setValueList[idx];
+    return x;
+  })
+  return res;
+}
+function test(){
+  const testRow = 0;
+  const testCol = 6;
+  const test = getArrayDividedItemsCount();
+  test.forEach(x => {
+    const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x[0]);
+    targetSheet.getRange()
+  });
+
+}

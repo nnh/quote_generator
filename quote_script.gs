@@ -567,6 +567,7 @@ function set_registration_items(target_sheet, array_quotation_request){
   } else {
     crb_after_second_year = get_count(get_quotation_request_value(array_quotation_request, 'CRB申請'), 'あり', 1);
   }
+  const trialTermInfo = getTrialTermInfo();
   // 1例あたりの実地モニタリング回数
   if (monitoring_count > 0){
     monitoring_count = '=round(' + monitoring_count + ' * ' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')'
@@ -579,7 +580,7 @@ function set_registration_items(target_sheet, array_quotation_request){
     essential_documents_count = '';
   }
   set_items_list = [
-    ['ミーティング準備・実行', get_count_more_than(get_quotation_request_value(array_quotation_request, 'その他会議（のべ回数）'), 0, 
+    ['TV会議', get_count_more_than(get_quotation_request_value(array_quotation_request, 'その他会議（のべ回数）'), 0, 
       Math.round(get_quotation_request_value(array_quotation_request, 'その他会議（のべ回数）') / temp_registration_year))],
     ['開始前モニタリング・必須文書確認', essential_documents_count],
     ['症例モニタリング・SAE対応', monitoring_count],
