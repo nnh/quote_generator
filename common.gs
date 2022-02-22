@@ -264,48 +264,65 @@ function get_quotation_request_value(array_quotation_request, header_str){
  * @param none.
  * @return {Array.<string>} the trial period, heading, and number of years of trial period on the Trial sheet.
  */
-function getTrialTermInfo(){
+function getTrialTermInfo_(){
   const get_s_p = PropertiesService.getScriptProperties();
   const sheet = get_sheets();
   const row_count = parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1;
   const trial_term_info = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, row_count, 3).getValues();
   return trial_term_info;
 }
-function getArrayDividedItemsCount(){
-  const yearIdx = 2;
-  const input = 5;
-  const trialTermInfo = getTrialTermInfo();
-  // registration_1~observation_2
-  const target = trialTermInfo.filter((x, idx) => x[yearIdx] != '' && idx > 0 && idx < trialTermInfo.length - 1);
-  const totalYear = target.map(x => x[yearIdx]).reduce((x, y) => x + y, 0);
-  let tempSum = Math.round(input / totalYear);
-  let setValueList = Array(target.length);
-  setValueList.fill(tempSum);
-  for (let i = 0; i < target.length; i++){
-    tempSum = setValueList.reduce((x, y, idx) => x + (y * target[idx][yearIdx]), 0);
-    let insufficient = input - tempSum;
-    if (insufficient < 0){
-      setValueList[target.length - i - 1] = setValueList[target.length - i - 1] + Math.round(insufficient / target[i][yearIdx]);
-    } else if (insufficient > 0){
-      setValueList[i] = setValueList[i] + Math.round(insufficient / target[i][yearIdx]);
-    }
-    else{
-      break;
-    }
+class GetArrayDividedItemsCount{
+  constructor(){
+    this.sheetNameIdx = 0;
+    this.yearIdx = 2;
+    this.trialTermInfo = getTrialTermInfo_();
   }
-  const res = target.map((x, idx) => {
-    x[2] = setValueList[idx];
-    return x;
-  })
-  return res;
-}
-function test(){
-  const testRow = 0;
-  const testCol = 6;
-  const test = getArrayDividedItemsCount();
-  test.forEach(x => {
-    const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x[0]);
-    targetSheet.getRange()
-  });
-
+  /**
+   * Obtain the period information from the Trial sheet.
+   * @param {Array.<string>} Define sheets that are not to be processed. An array of sheet names, such as ['Setup', 'Closing']. If not defined, set to null.
+   * @return {Array.<string>} A two-dimensional array of ['sheet name', 'title', 'years'].
+   */
+  getTargetTerm(exclusionSheetNames=null){
+    let target = this.trialTermInfo.filter(x => x[this.yearIdx] != '');
+    target = exclusionSheetNames ? exclusionSheetNames.map(x => target.filter(y => y[this.sheetNameIdx] != x)) : target;
+    return target;
+  }
+  /**
+   * @param <number> totalNumber Total number of items to be split.
+   * @param {Array.<string>} target A two-dimensional array of ['sheet name', 'title', 'years'].
+   * @param <number> inputAddStartSheetIdx If you want to specify a sheet to start adding, specify its index.　
+   * @param <number> inputAddEndSheetIdx If you want to specify a sheet to end adding, specify its index.
+   * @return A two-dimensional array of ['sheet name', 'count'].
+   */
+  devidedItemCount(totalNumber, target, inputAddStartSheetIdx=0, inputAddEndSheetIdx=target.length){
+    const addEndSheetIdx = inputAddEndSheetIdx <= target.length ? inputAddEndSheetIdx : target.length;
+    const addStartSheetIdx = 0 <= inputAddStartSheetIdx && inputAddStartSheetIdx <= addEndSheetIdx ? inputAddStartSheetIdx 
+                           : 0 <= inputAddStartSheetIdx ? 0
+                           : target.length;
+    const tempSum = Math.trunc(totalNumber / target.length);
+    let setValueList = Array(target.length);
+    setValueList.fill(tempSum);
+    let tempArraySum = setValueList.reduce((x, y) => x + y, 0);
+    let remainder = totalNumber - tempArraySum;
+    let roopCount = 10;
+    while (remainder > 0){
+      for (let i = addStartSheetIdx; i <= addEndSheetIdx; i++){
+        setValueList[i]++        
+        remainder--;
+        if (remainder == 0){
+          break;
+        }
+      }
+      roopCount--;
+      if (roopCount <= 0){
+        break;
+      }
+    }
+    const res = target.map((x, idx) => [x[this.sheetNameIdx], setValueList[idx]]);
+    return res;
+  }
+  getArrayDividedItemsCount(totalNumber, exclusionSheetNames){
+    const target = this.getTargetTerm(exclusionSheetNames);
+    return this.devidedItemCount(totalNumber, target, 1, target.length - 1);
+  }
 }

@@ -711,7 +711,6 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
 * 見積項目設定
 */
 function quote_script_main(){
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const get_s_p = PropertiesService.getScriptProperties();
   // 初回のみsetProtectionEditusersを実行
   initial_process();
@@ -719,16 +718,9 @@ function quote_script_main(){
   const quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   const array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
   const array_target_sheet = get_target_term_sheets();
-  const sheet_name = array_target_sheet.map(function(x){ return(x.getName()); });
-  const target_values = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1, 1).getValues();
-  const target_idx = [];
-  sheet_name.map(function(x){
-    this.forEach(function(y, idx){
-      if (y[0] == this){
-        target_idx.push(idx);
-      }
-    }, x);
-  }, target_values);
+  const sheet_name = array_target_sheet.map(x => x.getName());
+  const target_values = getTrialTermInfo_().map(x => x[0]);
+  const target_idx = sheet_name.map(x => target_values.indexOf(x));
   // Quotation requestシートのA2セルが空白の場合、Quotation requestが入っていないものと判断して処理を終了する
   if (array_quotation_request[1][0] == ''){
     Browser.msgBox('Quotation requestシートの2行目に情報を貼り付けて再実行してください。');
@@ -739,4 +731,7 @@ function quote_script_main(){
   for (var i = 0; i < array_target_sheet.length; i++){
     set_value_each_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + target_idx[i]);
   }
+  // TV会議
+  const DividedItemsCount = new GetArrayDividedItemsCount();
+  const target = DividedItemsCount.getArrayDividedItemsCount();
 }
