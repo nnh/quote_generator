@@ -567,7 +567,6 @@ function set_registration_items(target_sheet, array_quotation_request){
   } else {
     crb_after_second_year = get_count(get_quotation_request_value(array_quotation_request, 'CRB申請'), 'あり', 1);
   }
-  const trialTermInfo = getTrialTermInfo();
   // 1例あたりの実地モニタリング回数
   if (monitoring_count > 0){
     monitoring_count = '=round(' + monitoring_count + ' * ' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')'
@@ -580,8 +579,6 @@ function set_registration_items(target_sheet, array_quotation_request){
     essential_documents_count = '';
   }
   set_items_list = [
-    ['TV会議', get_count_more_than(get_quotation_request_value(array_quotation_request, 'その他会議（のべ回数）'), 0, 
-      Math.round(get_quotation_request_value(array_quotation_request, 'その他会議（のべ回数）') / temp_registration_year))],
     ['開始前モニタリング・必須文書確認', essential_documents_count],
     ['症例モニタリング・SAE対応', monitoring_count],
     ['CRB申請費用(初年度)', crb_first_year],
@@ -732,6 +729,22 @@ function quote_script_main(){
     set_value_each_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + target_idx[i]);
   }
   // TV会議
-  const DividedItemsCount = new GetArrayDividedItemsCount();
-  const target = DividedItemsCount.getArrayDividedItemsCount();
+  const targetImbalance = [
+      ['その他会議（のべ回数）',　['Setup', 'Closing'], 'TV会議']
+    ];
+  const DividedItemsCount = new GetArrayDividedItemsCountAdd();
+  const target = targetImbalance.map(x => {
+    const temp_count = get_quotation_request_value(array_quotation_request, x[0]);
+    return Number.isInteger(temp_count) ? DividedItemsCount.getArrayDividedItemsCount(temp_count, x[1]) : null;
+  });
+  target.forEach((targetSheetAndValues, idx) => {
+    if (targetSheetAndValues){
+      targetSheetAndValues.forEach(targetSheetAndValue => {
+        const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(targetSheetAndValue[0]);
+        const sheetItems = get_fy_items(targetSheet, get_s_p.getProperty('fy_sheet_items_col'));
+        const targetRow = sheetItems[targetImbalance[idx][2]];
+        targetSheet.getRange(targetRow, parseInt(get_s_p.getProperty('fy_sheet_count_col'))).setValue(targetSheetAndValue[1]);
+      });
+    }
+  });
 }

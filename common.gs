@@ -284,7 +284,18 @@ class GetArrayDividedItemsCount{
    */
   getTargetTerm(exclusionSheetNames=null){
     let target = this.trialTermInfo.filter(x => x[this.yearIdx] != '');
-    target = exclusionSheetNames ? exclusionSheetNames.map(x => target.filter(y => y[this.sheetNameIdx] != x)) : target;
+    if (!exclusionSheetNames){
+      return target;
+    }
+    exclusionSheetNames.forEach(x => {
+      for (let i = 0; i <= target.length; i++){
+        if (x == target[i][this.sheetNameIdx]){
+          target[i][this.sheetNameIdx] = null;
+          break;
+        }
+      }
+    });
+    target = target.filter(x => x[this.sheetNameIdx]);
     return target;
   }
   /**
@@ -299,6 +310,7 @@ class GetArrayDividedItemsCount{
     const addStartSheetIdx = 0 <= inputAddStartSheetIdx && inputAddStartSheetIdx <= addEndSheetIdx ? inputAddStartSheetIdx 
                            : 0 <= inputAddStartSheetIdx ? 0
                            : target.length;
+    const totalYear = target.reduce(x => console.log(x));
     const tempSum = Math.trunc(totalNumber / target.length);
     let setValueList = Array(target.length);
     setValueList.fill(tempSum);
@@ -325,4 +337,14 @@ class GetArrayDividedItemsCount{
     const target = this.getTargetTerm(exclusionSheetNames);
     return this.devidedItemCount(totalNumber, target, 1, target.length - 1);
   }
+}
+class GetArrayDividedItemsCountAdd extends GetArrayDividedItemsCount{
+  getArrayDividedItemsCount(totalNumber, exclusionSheetNames){
+    const target = this.getTargetTerm(exclusionSheetNames);
+    return this.devidedItemCount(totalNumber, target, 1, target.length - 1);
+  }
+}
+function aaa(){
+  const test = new GetArrayDividedItemsCountAdd();
+  const aaa = test.getArrayDividedItemsCount(5, ['Setup', 'Closing']);
 }
