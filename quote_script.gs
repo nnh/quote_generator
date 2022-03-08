@@ -543,13 +543,10 @@ function set_setup_items(array_quotation_request){
 */
 function set_registration_items(target_sheet, array_quotation_request){
   const get_s_p = PropertiesService.getScriptProperties();
-  const temp_registration_year = get_s_p.getProperty('registration_years');
   var set_items_list = [];
   var interim_analysis = '中間解析プログラム作成、解析実施（シングル）';
   var crb_first_year = '';
   var crb_after_second_year = '';
-  var monitoring_count = get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数');
-  var essential_documents_count = get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数');
   var set_items_list = [];
   // 中間解析
   if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
@@ -567,30 +564,13 @@ function set_registration_items(target_sheet, array_quotation_request){
   } else {
     crb_after_second_year = get_count(get_quotation_request_value(array_quotation_request, 'CRB申請'), 'あり', 1);
   }
-  // 1例あたりの実地モニタリング回数
-  if (monitoring_count > 0){
-    monitoring_count = '=round(' + monitoring_count + ' * ' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')'
-  } else {
-    monitoring_count = '';
-  }
-  if (essential_documents_count > 0){
-    essential_documents_count = '=round(' + essential_documents_count + ' * ' + get_s_p.getProperty('function_facilities').substr(1) + ' / ' + temp_registration_year + ')'
-  } else {
-    essential_documents_count = '';
-  }
   set_items_list = [
-    ['開始前モニタリング・必須文書確認', essential_documents_count],
-    ['症例モニタリング・SAE対応', monitoring_count],
     ['CRB申請費用(初年度)', crb_first_year],
     ['CRB申請費用(2年目以降)', crb_after_second_year],
     ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
     [interim_analysis, get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, get_s_p.getProperty('interim_table_count'))],
     ['中間解析報告書作成（出力結果＋表紙）', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
-    ['データクリーニング', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)],
-    [get_s_p.getProperty('cost_of_registration_item'), get_count(get_quotation_request_value(array_quotation_request, get_s_p.getProperty('cost_of_registration_quotation_request')), 'あり', '=round(' + get_s_p.getProperty('function_number_of_cases').substr(1) + ' / ' + temp_registration_year + ')')],
-    ['施設監査費用', get_count_more_than(get_quotation_request_value(array_quotation_request, '監査対象施設数'), 0, 
-      Math.round(get_quotation_request_value(array_quotation_request, '監査対象施設数') / temp_registration_year))],
-    ['治験薬運搬', get_count(get_quotation_request_value(array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('function_facilities'))]
+    ['データクリーニング', get_count_more_than(get_s_p.getProperty('interim_table_count'), 0, 1)]
   ];
   return(set_items_list);
 }
@@ -714,36 +694,56 @@ function quote_script_main(){
   const sheet = get_sheets();
   const quotation_request_last_col =  sheet.quotation_request.getDataRange().getLastColumn();
   const array_quotation_request = sheet.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
-  const array_target_sheet = get_target_term_sheets();
-  const sheet_name = array_target_sheet.map(x => x.getName());
-  const target_values = getTrialTermInfo_().map(x => x[0]);
-  const target_idx = sheet_name.map(x => target_values.indexOf(x));
   // Quotation requestシートのA2セルが空白の場合、Quotation requestが入っていないものと判断して処理を終了する
   if (array_quotation_request[1][0] == ''){
     Browser.msgBox('Quotation requestシートの2行目に情報を貼り付けて再実行してください。');
     return;
   }
+  const sheetnameIdx = 0;
+  const countIdx = 2;
+  const addRowCountIdx = 3; 
+  const targetSheetList = getTrialTermInfo_().map((x, idx) => x.concat(idx)).filter(x => x[countIdx] != '');
   filtervisible();
   set_trial_sheet(sheet, array_quotation_request);  
-  for (var i = 0; i < array_target_sheet.length; i++){
-    set_value_each_sheet(sheet.trial, array_target_sheet[i], array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + target_idx[i]);
-  }
-  // TV会議
+  targetSheetList.forEach(x => set_value_each_sheet(sheet.trial, SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x[sheetnameIdx]), array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + parseInt(x[addRowCountIdx])));
+  setImbalanceValues_(array_quotation_request);
+}
+function setImbalanceValues_(array_quotation_request){
+  // 年毎に設定する値が不均等である項目への対応
+  const get_s_p = PropertiesService.getScriptProperties();
+  const filenameIdx = 0;
+  const exclusionIdx = 1;
+  const itemnameIdx = 2;
+  const multiplierIdx = 3;
+  const sheetIdx = 0;
+  const valueIdx = 1;
+  const setupAndClosingExclusion = ['Setup', 'Closing']; 
+  const patientRegistrationFee = '症例登録毎の支払';
+  const transportDrug = '治験薬運搬';
   const targetImbalance = [
-      ['その他会議（のべ回数）',　['Setup', 'Closing'], 'TV会議']
+      ['その他会議（のべ回数）',　setupAndClosingExclusion, 'TV会議', null],
+      ['1例あたりの実地モニタリング回数', setupAndClosingExclusion, '症例モニタリング・SAE対応', get_s_p.getProperty('number_of_cases_itemname')],
+      ['年間1施設あたりの必須文書実地モニタリング回数', setupAndClosingExclusion, '開始前モニタリング・必須文書確認', get_s_p.getProperty('facilities_itemname')],
+      ['監査対象施設数', setupAndClosingExclusion, '施設監査費用', null],
+      [patientRegistrationFee, setupAndClosingExclusion, '症例登録', get_s_p.getProperty('number_of_cases_itemname')],
+      [transportDrug, setupAndClosingExclusion, '治験薬運搬', get_s_p.getProperty('facilities_itemname')]
     ];
   const DividedItemsCount = new GetArrayDividedItemsCountAdd();
   const target = targetImbalance.map(x => {
-    const temp_count = get_quotation_request_value(array_quotation_request, x[0]);
-    return Number.isInteger(temp_count) ? DividedItemsCount.getArrayDividedItemsCount(temp_count, x[1]) : null;
+    let tempCount = get_quotation_request_value(array_quotation_request, x[filenameIdx]);
+    // 症例登録毎の支払, 治験薬運搬は「あり、なし」で入力される
+    tempCount = (x[filenameIdx] == patientRegistrationFee || x[filenameIdx] == transportDrug) && tempCount == 'あり' ? 1 : tempCount;
+    const tempMultiplier = x[multiplierIdx] ? get_quotation_request_value(array_quotation_request, x[multiplierIdx]) : 1;
+    const targetNumber = Number.isInteger(tempCount) && Number.isInteger(tempMultiplier) ? tempCount * tempMultiplier : null;
+    return Number.isInteger(targetNumber) ? DividedItemsCount.getArrayDividedItemsCount(targetNumber, x[exclusionIdx]) : null;
   });
   target.forEach((targetSheetAndValues, idx) => {
     if (targetSheetAndValues){
       targetSheetAndValues.forEach(targetSheetAndValue => {
-        const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(targetSheetAndValue[0]);
+        const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(targetSheetAndValue[sheetIdx]);
         const sheetItems = get_fy_items(targetSheet, get_s_p.getProperty('fy_sheet_items_col'));
-        const targetRow = sheetItems[targetImbalance[idx][2]];
-        targetSheet.getRange(targetRow, parseInt(get_s_p.getProperty('fy_sheet_count_col'))).setValue(targetSheetAndValue[1]);
+        const targetRow = sheetItems[targetImbalance[idx][itemnameIdx]];
+        targetSheet.getRange(targetRow, parseInt(get_s_p.getProperty('fy_sheet_count_col'))).setValue(targetSheetAndValue[valueIdx]);
       });
     }
   });

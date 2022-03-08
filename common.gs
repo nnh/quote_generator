@@ -288,7 +288,7 @@ class GetArrayDividedItemsCount{
       return target;
     }
     exclusionSheetNames.forEach(x => {
-      for (let i = 0; i <= target.length; i++){
+      for (let i = 0; i < target.length; i++){
         if (x == target[i][this.sheetNameIdx]){
           target[i][this.sheetNameIdx] = null;
           break;
@@ -298,6 +298,9 @@ class GetArrayDividedItemsCount{
     target = target.filter(x => x[this.sheetNameIdx]);
     return target;
   }
+  getTotalCount(setValueList, target){
+    return setValueList.reduce((x, y, idx) => x + (y * target[idx][this.yearIdx]), 0);
+  }
   /**
    * @param <number> totalNumber Total number of items to be split.
    * @param {Array.<string>} target A two-dimensional array of ['sheet name', 'title', 'years'].
@@ -306,21 +309,24 @@ class GetArrayDividedItemsCount{
    * @return A two-dimensional array of ['sheet name', 'count'].
    */
   devidedItemCount(totalNumber, target, inputAddStartSheetIdx=0, inputAddEndSheetIdx=target.length){
-    const addEndSheetIdx = inputAddEndSheetIdx <= target.length ? inputAddEndSheetIdx : target.length;
-    const addStartSheetIdx = 0 <= inputAddStartSheetIdx && inputAddStartSheetIdx <= addEndSheetIdx ? inputAddStartSheetIdx 
-                           : 0 <= inputAddStartSheetIdx ? 0
-                           : target.length;
-    const totalYear = target.reduce(x => console.log(x));
-    const tempSum = Math.trunc(totalNumber / target.length);
+    const totalYear = target.reduce((x, y) => x + y[this.yearIdx], 0);
+    const tempSum = Math.trunc(totalNumber / totalYear);
     let setValueList = Array(target.length);
     setValueList.fill(tempSum);
-    let tempArraySum = setValueList.reduce((x, y) => x + y, 0);
+    let tempArraySum = this.getTotalCount(setValueList, target);
     let remainder = totalNumber - tempArraySum;
     let roopCount = 10;
     while (remainder > 0){
-      for (let i = addStartSheetIdx; i <= addEndSheetIdx; i++){
-        setValueList[i]++        
-        remainder--;
+      for (let i = 0; i <= target.length; i++){
+        const temp = [...setValueList];
+        temp[i]++;
+        const checkValue = this.getTotalCount(temp, target);
+        if (checkValue <= totalNumber){
+          setValueList[i]++        
+          remainder--;
+        } else {
+          break;
+        }
         if (remainder == 0){
           break;
         }
