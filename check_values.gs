@@ -47,7 +47,7 @@ function check_output_values() {
     ammount_check[0] = 'NG：値が想定と異なる';
   }
   output_row++;
-  sheet.check.getRange(output_row, 1, 1, ammount_check[0].length).setValues([ammount_check]);
+  sheet.check.getRange(output_row, 1, 1, ammount_check.length).setValues([ammount_check]);
   var total_checkitems = [];
   var total_ammount_checkitems = [];
   const target_total = {sheet:sheet.total, 

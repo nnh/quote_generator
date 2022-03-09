@@ -172,7 +172,7 @@ function total2_3_add_del_cols(){
   // 列を初期化する
   target_sheets.forEach(x => new Add_del_columns(x).init_cols());
   // Trialシートの試験期間、見出し、試験期間年数を取得する
-  const trial_term_info = getTrialTermInfo();
+  const trial_term_info = getTrialTermInfo_();
   // 列の追加
   const add_columns = trial_term_info.filter(x => x[2] > 1);
   if (add_columns.length > 0){
