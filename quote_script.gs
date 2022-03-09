@@ -344,9 +344,9 @@ function delete_trial_comment(str_comment){
 * @param {associative array} array_item 項目と行番号の連想配列
 * @param {Moment.moment} sheet_start_date 開始日のMomentオブジェクト
 * @param {Moment.moment} sheet_end_date 終了日のMomentオブジェクト
-* @return 共通項目の設定月数
+* @return none
 * @example 
-*   var project_management = set_all_sheet_common_items(sheet.setup, array_item, 
+*   set_all_sheet_common_items(sheet.setup, array_item, 
 *                             Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_start_col).getValue()),
 *                             Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_end_col).getValue()));
 */
@@ -396,8 +396,6 @@ function set_all_sheet_common_items(target_sheet, array_item, sheet_start_date, 
     }
   }
   target_range.setValues(array_count);
-
-  return(project_management);
 }
 /**
 * setupシートに積む見積項目の設定
@@ -544,7 +542,9 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
   const const_trial_end_col = get_s_p.getProperty('trial_end_col');
   const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
   const array_item = get_fy_items(target_sheet, get_s_p.getProperty('fy_sheet_items_col'));
-  // このシートの全期間
+  // プロジェクト管理など、全期間に渡って算定する項目をセット
+  set_all_sheet_common_items(target_sheet, array_item, Moment.moment(trial_sheet.getRange(parseInt(trial_target_row), parseInt(const_trial_start_col)).getValue()),
+                                                       Moment.moment(trial_sheet.getRange(parseInt(trial_target_row), parseInt(const_trial_end_col)).getValue()));
   const target_col = getColumnString(const_count_col);
   const target_range = target_sheet.getRange(target_col + ':' + target_col);
   var array_count = target_range.getValues();
