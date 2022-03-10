@@ -337,6 +337,7 @@ function delete_trial_comment(str_comment){
 *                             Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_start_col).getValue()),
 *                             Moment.moment(sheet.trial.getRange(const_trial_setup_row, const_trial_end_col).getValue()));
 */
+/*
 function set_all_sheet_common_items(target_sheet, array_item, sheet_start_date, sheet_end_date){
   // プロジェクト管理、事務局運営、医師主導治験対応はすべてのシートで全期間とる
   const get_s_p = PropertiesService.getScriptProperties();
@@ -384,6 +385,7 @@ function set_all_sheet_common_items(target_sheet, array_item, sheet_start_date, 
   }
   target_range.setValues(array_count);
 }
+*/
 /**
 * setupシートに積む見積項目の設定
 * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
@@ -530,8 +532,8 @@ function set_value_each_sheet(trial_sheet, target_sheet, array_quotation_request
   const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
   const array_item = get_fy_items(target_sheet, get_s_p.getProperty('fy_sheet_items_col'));
   // プロジェクト管理など、全期間に渡って算定する項目をセット
-  set_all_sheet_common_items(target_sheet, array_item, Moment.moment(trial_sheet.getRange(parseInt(trial_target_row), parseInt(const_trial_start_col)).getValue()),
-                                                       Moment.moment(trial_sheet.getRange(parseInt(trial_target_row), parseInt(const_trial_end_col)).getValue()));
+  //set_all_sheet_common_items(target_sheet, array_item, Moment.moment(trial_sheet.getRange(parseInt(trial_target_row), parseInt(const_trial_start_col)).getValue()),
+//                                                       Moment.moment(trial_sheet.getRange(parseInt(trial_target_row), parseInt(const_trial_end_col)).getValue()));
   const target_col = getColumnString(const_count_col);
   const target_range = target_sheet.getRange(target_col + ':' + target_col);
   var array_count = target_range.getValues();
@@ -600,7 +602,10 @@ function quote_script_main(){
   targetSheetList.forEach(x => set_value_each_sheet(sheet.trial, SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x[sheetnameIdx]), array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + parseInt(x[addRowCountIdx])));
   targetSheetList.forEach(x => {
     const set_sheet_item_values = new SetSheetItemValues(x[sheetnameIdx], array_quotation_request); 
-    set_sheet_item_values.set_registration_term_items_()
+    const temp = null;
+    const temp_reg = set_sheet_item_values.set_registration_term_items_(temp);
+    const temp_all = set_sheet_item_values.set_all_sheet_common_items_(temp_reg);
+    set_sheet_item_values.setSheetValues(x[sheetnameIdx], temp_all)
   });
   setImbalanceValues_(array_quotation_request);
 }
@@ -661,7 +666,7 @@ class SetSheetItemValues{
     const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
     this.target_col = getColumnString(const_count_col);
   }
-  set_registration_term_items_(){
+  set_registration_term_items_(input_values){
     const get_s_p = PropertiesService.getScriptProperties();
     if (
       (this.sheetname == get_s_p.getProperty('setup_sheet_name') && this.trial_target_terms < parseInt(get_s_p.getProperty('setup_term'))) || 
@@ -678,21 +683,62 @@ class SetSheetItemValues{
     const central_monitoring = get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial') ? '中央モニタリング' : '中央モニタリング、定期モニタリングレポート作成';
     const ankan = get_count(get_quotation_request_value(this.array_quotation_request, '安全性管理事務局設置'), '設置・委託する', '安全性管理事務局業務');
     const kouan = get_count(get_quotation_request_value(this.array_quotation_request, '効安事務局設置'), '設置・委託する', '効果安全性評価委員会事務局業務');
-    const target_items_name = ['データベース管理料', central_monitoring, ankan, kouan].filter(x => x != '');  
-    this.setSheetValues(target_items_name, this.sheetname, registration_month);
+    const target_items = ['データベース管理料', central_monitoring, ankan, kouan].filter(x => x != '').map(x => [x, registration_month]);  
+    return this.getSetValues(target_items, this.sheetname, input_values);
   }
-  setSheetValues(target_items_name, sheetname, month_count){
+  getSetValues(target_items, sheetname, input_values){
     const get_s_p = PropertiesService.getScriptProperties();
+    let array_count = input_values ? input_values : this.getSheetValues(sheetname);
     const target_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
-    const target_range = target_sheet.getRange(this.target_col + ':' + this.target_col);
-    let array_count = target_range.getValues();
     const array_item = get_fy_items(target_sheet, get_s_p.getProperty('fy_sheet_items_col'));
-    target_items_name.forEach(x => {
-      const temp_row = array_item[x] - 1;
+    target_items.forEach(target_item => {
+      const target_items_name = target_item[0];
+      const month_count = target_item[1];
+      const temp_row = array_item[target_items_name] - 1;
       if (!Number.isNaN(temp_row)){
         array_count[temp_row][0] = month_count;
       }
     });
-    target_range.setValues(array_count);
+    return array_count;
+  }
+  getTargetRange(sheetname){
+    const target_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
+    const target_range = target_sheet.getRange(this.target_col + ':' + this.target_col);
+    return target_range;
+  }
+  getSheetValues(sheetname){
+    const target_range = this.getTargetRange(sheetname);
+    return target_range.getValues();
+  }
+  setSheetValues(sheetname, target_values){
+    const target_range = this.getTargetRange(sheetname);
+    target_range.setValues(target_values);
+  }
+  set_all_sheet_common_items_(input_values){
+    const get_s_p = PropertiesService.getScriptProperties();
+    const project_management = this.trial_target_terms > 12 ? 12 : this.trial_target_terms;
+    let clinical_trials_office = ''; 
+    let investigator_initiated_trial_support = '';
+    let temp_str;
+    // 企業原資または調整事務局の有無が「あり」なら事務局運営をとる
+    temp_str = get_quotation_request_value(this.array_quotation_request, get_s_p.getProperty('coefficient'));
+    if (temp_str == get_s_p.getProperty('commercial_company_coefficient')){
+      clinical_trials_office = project_management; 
+    }
+    temp_str = get_quotation_request_value(this.array_quotation_request, '調整事務局設置の有無');
+    if (temp_str == 'あり'){
+      clinical_trials_office = project_management; 
+    }
+    // 医師主導治験ならば事務局運営、医師主導治験対応をとる
+    if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
+      clinical_trials_office = project_management; 
+      investigator_initiated_trial_support = project_management;
+    }
+    const set_items_list = [
+      ['プロジェクト管理', 1],
+      ['事務局運営', clinical_trials_office],
+      ['医師主導治験対応', investigator_initiated_trial_support]
+    ];
+    return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
 }
