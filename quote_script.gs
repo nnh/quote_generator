@@ -224,43 +224,30 @@ function set_trial_sheet_(sheet, array_quotation_request){
     sheet.trial.getRange(date_of_issue, 2).setValue(Moment.moment().format('YYYY/MM/DD'));
   }
   // 単価の設定
-  items_list.map(function(x){
-    const items_header = x[1];
+  items_list.forEach(x => {
     const quotation_request_header = x[0];
-    var items_row = get_row_num_matched_value(sheet.items, 2, items_header);
-    var price = get_quotation_request_value(array_quotation_request, quotation_request_header);
-    switch(quotation_request_header){
-        // 試験開始準備費用、症例登録、症例報告のいずれか一つが「あり」の場合のみ単価を設定する
-      case cost_of_cooperation:
-        // 単価を空白にする
-        cost_of_cooperation_item_name.map(function(y){
-          items_row = get_row_num_matched_value(sheet.items, 2, y[1]);
-          set_items_price(sheet.items, 0, items_row);
-        });
-        const res_items = cost_of_cooperation_item_name.filter(function(y){ 
-          return(get_quotation_request_value(array_quotation_request, y[0]) == 'あり'); 
-        });
-        if (res_items.length == 1){
-          items_row = get_row_num_matched_value(sheet.items, 2, res_items[0][1]);
-          switch(sheet.items.getRange(items_row, 4).getValue()){
-            case '症例':
-              price = parseInt(price) / get_s_p.getProperty('number_of_cases');
-              break;
-            case '施設':
-              price = parseInt(price) / get_s_p.getProperty('facilities_value');
-              break;
-            default:
-              price = 0;
-              break;
-          }
+    const totalPrice = get_quotation_request_value(array_quotation_request, quotation_request_header);
+    if (quotation_request_header == cost_of_cooperation){
+      // 試験開始準備費用、症例登録、症例報告
+      const ari_count = cost_of_cooperation_item_name.filter(y => get_quotation_request_value(array_quotation_request, y[0]) == 'あり').length;
+      const temp_price = ari_count > 0 ? parseInt(totalPrice / ari_count) : null;
+      cost_of_cooperation_item_name.forEach(target => {
+        const items_row = get_row_num_matched_value(sheet.items, 2, target[1]);
+        if (get_quotation_request_value(array_quotation_request, target[0]) == 'あり'){
+          const unit = sheet.items.getRange(items_row, 4).getValue();
+          const price = unit == '症例' ? temp_price / get_s_p.getProperty('number_of_cases') :
+                        unit == '施設' ? temp_price / get_s_p.getProperty('facilities_value') : temp_price; 
+          set_items_price(sheet.items, price, items_row);
         } else {
-          price = 0;
+          set_items_price(sheet.items, 0, items_row);
         }
-        break;
-      default:
-        break;
+      });    
+    } else {
+      // 保険料
+      const items_header = x[1];
+      const items_row = get_row_num_matched_value(sheet.items, 2, items_header);
+      set_items_price(sheet.items, totalPrice, items_row);
     }
-    set_items_price(sheet.items, price, items_row);
   });  
 }
 /**
@@ -672,7 +659,8 @@ function set_registration_term_items_(sheetname, array_quotation_request){
   const trial_target_end_date = Moment.moment(trial_term_values[parseInt(get_s_p.getProperty('trial_end_col')) - 1]);
   const trial_start_date = Moment.moment(get_s_p.getProperty('trial_start_date'));
   const trial_end_date = Moment.moment(get_s_p.getProperty('trial_end_date'));
-  const registration_month = trial_start_date <= trial_target_start_date && trial_target_end_date <= trial_end_date ? trial_target_terms 
+  const registration_month =  trial_target_terms > 12 ? 12
+                              : trial_start_date <= trial_target_start_date && trial_target_end_date <= trial_end_date ? trial_target_terms 
                               : trial_target_start_date < trial_start_date ? trial_target_end_date.clone().add(1, 'days').diff(trial_start_date, 'months') 
                               : trial_end_date < trial_target_end_date ? trial_end_date.clone().add(1, 'days').diff(trial_target_start_date, 'months') : '';
   const const_count_col = get_s_p.getProperty('fy_sheet_count_col');

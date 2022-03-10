@@ -168,7 +168,6 @@ function total2_3_add_del_cols(){
   //　フィルタを解除し全行表示する
   filtervisible();
   const target_sheets = extract_target_sheet();
-  const sheet = get_sheets();
   // 列を初期化する
   target_sheets.forEach(x => new Add_del_columns(x).init_cols());
   // Trialシートの試験期間、見出し、試験期間年数を取得する
