@@ -598,7 +598,10 @@ function quote_script_main(){
   set_trial_sheet_(sheet, array_quotation_request);  
   const targetSheetList = getTrialTermInfo_().map((x, idx) => x.concat(idx)).filter(x => x[countIdx] != '');
   targetSheetList.forEach(x => set_value_each_sheet(sheet.trial, SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x[sheetnameIdx]), array_quotation_request, parseInt(get_s_p.getProperty('trial_setup_row')) + parseInt(x[addRowCountIdx])));
-  targetSheetList.forEach(x => set_registration_term_items_(x[0], array_quotation_request));
+  targetSheetList.forEach(x => {
+    const set_sheet_item_values = new SetSheetItemValues(x[sheetnameIdx], array_quotation_request); 
+    set_sheet_item_values.set_registration_term_items_()
+  });
   setImbalanceValues_(array_quotation_request);
 }
 function setImbalanceValues_(array_quotation_request){
@@ -639,46 +642,57 @@ function setImbalanceValues_(array_quotation_request){
     }
   });
 }
-function set_registration_term_items_(sheetname, array_quotation_request){
-  const months_col = 5;
-  const sheetname_col = 0;
-  const get_s_p = PropertiesService.getScriptProperties();
-  const trial_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial');
-  const target_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
-  const const_trial_setup_row = parseInt(get_s_p.getProperty('trial_setup_row'));
-  const const_trial_closing_row = parseInt(get_s_p.getProperty('trial_closing_row'));
-  const trial_term_values = trial_sheet.getRange(const_trial_setup_row, 1, const_trial_closing_row - const_trial_setup_row + 1, trial_sheet.getDataRange().getLastColumn()).getValues().filter(x => x[sheetname_col] == sheetname)[0];
-  const trial_target_terms = trial_term_values[months_col];
-  if (
-    (sheetname == get_s_p.getProperty('setup_sheet_name') && trial_target_terms < parseInt(get_s_p.getProperty('setup_term'))) || 
-    (sheetname == get_s_p.getProperty('closing_sheet_name') && trial_target_terms < parseInt(get_s_p.getProperty('closing_term')))
-    ){
-    return;
+class SetSheetItemValues{
+  constructor(sheetname, array_quotation_request){
+    this.sheetname = sheetname;
+    this.array_quotation_request = array_quotation_request;
+    const months_col = 5;
+    const sheetname_col = 0;
+    const get_s_p = PropertiesService.getScriptProperties();
+    const trial_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial');
+    const const_trial_setup_row = parseInt(get_s_p.getProperty('trial_setup_row'));
+    const const_trial_closing_row = parseInt(get_s_p.getProperty('trial_closing_row'));
+    const trial_term_values = trial_sheet.getRange(const_trial_setup_row, 1, const_trial_closing_row - const_trial_setup_row + 1, trial_sheet.getDataRange().getLastColumn()).getValues().filter(x => x[sheetname_col] == this.sheetname)[0];
+    this.trial_target_terms = trial_term_values[months_col];
+    this.trial_target_start_date = Moment.moment(trial_term_values[parseInt(get_s_p.getProperty('trial_start_col')) - 1]);
+    this.trial_target_end_date = Moment.moment(trial_term_values[parseInt(get_s_p.getProperty('trial_end_col')) - 1]);
+    this.trial_start_date = Moment.moment(get_s_p.getProperty('trial_start_date'));
+    this.trial_end_date = Moment.moment(get_s_p.getProperty('trial_end_date'));
+    const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
+    this.target_col = getColumnString(const_count_col);
   }
-  const trial_target_start_date = Moment.moment(trial_term_values[parseInt(get_s_p.getProperty('trial_start_col')) - 1]);
-  const trial_target_end_date = Moment.moment(trial_term_values[parseInt(get_s_p.getProperty('trial_end_col')) - 1]);
-  const trial_start_date = Moment.moment(get_s_p.getProperty('trial_start_date'));
-  const trial_end_date = Moment.moment(get_s_p.getProperty('trial_end_date'));
-  const registration_month =  trial_target_terms > 12 ? 12
-                              : trial_start_date <= trial_target_start_date && trial_target_end_date <= trial_end_date ? trial_target_terms 
-                              : trial_target_start_date < trial_start_date ? trial_target_end_date.clone().add(1, 'days').diff(trial_start_date, 'months') 
-                              : trial_end_date < trial_target_end_date ? trial_end_date.clone().add(1, 'days').diff(trial_target_start_date, 'months') : '';
-  const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
-  const target_col = getColumnString(const_count_col);
-  const target_range = target_sheet.getRange(target_col + ':' + target_col);
-  let array_count = target_range.getValues();
-  // データベース管理料、中央モニタリング、安全性管理、効安
-  // 医師主導治験ならば「中央モニタリング」、それ以外ならば「中央モニタリング、定期モニタリングレポート作成」
-  const central_monitoring = get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial') ? '中央モニタリング' : '中央モニタリング、定期モニタリングレポート作成';
-  const ankan = get_count(get_quotation_request_value(array_quotation_request, '安全性管理事務局設置'), '設置・委託する', '安全性管理事務局業務');
-  const kouan = get_count(get_quotation_request_value(array_quotation_request, '効安事務局設置'), '設置・委託する', '効果安全性評価委員会事務局業務');
-  const target_items_name = ['データベース管理料', central_monitoring, ankan, kouan].filter(x => x != '');  
-  const array_item = get_fy_items(target_sheet, get_s_p.getProperty('fy_sheet_items_col'));
-  target_items_name.forEach(x => {
-    const temp_row = array_item[x] - 1;
-    if (!Number.isNaN(temp_row)){
-      array_count[temp_row][0] = registration_month;
+  set_registration_term_items_(){
+    const get_s_p = PropertiesService.getScriptProperties();
+    if (
+      (this.sheetname == get_s_p.getProperty('setup_sheet_name') && this.trial_target_terms < parseInt(get_s_p.getProperty('setup_term'))) || 
+      (this.sheetname == get_s_p.getProperty('closing_sheet_name') && this.trial_target_terms < parseInt(get_s_p.getProperty('closing_term')))
+    ){
+      return;
     }
-  });
-  target_range.setValues(array_count);
+    const registration_month =  this.trial_target_terms > 12 ? 12
+                              : this.trial_start_date <= this.trial_target_start_date && this.trial_target_end_date <= this.trial_end_date ? this.trial_target_terms 
+                              : this.trial_target_start_date < this.trial_start_date ? this.trial_target_end_date.clone().add(1, 'days').diff(this.trial_start_date, 'months') 
+                              : this.trial_end_date < this.trial_target_end_date ? this.trial_end_date.clone().add(1, 'days').diff(this.trial_target_start_date, 'months') : '';
+    // データベース管理料、中央モニタリング、安全性管理、効安
+    // 医師主導治験ならば「中央モニタリング」、それ以外ならば「中央モニタリング、定期モニタリングレポート作成」
+    const central_monitoring = get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial') ? '中央モニタリング' : '中央モニタリング、定期モニタリングレポート作成';
+    const ankan = get_count(get_quotation_request_value(this.array_quotation_request, '安全性管理事務局設置'), '設置・委託する', '安全性管理事務局業務');
+    const kouan = get_count(get_quotation_request_value(this.array_quotation_request, '効安事務局設置'), '設置・委託する', '効果安全性評価委員会事務局業務');
+    const target_items_name = ['データベース管理料', central_monitoring, ankan, kouan].filter(x => x != '');  
+    this.setSheetValues(target_items_name, this.sheetname, registration_month);
+  }
+  setSheetValues(target_items_name, sheetname, month_count){
+    const get_s_p = PropertiesService.getScriptProperties();
+    const target_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
+    const target_range = target_sheet.getRange(this.target_col + ':' + this.target_col);
+    let array_count = target_range.getValues();
+    const array_item = get_fy_items(target_sheet, get_s_p.getProperty('fy_sheet_items_col'));
+    target_items_name.forEach(x => {
+      const temp_row = array_item[x] - 1;
+      if (!Number.isNaN(temp_row)){
+        array_count[temp_row][0] = month_count;
+      }
+    });
+    target_range.setValues(array_count);
+  }
 }
