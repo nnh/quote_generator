@@ -2,43 +2,21 @@
  * routine test
  */
 class RoutineTest{
-  setQuote(idx){
+  setQuote(){
     const sheets = get_sheets();
     this.routineTestInit();
     quote_script_main();
-    if (idx == 4){
-      this.setTestInterimValues(sheets.observation_2);
-      sheets.observation_2.getRange('F77').clearContent();
-    }
-    if (idx == 5){
-      sheets.registration_2.getRange('F21').clearContent();
-    }
-    if (idx == 6){
-      sheets.registration_1.getRange('F28').setValue(1);
-      sheets.registration_1.getRange('F77').setValue(1);
-    }
-    if (idx == 7){
-      this.setTestInterimValues(sheets.observation_2);
-      sheets.observation_2.getRange('F21').setValue(1);
-    }
-    if (idx == 8){
-      sheets.registration_1.getRange('F21').setValue(1);
-      sheets.registration_1.getRange('F28').setValue(1);
-      sheets.registration_1.getRange('F29').setValue(54);
-      sheets.registration_2.getRange('F33').setValue(10);
-      sheets.registration_2.getRange('F44').setValue(10);
-      sheets.registration_2.getRange('F50').setValue(10);
-      sheets.registration_2.getRange('F51').setValue(10);
-      sheets.items.getRange('C63').setValue(2000000);
-      sheets.items.getRange('C65').setValue(500000);
-    }
+    const quotation_request_last_col =  sheets.quotation_request.getDataRange().getLastColumn();
+    const array_quotation_request = sheets.quotation_request.getRange(1, 1, 2, quotation_request_last_col).getValues();
+    const interimCount = get_quotation_request_value(array_quotation_request, '中間解析業務の依頼') == 'あり' ? 1 : '';
+    this.setTestInterimValues(sheets.setup, interimCount);
     total2_3_add_del_cols();
   }
   execRoutineTest(targetValues, targetIdx){
     const res = targetValues.map((_, idx) => {
       if (idx == targetIdx) {
         setQuotationRequestValuesForTest(idx)
-        this.setQuote(idx);
+        this.setQuote();
         check_output_values();
         return this.getCheckResult_();
       } else {
@@ -78,10 +56,15 @@ class RoutineTest{
     const res = {targetSheetsName:targetSheetsName, setVal:setVal};
     return(res);
   }
-  setTestInterimValues(targetSheet){
-    targetSheet.getRange('F45').setValue(1);
-    targetSheet.getRange('F53').setValue(1);
-    targetSheet.getRange('F55').setValue(1);
+  setTestInterimValues(targetSheet, interimValue){
+    const sheetQuotationRequest = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Quotation Request');
+    const quotation_request_last_col =  sheetQuotationRequest.getDataRange().getLastColumn();
+    const array_quotation_request = sheetQuotationRequest.getRange(1, 1, 2, quotation_request_last_col).getValues();
+    const tableCount = interimValue != '' ? get_quotation_request_value(array_quotation_request, '中間解析に必要な図表数') : interimValue;
+    targetSheet.getRange('F45').setValue(interimValue);
+    targetSheet.getRange('F53').setValue(interimValue);
+    targetSheet.getRange('F54').setValue(tableCount);
+    targetSheet.getRange('F55').setValue(interimValue);
   }
   getCheckResult_(){
     const checkSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Check');
@@ -110,4 +93,22 @@ function routineTest(){
     }
   });
   testResults.every(x => x) ? console.log('*** All tests OK. ***') : console.log(testResults);
+}
+class RoutineTestIndividual extends RoutineTest{
+  execRoutineTest(targetValues){
+    const sheetQuotationRequest = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Quotation Request');
+    sheetQuotationRequest.clearContents();
+    sheetQuotationRequest.getRange(1, 1, targetValues.length, targetValues[0].length).setValues(targetValues);
+    this.setQuote();
+    check_output_values();
+    return this.getCheckResult_();
+  }
+}
+function routineTest_individual(){
+  const targetIdx = 1;
+  initial_process();
+  const test = new RoutineTestIndividual();
+  const targetValues = getQuotationRequestValues_().filter((_, idx) => idx == 0 || idx == targetIdx);
+  const testResults = test.execRoutineTest(targetValues);
+  testResults ? console.log('*** test OK. ***') : console.log('!!! test NG !!!');
 }

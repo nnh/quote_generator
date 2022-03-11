@@ -1,4 +1,55 @@
-function fix20220113(){
+function fix20220124_(){
+  PropertiesService.getScriptProperties().deleteAllProperties();
+  initial_process();
+  filtervisible();
+  let sheetsAddRow = get_sheets();
+  sheetsAddRow.items.getRange('B85').setValue('TV会議');
+  sheetsAddRow.items.getRange('S85').setValue(65000);
+  sheetsAddRow.items.getRange('T85').setValue(0.25);
+  sheetsAddRow.items.getRange('U85').setValue(5);
+  sheetsAddRow.items.getRange('V85').setValue(90);
+  sheetsAddRow.items.getRange('W85').setValue(10);
+  const targetSheets = [ 'Items',
+  'Setup',
+  'Registration_1',
+  'Registration_2',
+  'Interim_1',
+  'Observation_1',
+  'Interim_2',
+  'Observation_2',
+  'Closing',
+  'Total',
+  'Total2',
+  'Total_nmc',
+  'Total2_nmc',
+  'Total_oscr',
+  'Total2_oscr' ];
+  targetSheets.forEach(x => {
+    const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x);
+    const insertTargetRow = targetSheet.getName() == 'Items' ? 87 : 89;
+    targetSheet.insertRowsAfter(insertTargetRow, 5);
+    const copyFromRow = insertTargetRow;
+    const lastCol = targetSheet.getLastColumn();
+    for (let i = 1; i <= 5; i++){
+      let rowNumber = insertTargetRow + i;
+      targetSheet.getRange(copyFromRow, 1, 1, lastCol).copyTo(targetSheet.getRange(rowNumber, 1, 1, lastCol));  
+      if (targetSheet.getName() == 'Total' || targetSheet.getName() == 'Total_nmc' || targetSheet.getName() == 'Total_oscr'){
+        let totalCol6Value = '=Setup!F' + rowNumber + '*Trial!C32+Registration_1!F' + rowNumber + '*Trial!C33+Registration_2!F' + rowNumber + '*Trial!C34+Interim_1!F' + rowNumber + '*Trial!C35+Observation_1!F' + rowNumber + '*Trial!C36+Interim_2!F' + rowNumber + '*Trial!C37+Observation_2!F' + rowNumber + '*Trial!C38+Closing!F' + rowNumber + '*Trial!C39'; 
+        targetSheet.getRange(rowNumber, 6).setValue(totalCol6Value); 
+      }
+      if (targetSheet.getName() != 'Total2' && targetSheet.getName() != 'Total2_nmc' && targetSheet.getName() != 'Total2_oscr' && targetSheet.getName() != 'Items'){
+        targetSheet.getRange(96, 8).setValue('=sum(H6:H95)'); 
+        targetSheet.getRange(80, 9).setValue('=sum(H81:H94)'); 
+        targetSheet.getRange(80, getColumnNumber('L')).setValue('=if(I80 > 0, 2, 0)');
+      }
+    }
+  });
+  let temp = Array(7);
+  temp.fill(100);
+  const percentageValues = temp.map(x => [x, 0]);
+  sheetsAddRow.items.getRange('V86:W92').setValues(percentageValues);
+}
+function fix20220113_(){
   PropertiesService.getScriptProperties().deleteAllProperties();
   initial_process();
   filtervisible();
