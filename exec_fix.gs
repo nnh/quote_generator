@@ -1,4 +1,4 @@
-function fix20220124(){
+function fix20220124_(){
   PropertiesService.getScriptProperties().deleteAllProperties();
   initial_process();
   filtervisible();

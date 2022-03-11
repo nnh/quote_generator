@@ -105,7 +105,7 @@ class RoutineTestIndividual extends RoutineTest{
   }
 }
 function routineTest_individual(){
-  const targetIdx = 9;
+  const targetIdx = 1;
   initial_process();
   const test = new RoutineTestIndividual();
   const targetValues = getQuotationRequestValues_().filter((_, idx) => idx == 0 || idx == targetIdx);
