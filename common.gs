@@ -350,7 +350,3 @@ class GetArrayDividedItemsCountAdd extends GetArrayDividedItemsCount{
     return this.devidedItemCount(totalNumber, target, 1, target.length - 1);
   }
 }
-function aaa(){
-  const test = new GetArrayDividedItemsCountAdd();
-  const aaa = test.getArrayDividedItemsCount(5, ['Setup', 'Closing']);
-}
