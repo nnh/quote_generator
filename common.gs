@@ -1,44 +1,43 @@
 /**
-* フィルタ：全条件を表示する
-* @param none
-* @return none
-*/
-function filtervisible(){
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const ws_t = ss.getSheets();
-  const max_index = ws_t.length;
-  var i, ws_filter, col;
-  for (i = 0; i < max_index; i++){
-    ws_filter = ws_t[i].getFilter();
-    if (ws_filter != null){
-      col = ws_filter.getRange().getColumn();
-      ws_filter.removeColumnFilterCriteria(col)      
-    } 
+ * Show/hide filters.
+ */
+class FilterVisibleHidden{
+  constructor(){
+    this.ss = SpreadsheetApp.getActiveSpreadsheet();
+    this.sheets = this.ss.getSheets();
+  }
+  getFilters(){
+    return this.sheets.map(sheet => sheet.getFilter()).filter(x => x);
+  }
+  removeFilterCriteria(targetFilter){
+    const col = targetFilter.getRange().getColumn();
+    targetFilter.removeColumnFilterCriteria(col);
+  }
+  createFilterCriteria(){
+    const filterCriteria = SpreadsheetApp.newFilterCriteria();
+    filterCriteria.setHiddenValues(['0']);
+    return filterCriteria;
+  }
+  setFilterCriteria(targetFilter, criteria){
+    const col = targetFilter.getRange().getColumn();
+    targetFilter.setColumnFilterCriteria(col, criteria);
+  }
+  filterVisible(){
+    this.getFilters().forEach(filter => this.removeFilterCriteria(filter));
+  }
+  filterHidden(){
+    this.getFilters().forEach(filter => {
+      this.removeFilterCriteria(filter);
+      const criteria = this.createFilterCriteria();
+      this.setFilterCriteria(filter, criteria);
+    });
   }
 }
-/**
-* フィルタ：0を非表示にする
-* @param none
-* @return none
-*/
+function filtervisible(){
+  new FilterVisibleHidden().filterVisible();
+}
 function filterhidden(){
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const ws_t = ss.getSheets();
-  const max_index = ws_t.length;
-  var i, ws_filter, filter_criteria, col; 
-  for (i = 0; i < max_index; i++){
-    ws_filter = ws_t[i].getFilter();
-    if (ws_filter != null){
-      col = ws_filter.getRange().getColumn();
-      filter_criteria = ws_filter.getColumnFilterCriteria(col);
-      if (filter_criteria != null){
-        ws_filter.removeColumnFilterCriteria(col)
-      } 
-      filter_criteria = SpreadsheetApp.newFilterCriteria();
-      filter_criteria.setHiddenValues(['0']);
-      ws_filter.setColumnFilterCriteria(col, filter_criteria);
-    } 
-  }
+  new FilterVisibleHidden().filterHidden();
 }
 /**
 * 初回必須処理

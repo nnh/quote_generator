@@ -35,6 +35,7 @@ function check_output_values() {
   const trial_months = sheet.check.getRange(output_row, trial_months_col).getValue();
   const total_months = trial_months + setup_closing_months;
   const trial_year = trial_months > 12 ? Math.trunc(trial_months / 12) : ''; 
+  const trial_ceil_year = Math.ceil(trial_months / 12);
   sheet.check.getRange(output_row, output_col).setValue(total_months);
   const total_total_ammount = get_total_amount({sheet:sheet.total, item_cols:'B:B', total_row_itemname:'合計', header_row:4, total_col_itemname:'金額'});
   const total2_total_ammount = get_total_amount({sheet:sheet.total2, item_cols:'B:B', total_row_itemname:'合計', header_row:4, total_col_itemname:'合計'});
@@ -134,7 +135,7 @@ function check_output_values() {
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   var temp_name = '開始前モニタリング・必須文書確認';
   if (get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数') > 0){
-    var temp_value = parseInt(get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数')) * facilities_value;
+    var temp_value = parseInt(get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数')) * facilities_value * trial_ceil_year;
   } else {
     var temp_value = '';
   }
