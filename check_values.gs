@@ -19,7 +19,7 @@ function check_output_values() {
   sheet.check.getRange(output_row, output_col, trial_start_end.length, trial_start_end[0].length).setValues(trial_start_end);
   output_row = trial_start_end.length;
   output_col = output_col + trial_start_end[0].length;
-  sheet.check.getRange(output_row, output_col).setFormula('=datedif(C2, D2, "M") + if(day(C2) < day(D2), 1, 2)');
+  sheet.check.getRange(output_row, output_col).setFormula('=datedif(C2, D2, "M") + if(day(C2) <= day(D2), 1, 2)');
   output_col++;
   if ((get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')) | 
       (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('specified_clinical_trial'))){
