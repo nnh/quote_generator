@@ -1,62 +1,37 @@
 /**
-* 対象シートが全て非表示ならtrue, それ以外ならfalseを返す
-* @param {[sheet]} target_sheets PDF出力対象のシート
-* @return {boolean}
-*/
-function check_sheets_hidden(target_sheets){
-  var res = false;
-  var sheetVisible = target_sheets.map(x => x.isSheetHidden());
-  sheetVisible = sheetVisible.filter(x => !x);
-  if (sheetVisible.length == 0){
-    res = true;
-  }
-  return res;
-}
-/**
 * PDFを作成する
-* @param {[sheet]} target_sheets PDF出力対象のシート
+* @param {Array.<Object>} target_sheets PDF出力対象のシート
 * @param {Object} pdf_settings PDF設定情報
 * @return none
 */
-function create_pdf_total_book(target_sheets, pdf_settings){
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+function create_pdf_total_book_(target_sheets, pdf_settings){
   // 出力対象シートが全て非表示ならば処理をスキップする
-  if (check_sheets_hidden(target_sheets)){
+  if (target_sheets.every(x => x.isSheetHidden())){
     return;
   }
-  // スプレッドシート内の全シートを取得
-  const ws_t = ss.getSheets();
-  // 出力対象シートが非表示なら出力対象外とする
-  target_sheets = target_sheets.filter(function(x){
-    return !(x.isSheetHidden());
-  });
-  // PDF出力対象外のシートを取得
-  const target_sheets_name = target_sheets.map(function(x){
-    return x.getName();
-  });
-  const non_target_sheets = ws_t.filter(function(x){
-    return target_sheets_name.indexOf(x.getName()) == -1;
-  });
-  // PDF出力対象外シートの表示／非表示状態を取得
-  const non_target_sheet_visible_hidden = non_target_sheets.map(function(x){
-    return [x, x.isSheetHidden()];  // 非表示ならtrueになる
+  // シートの表示非表示状態を取得
+  // 非表示ならtrueになる
+  const sheets_show_hide = SpreadsheetApp.getActiveSpreadsheet().getSheets().map(x => {
+    let temp = {};
+    temp.sheet = x;
+    temp.isHidden = x.isSheetHidden();
+    temp.sheetName = x.getName();
+    return temp;
   });
   // PDF出力対象外のシートを非表示にする
-  non_target_sheet_visible_hidden.map(function(x){
-    x[0].hideSheet();
-  });
+  const target_sheet_names = target_sheets.map(x => x.getName());
+  const non_target_sheets = sheets_show_hide.map(x => !target_sheet_names.includes(x.sheetName)? x : null).filter(x => x);
+  non_target_sheets.forEach(x => x.sheet.hideSheet());
   // PDF出力
-  convertSpreadsheetToPdf(pdf_settings.sheet_name, pdf_settings.portrait, pdf_settings.scale, pdf_settings.pdf_name, pdf_settings.output_folder);
-  // PDF出力対象外シートの表示／非表示状態を元に戻す
-  non_target_sheet_visible_hidden.map(function(x){
-    if (x[1]){
-      // 非表示にする
-      x[0].hideSheet();
+  convertSpreadsheetToPdf_(pdf_settings.sheet_name, pdf_settings.portrait, pdf_settings.scale, pdf_settings.pdf_name, pdf_settings.output_folder);
+  // 全てのシートの表示／非表示状態を元に戻す
+  sheets_show_hide.forEach(x => {
+    if (x.isHidden){
+      x.sheet.hideSheet();
     } else {
-      // 表示する
-      x[0].showSheet();
+      x.sheet.showSheet();
     }
-  });  
+  });
 }
 /**
 * ブック全体のPDFとTotal2, Total3を横方向で出力したPDFをマイドライブに出力する
@@ -89,19 +64,19 @@ function ssToPdf(){
     scale: const_page_fit,
     pdf_name: ss.getName(),
     output_folder: output_folder};
-  create_pdf_total_book(target_sheets, pdf_settings_all_sheets);
+  create_pdf_total_book_(target_sheets, pdf_settings_all_sheets);
   // nmc
   const target_sheet_nmc = [ss.getSheetByName(get_s_p.getProperty('quote_nmc_sheet_name')),
                             ss.getSheetByName(get_s_p.getProperty('total_nmc_sheet_name')),
                             ss.getSheetByName(get_s_p.getProperty('total2_nmc_sheet_name'))];
   pdf_settings_all_sheets.pdf_name = ss.getName() + '_' + get_s_p.getProperty('name_nmc');
-  create_pdf_total_book(target_sheet_nmc, pdf_settings_all_sheets);
+  create_pdf_total_book_(target_sheet_nmc, pdf_settings_all_sheets);
   // oscr
   const target_sheet_oscr = [ss.getSheetByName(get_s_p.getProperty('quote_oscr_sheet_name')),
                             ss.getSheetByName(get_s_p.getProperty('total_oscr_sheet_name')),
                             ss.getSheetByName(get_s_p.getProperty('total2_oscr_sheet_name'))];
   pdf_settings_all_sheets.pdf_name = ss.getName() + '_' + get_s_p.getProperty('name_oscr');
-  create_pdf_total_book(target_sheet_oscr, pdf_settings_all_sheets);
+  create_pdf_total_book_(target_sheet_oscr, pdf_settings_all_sheets);
   // Total2, Total3横を出力
   const target_sheets_name_horizontal = [get_s_p.getProperty('total2_sheet_name'),
                                          get_s_p.getProperty('total3_sheet_name'),
@@ -109,7 +84,7 @@ function ssToPdf(){
                                          get_s_p.getProperty('total2_oscr_sheet_name')];
   target_sheets_name_horizontal.map(function(x){
     if (!(ss.getSheetByName(x).isSheetHidden())){
-      convertSpreadsheetToPdf(x, const_horizontal, const_page_fit, x, output_folder); 
+      convertSpreadsheetToPdf_(x, const_horizontal, const_page_fit, x, output_folder); 
     }
   });
 }
@@ -122,7 +97,7 @@ function ssToPdf(){
 * @param {folder} output_folder_id GoogleDriveの出力フォルダ
 * @return none
 */
-function convertSpreadsheetToPdf(sheet_name, portrait, scale, pdf_name, output_folder){
+function convertSpreadsheetToPdf_(sheet_name, portrait, scale, pdf_name, output_folder){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const url_base = ss.getUrl().replace(/edit.*$/,'');
   var str_id = '&id=' +ss.getId();
