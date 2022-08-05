@@ -40,7 +40,6 @@ function filterhidden(){
   new FilterVisibleHidden().filterHidden();
 }
 /**
-* 初回必須処理
 * シート編集可能者全員の権限を設定し、見積設定に必要なスクリプトプロパティを設定する
 * @param none
 * @return none
@@ -236,7 +235,7 @@ function get_row_num_matched_value(target_sheet, target_col_num, target_value){
 function initial_process(){
   const get_s_p = PropertiesService.getScriptProperties();
   if (get_s_p.getProperty('quote_sheet_name') === null){
-    setProtectionEditusers();
+    register_script_property();
     Utilities.sleep(10000);
   } else {
     setEditUsers_();

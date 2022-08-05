@@ -1,3 +1,82 @@
+function fix20220806testExec(){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  // 全てのシートを表示する
+  ss.getSheets().forEach(x => x.showSheet());
+  const outputSheetName = 'testOutput';
+  try{
+    if (!ss.getSheetByName(outputSheetName)){
+      throw e;
+    };
+  } catch(e){
+    ss.insertSheet();
+    ss.getActiveSheet().setName(outputSheetName);
+  }
+  const outputSheet = ss.getSheetByName(outputSheetName);
+  outputSheet.clearContents();
+  fix20220806test1_(outputSheet);
+  fix20220806test2_(outputSheet);
+  // 全てのシートを表示する
+  ss.getSheets().forEach(x => x.showSheet());
+}
+function fileNameChange_(targetName){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss_id = ss.getId();
+  const file = DriveApp.getFileById(ss_id);
+  file.setName(targetName);
+}
+function fix20220806test1_(outputSheet){
+  // テスト1：全てのシートが表示の場合、PDFが正しく出力され、非表示になっているシートがないことを確認する。
+  fileNameChange_('test20220805_1');
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  // 全てのシートを表示する
+  ss.getSheets().forEach(x => x.showSheet());
+  ssToPdf();
+  const res = outputConsoleLogSheetNameAndisHidden();
+  const checkOkNg = res.every(x => x.isSheetHidden === "表示") ? 'OK' :'NG';
+  outputLog_(outputSheet, [['test1 start：全てのシートが表示の場合、PDFが正しく出力され、非表示になっているシートがないことを確認する。']]);
+  outputLog_(outputSheet, [['シートの表示状態：' + checkOkNg]]);
+  outputLog_(outputSheet, [['test1 end']]);
+}
+function outputLog_(sheet, values){
+  const outputRow = sheet.getDataRange().getLastRow() + 1;
+  sheet.getRange(outputRow, 1, values.length, values[0].length).setValues(values);
+}
+function outputConsoleLogSheetNameAndisHidden(){
+  const res = SpreadsheetApp.getActiveSpreadsheet().getSheets().map(x => {
+    let temp = {};
+    temp.name = x.getName();
+    temp.isSheetHidden = x.isSheetHidden() ? '非表示' : '表示';
+    return temp;
+  });  
+  return res;
+}
+function fix20220806test2_(outputSheet){
+  // テスト2：PDF出力対象シートが全て非表示の場合にPDFが出力されないことを確認する
+  fileNameChange_('test20220805_2');
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const get_s_p = PropertiesService.getScriptProperties();
+  // 全てのシートを表示する
+  ss.getSheets().forEach(x => x.showSheet());
+  let target_sheets = get_target_term_sheets();
+  target_sheets.push(ss.getSheetByName(get_s_p.getProperty('quote_sheet_name')));
+  target_sheets.push(ss.getSheetByName(get_s_p.getProperty('total_sheet_name')));
+  target_sheets.push(ss.getSheetByName(get_s_p.getProperty('total2_sheet_name')));
+  target_sheets.push(ss.getSheetByName(get_s_p.getProperty('total3_sheet_name')));
+  const targetsheetname = target_sheets.map(x => x.getName());
+  ss.getSheets().forEach(x => {
+    if (targetsheetname.includes(x.getName())){
+      x.hideSheet();
+    }
+  });
+  const saveStatus = outputConsoleLogSheetNameAndisHidden();
+  // nmc, oscr, 横だけ出力されればOK
+  ssToPdf();
+  const res = outputConsoleLogSheetNameAndisHidden();  
+  const checkOkNg = JSON.stringify(saveStatus) === JSON.stringify(res) ? 'OK' :'NG';
+  outputLog_(outputSheet, [['test2 start：PDF出力対象シートが全て非表示の場合にPDFが出力されないことを確認する']]);
+  outputLog_(outputSheet, [['シートの表示状態：'+ checkOkNg]]);
+  outputLog_(outputSheet, [['test2 end']]);
+}
 function fix20220124_(){
   PropertiesService.getScriptProperties().deleteAllProperties();
   initial_process();
