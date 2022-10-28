@@ -2,13 +2,14 @@ class CopyItemsSheet{
   constructor(){
     const sheetName = PropertiesService.getScriptProperties().getProperty('items_sheet_name');
     this.itemsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-    this.itemsLastRow = this.itemsSheet.getLastRow();
+    this.itemsLastRow = this.itemsSheet.getLastRow();  // 「合計」を削除する処理を入れる
+    this.setInSheetFormulaList = 0;
   }
-  get priceFormulaList(){
-    return this._priceFormulaList;
+  get setInSheetFormulaList(){
+    return this._setInSheetFormulaList;
   }
-  set priceFormulaList(idx){
-    this._priceFormulaList = [
+  set setInSheetFormulaList(idx){
+    this._setInSheetFormulaList = [
       'Items!A' + idx,
       'Items!B' + idx,
       'Items!R' + idx,
@@ -17,32 +18,28 @@ class CopyItemsSheet{
       'Items!D' + idx
     ];
   }
-  setPriceFormulas(){
-    // Price
-    // 2行目以降をクリアする
-    // setformulas
-      // A列に'Items!A' + targetRow + 1
-      // B列に'Items!B' + targetRow + 1
-      // C列に'Items!R' + targetRow + 1
-      // D列に'Items!D' + targetRow + 1
-      // E列に'IF(Items!R' + targetRow + '="","",Items!R' + targetRow + '*F$1)'
-      // F列に'Items!D' + targetRow + 1
+  getFormulasSetInSheet(startRow){
     const resArray = this.createTwoDimensionalArray(6, this.itemsLastRow).map((_, idx) => {
-      this.priceFormulaList = idx + 3;
-      return [...this.priceFormulaList];  
+      this.setInSheetFormulaList = idx + startRow;
+      return [...this.setInSheetFormulaList];  
     });
     return resArray;
   }
   createTwoDimensionalArray(i, j){
     return [...Array(j)].map(_ => Array(i).fill(null));
   }
+  deleteAndCopyItemsRows(targetSheet, startRow){
+    const lastRow = targetSheet.getLastRow();
+    targetSheet.deleteRows(startRow, lastRow - startRow + 1);
+    targetSheet.insertRowsBefore(startRow, this.itemsLastRow);
+  }
+  setSheetInfo(targetSheet, startRow){
+    this.deleteAndCopyItemsRows(targetSheet, startRow);
+    return this.getFormulasSetInSheet(startRow);
+  }
 }
-function tst(){
-  const copyItemsSheet = new CopyItemsSheet();
+function reorganizePriceSheet(){
   const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Price');
-  const lastRow = targetSheet.getLastRow();
-  targetSheet.deleteRows(3, lastRow - 3);
-  targetSheet.insertRowsBefore(3, copyItemsSheet.itemsLastRow);
-  const priceFormulas = new CopyItemsSheet().setPriceFormulas();
+  const priceFormulas = new CopyItemsSheet().setSheetInfo(targetSheet, 3);
   targetSheet.getRange(2, 1, priceFormulas.length, priceFormulas[0].length).setFormulas(priceFormulas);
 }
