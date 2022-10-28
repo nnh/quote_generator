@@ -1,3 +1,4 @@
+// 試験事務局業務の項目修正を行う
 function myFunction() {
   const targetSheetsName = [
     'Total',
@@ -65,16 +66,13 @@ function myFunction() {
       x.insertRowsAfter(24, 5);
     }
     if (!/Total2.*/.test(x.getSheetName())){
+        if (/Total($|_)/.test(x.getSheetName())){
+          const targetRow = 24;
+          x.getRange('F24').setFormula('Setup!$F' + targetRow + '*Trial!$C$32+Registration_1!$F' + targetRow + '*Trial!$C$33+Registration_2!$F' + targetRow + '*Trial!$C$34+Interim_1!$F' + targetRow + '*Trial!$C$35+Observation_1!$F' + targetRow + '*Trial!$C$36+Interim_2!$F' + targetRow + '*Trial!$C$37+Observation_2!$F' + targetRow + '*Trial!$C$38+Closing!$F' + targetRow + '*Trial!$C$39');
+        }
       for (let i = 0; i < 5; i++){
         const targetRow = 25 + i;
         const setRow = targetRow - 2;
-//        x.getRange(targetRow, 2).setFormula('Items!A' + setRow);
-//        x.getRange(targetRow, 3).setFormula('Items!B' + setRow);
-//        x.getRange(targetRow, 4).setFormula('Items!C' + setRow);
-//        x.getRange(targetRow, 5).setValue('x');
-//        x.getRange(targetRow, 7).setFormula('Items!D' + setRow);
-//        x.getRange(targetRow, 8).setFormula('IF(F' + targetRow + '="","",D' + targetRow + '*F' + targetRow + ')');
-//        x.getRange(targetRow, 12).setFormula('if(F' + targetRow + '="",0,1)');
         x.getRange('C24:L24').copyTo(x.getRange('C' + targetRow + ':' + 'L' + targetRow));
         x.getRange('L18').setFormula('if(AND(H19="",H20="",H21="",H22="",H23="",H24="",H25="",H26="",H27="",H28="",H29=""),0,2)');
       }
