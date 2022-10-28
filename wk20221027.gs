@@ -118,6 +118,7 @@ function myFunction() {
         const targetRow = 25 + i;
         const copyFromRow = targetRow - 1;
         x.getRange('C' + copyFromRow + ':L' + copyFromRow).copyTo(x.getRange('C' + targetRow + ':' + 'L' + targetRow));
+        SpreadsheetApp.flush();
       }
     } else {
       for (let i = 0; i < 5; i++){
