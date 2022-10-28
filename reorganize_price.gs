@@ -4,6 +4,19 @@ class CopyItemsSheet{
     this.itemsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
     this.itemsLastRow = this.itemsSheet.getLastRow();
   }
+  get priceFormulaList(){
+    return this._priceFormulaList;
+  }
+  set priceFormulaList(idx){
+    this._priceFormulaList = [
+      'Items!A' + idx,
+      'Items!B' + idx,
+      'Items!R' + idx,
+      'Items!D' + idx,
+      'IF(Items!R' + idx + '="","",Items!R' + idx + '*F$1)',
+      'Items!D' + idx
+    ];
+  }
   setPriceFormulas(){
     // Price
     // 2行目以降をクリアする
@@ -14,16 +27,10 @@ class CopyItemsSheet{
       // D列に'Items!D' + targetRow + 1
       // E列に'IF(Items!R' + targetRow + '="","",Items!R' + targetRow + '*F$1)'
       // F列に'Items!D' + targetRow + 1
-//    let resArray = [...Array(this.itemsLastRow)].map(_ => Array(6).fill(null));
-    let resArray = this.createTwoDimensionalArray(6, this.itemsLastRow);
-    for (let i = 3; i < this.itemsLastRow; i++){
-      resArray[i - 3][0] = 'Items!A' + i;
-      resArray[i - 3][1] = 'Items!B' + i;      
-      resArray[i - 3][2] = 'Items!R' + i;      
-      resArray[i - 3][3] = 'Items!D' + i;      
-      resArray[i - 3][4] = 'IF(Items!R' + i + '="","",Items!R' + i + '*F$1)';      
-      resArray[i - 3][5] = 'Items!D' + i;      
-    }
+    const resArray = this.createTwoDimensionalArray(6, this.itemsLastRow).map((_, idx) => {
+      this.priceFormulaList = idx + 3;
+      return [...this.priceFormulaList];  
+    });
     return resArray;
   }
   createTwoDimensionalArray(i, j){
