@@ -2,8 +2,9 @@ class CopyItemsSheet{
   constructor(){
     const sheetName = PropertiesService.getScriptProperties().getProperty('items_sheet_name');
     this.itemsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-    this.itemsLastRow = this.itemsSheet.getLastRow();  // 「合計」を削除する処理を入れる
+    this.itemsLastRow = this.itemsSheet.getRange(1, 1, this.itemsSheet.getLastRow(), 1).getValues().flat().indexOf('合計');
     this.setInSheetFormulaList = 0;
+    this.arrayLastIndex = 0;
   }
   get setInSheetFormulaList(){
     return this._setInSheetFormulaList;
@@ -19,7 +20,7 @@ class CopyItemsSheet{
     ];
   }
   getFormulasSetInSheet(startRow){
-    const resArray = this.createTwoDimensionalArray(6, this.itemsLastRow).map((_, idx) => {
+    const resArray = this.createTwoDimensionalArray(6, this.arrayLastIndex).map((_, idx) => {
       this.setInSheetFormulaList = idx + startRow;
       return [...this.setInSheetFormulaList];  
     });
@@ -30,8 +31,9 @@ class CopyItemsSheet{
   }
   deleteAndCopyItemsRows(targetSheet, startRow){
     const lastRow = targetSheet.getLastRow();
+    this.arrayLastIndex = this.itemsLastRow - startRow + 1;
     targetSheet.deleteRows(startRow, lastRow - startRow + 1);
-    targetSheet.insertRowsBefore(startRow, this.itemsLastRow);
+    targetSheet.insertRowsBefore(startRow, this.arrayLastIndex);
   }
   setSheetInfo(targetSheet, startRow){
     this.deleteAndCopyItemsRows(targetSheet, startRow);
