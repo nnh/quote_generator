@@ -1,7 +1,11 @@
 class CopyItemsSheet{
   constructor(){
-    const sheetName = PropertiesService.getScriptProperties().getProperty('items_sheet_name');
-    this.itemsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    this.itemsSheetName = PropertiesService.getScriptProperties().getProperty('items_sheet_name');
+    if (this.itemsSheetName === null){
+      initial_process(); 
+      this.itemsSheetName = PropertiesService.getScriptProperties().getProperty('items_sheet_name');
+    }
+    this.itemsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(this.itemsSheetName);
     this.itemsLastRow = this.itemsSheet.getRange(1, 1, this.itemsSheet.getLastRow(), 1).getValues().flat().indexOf('合計');
     this.setInSheetFormulaList = 0;
     this.arrayLastIndex = 0;
@@ -11,12 +15,12 @@ class CopyItemsSheet{
   }
   set setInSheetFormulaList(idx){
     this._setInSheetFormulaList = [
-      'Items!A' + idx,
-      'Items!B' + idx,
-      'Items!R' + idx,
-      'Items!D' + idx,
-      'IF(Items!R' + idx + '="","",Items!R' + idx + '*F$1)',
-      'Items!D' + idx
+      this.itemsSheetName + '!$A$' + idx,
+      this.itemsSheetName + '!$B$' + idx,
+      this.itemsSheetName + '!$R$' + idx,
+      this.itemsSheetName + '!$D$' + idx,
+      'IF(' + this.itemsSheetName + '!$R$' + idx + '="","",' + this.itemsSheetName + '!$R$' + idx + '*F$1)',
+      this.itemsSheetName + '!$D$' + idx
     ];
   }
   getFormulasSetInSheet(startRow){
@@ -29,7 +33,18 @@ class CopyItemsSheet{
   createTwoDimensionalArray(i, j){
     return [...Array(j)].map(_ => Array(i).fill(null));
   }
-  deleteAndCopyItemsRows(targetSheet, startRow, lastRow = targetSheet.getLastRow()){
+  replaceTitle(titleRange){
+    const thisYear = new Date().getMonth() > 2 ? new Date().getFullYear() : new Date().getFullYear() - 1;
+    const titleValue = titleRange.getValue();
+    const lastYear = /20\d{2}/.exec(titleValue)[0];
+    const replaceValue = titleValue.replace(lastYear, thisYear);
+    titleRange.setValue(replaceValue);
+  }
+  setDeleteLastRow(targetSheet){
+    return targetSheet.getLastRow();
+  }
+  deleteAndCopyItemsRows(targetSheet, startRow){
+    const lastRow = this.setDeleteLastRow(targetSheet);
     this.arrayLastIndex = this.itemsLastRow - startRow + 1;
     targetSheet.deleteRows(startRow, lastRow - startRow + 1);
     targetSheet.insertRowsBefore(startRow, this.arrayLastIndex);
@@ -40,36 +55,53 @@ class CopyItemsSheet{
   }
 }
 class CopyItemsSheetPriceLogic extends CopyItemsSheet{
-  constructor(){
+  constructor(priceSheetName){
     super(CopyItemsSheet);
-    // A列が'※1:'の行の2行上まで削除してItemsと同じ行数を挿入する
+    this.priceSheetName = priceSheetName;
   }
   get setInSheetFormulaList(){
     return this._setInSheetFormulaList;
   }
   set setInSheetFormulaList(idx){
+    const priceIdx = idx - 1;
     this._setInSheetFormulaList = [
-      '=Items!A' + idx, 
-      '=Items!B' + idx, 
-      '=Items!R' + idx, 
-      '=Items!D' + idx, 
-      '=Items!S' + idx, 
-      '=Items!T' + idx, 
-      '=Items!U' + idx
+      '=' + this.itemsSheetName + '!$A$' + idx, 
+      '=' + this.itemsSheetName + '!$B$' + idx, 
+      '=' + this.priceSheetName + '!$' + this.baseUnitPriceRefCol + '$' + priceIdx, // ここをPrice!C列から持ってきたらいい、カンパニーならE列からとる 
+      '=' + this.itemsSheetName + '!$D$' + idx, 
+      '=' + this.itemsSheetName + '!$S$' + idx, 
+      '=' + this.itemsSheetName + '!$T$' + idx, 
+      '=' + this.itemsSheetName + '!$U$' + idx
     ];
   }
-  setSheetInfo(targetSheet, startRow){
-    this.deleteAndCopyItemsRows(targetSheet, startRow, 66);
-    return this.getFormulasSetInSheet(startRow);
+  get baseUnitPriceRefCol(){
+    return this._baseUnitPriceRefCol;
   }
+  set baseUnitPriceRefCol(targetSheet){
+    this._baseUnitPriceRefCol = targetSheet.getName() === 'PriceLogic' ? 'C' : 'E';
+  }
+  setDeleteLastRow(targetSheet){
+    const res = targetSheet.getRange(1, 1, targetSheet.getLastRow(), 1).getValues().flat().indexOf('※1:');
+    return res - 2;
+  }
+  setSheetInfo(targetSheet, startRow, titleAddress){
+    this.replaceTitle(targetSheet.getRange(titleAddress));
+    this.baseUnitPriceRefCol = targetSheet;
+    return super.setSheetInfo(targetSheet, startRow);
+  }
+}
+function reorganizePriceLogicCompanySheet(){
+  const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('PriceLogicCompany');
+  const priceFormulas = new CopyItemsSheetPriceLogic('Price').setSheetInfo(targetSheet, 3, 'B1');
+  targetSheet.getRange(2, 1, priceFormulas.length, priceFormulas[0].length).setFormulas(priceFormulas);
 }
 function reorganizePriceLogicSheet(){
   const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('PriceLogic');
-  const priceFormulas = new CopyItemsSheetPriceLogic().setSheetInfo(targetSheet, 3);
+  const priceFormulas = new CopyItemsSheetPriceLogic('Price').setSheetInfo(targetSheet, 3, 'B1');
   targetSheet.getRange(2, 1, priceFormulas.length, priceFormulas[0].length).setFormulas(priceFormulas);
 }
 function reorganizePriceSheet(){
-  const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Price');
-  const priceFormulas = new CopyItemsSheet().setSheetInfo(targetSheet, 3);
+  const priceSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Price');
+  const priceFormulas = new CopyItemsSheet().setSheetInfo(priceSheet, 3);
   targetSheet.getRange(2, 1, priceFormulas.length, priceFormulas[0].length).setFormulas(priceFormulas);
 }
