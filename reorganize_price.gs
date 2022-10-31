@@ -64,13 +64,23 @@ class CopyItemsSheet{
     const replaceValue = titleValue.replace(lastYear, thisYear);
     titleRange.setValue(replaceValue);
   }
+  getLastSignIdx(targetSheet){
+    const targetColumn = 1;
+    const signIdx = targetSheet.getRange(1, targetColumn, targetSheet.getLastRow(), 1).getValues().flat().indexOf('※1:');
+    if (signIdx === -1){
+      targetSheet.getRange(targetSheet.getLastRow() + 3, targetColumn).setValue('※1:');
+      this.getLastSignIdx(targetSheet);
+    }
+    return signIdx;
+  }
   /**
    * Returns the last row number of the deletion range.
    * @param {Object} Target sheet for row deletion.
    * @return {Number}
    */
   setDeleteLastRow(targetSheet){
-    return targetSheet.getLastRow() + 1;
+    const res = this.getLastSignIdx(targetSheet);
+    return res - 2;
   }
   /**
    * Delete existing rows and add rows for output.
@@ -82,7 +92,7 @@ class CopyItemsSheet{
     const lastRow = this.setDeleteLastRow(targetSheet);
     this.arrayLastIndex = this.itemsLastRow - startRow + 1;
     targetSheet.deleteRows(startRow, lastRow - startRow + 1);
-    targetSheet.insertRowsBefore(startRow, this.arrayLastIndex);
+    targetSheet.insertRowsBefore(startRow, this.arrayLastIndex - 1);
   }
   /**
    * Reconfigure the sheet formulas.
@@ -105,6 +115,8 @@ class CopyItemsSheet{
    */
   reSetFormulas(targetSheet, targetFormulas, startRow, startCol){
     targetSheet.getRange(startRow, startCol, targetFormulas.length, targetFormulas[0].length).setFormulas(targetFormulas);
+    targetSheet.getRange(startRow, 3, targetFormulas.length, 1).setNumberFormat('#,##0');
+    targetSheet.getRange(startRow, 5, targetFormulas.length, 1).setNumberFormat('#,##0');
   }
 }
 class CopyItemsSheetPriceLogic extends CopyItemsSheet{
@@ -139,15 +151,6 @@ class CopyItemsSheetPriceLogic extends CopyItemsSheet{
     this._baseUnitPriceRefCol = targetSheet.getName() === 'PriceLogic' ? 'C' : 'E';
   }
   /**
-   * Returns the last row number of the deletion range.
-   * @param {Object} Target sheet for row deletion.
-   * @return {Number}
-   */
-  setDeleteLastRow(targetSheet){
-    const res = targetSheet.getRange(1, 1, targetSheet.getLastRow(), 1).getValues().flat().indexOf('※1:');
-    return res - 2;
-  }
-  /**
    * Reconfigure the sheet formulas.
    * @param {Object} Target Sheet to be reconfigured.
    * @param {Number} First row number to be reconfigured.
@@ -162,9 +165,12 @@ class CopyItemsSheetPriceLogic extends CopyItemsSheet{
 }
 function reorganizePriceSheets(){
   const priceSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Price');
+  priceSheet.getRange(priceSheet.getLastRow() + 3, 1).setValue('※1:');
   const outputStartRow = 3;
   const titleCellAddress = 'B1';
-  new CopyItemsSheet().setSheetInfo(priceSheet, outputStartRow);
+  const copyItemsSheet = new CopyItemsSheet();
+  copyItemsSheet.setSheetInfo(priceSheet, outputStartRow);
+  priceSheet.getRange(copyItemsSheet.getLastSignIdx(priceSheet) + 1, 1).clearContent();
   const copyItemsSheetPriceLogic = new CopyItemsSheetPriceLogic(priceSheet.getName());
   copyItemsSheetPriceLogic.setSheetInfo(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('PriceLogic'), outputStartRow, titleCellAddress);
   copyItemsSheetPriceLogic.setSheetInfo(SpreadsheetApp.getActiveSpreadsheet().getSheetByName('PriceLogicCompany'), outputStartRow, titleCellAddress);
