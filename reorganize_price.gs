@@ -29,8 +29,7 @@ class CopyItemsSheet{
   createTwoDimensionalArray(i, j){
     return [...Array(j)].map(_ => Array(i).fill(null));
   }
-  deleteAndCopyItemsRows(targetSheet, startRow){
-    const lastRow = targetSheet.getLastRow();
+  deleteAndCopyItemsRows(targetSheet, startRow, lastRow = targetSheet.getLastRow()){
     this.arrayLastIndex = this.itemsLastRow - startRow + 1;
     targetSheet.deleteRows(startRow, lastRow - startRow + 1);
     targetSheet.insertRowsBefore(startRow, this.arrayLastIndex);
@@ -39,6 +38,35 @@ class CopyItemsSheet{
     this.deleteAndCopyItemsRows(targetSheet, startRow);
     return this.getFormulasSetInSheet(startRow);
   }
+}
+class CopyItemsSheetPriceLogic extends CopyItemsSheet{
+  constructor(){
+    super(CopyItemsSheet);
+    // A列が'※1:'の行の2行上まで削除してItemsと同じ行数を挿入する
+  }
+  get setInSheetFormulaList(){
+    return this._setInSheetFormulaList;
+  }
+  set setInSheetFormulaList(idx){
+    this._setInSheetFormulaList = [
+      '=Items!A' + idx, 
+      '=Items!B' + idx, 
+      '=Items!R' + idx, 
+      '=Items!D' + idx, 
+      '=Items!S' + idx, 
+      '=Items!T' + idx, 
+      '=Items!U' + idx
+    ];
+  }
+  setSheetInfo(targetSheet, startRow){
+    this.deleteAndCopyItemsRows(targetSheet, startRow, 66);
+    return this.getFormulasSetInSheet(startRow);
+  }
+}
+function reorganizePriceLogicSheet(){
+  const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('PriceLogic');
+  const priceFormulas = new CopyItemsSheetPriceLogic().setSheetInfo(targetSheet, 3);
+  targetSheet.getRange(2, 1, priceFormulas.length, priceFormulas[0].length).setFormulas(priceFormulas);
 }
 function reorganizePriceSheet(){
   const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Price');
