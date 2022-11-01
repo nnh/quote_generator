@@ -13,11 +13,6 @@ class CopyItemsSheet{
     this.setInSheetFormulaList = 0;
     this.arrayLastIndex = 0;
   }
-  getPriceCompanyPriceFormula(idx){
-    let numIdx = parseInt(idx);
-    // numIdx--;
-    return numIdx;
-  }
   /**
    * Create an array of formulas to be set in the cell.
    * @param {Number} Row number of the referenced cell.
@@ -27,13 +22,12 @@ class CopyItemsSheet{
     return this._setInSheetFormulaList;
   }
   set setInSheetFormulaList(idx){
-    const priceCompanyPrice = idx > 0 ? this.itemsSheet.getRange(idx, 3).getFormula().replace('Trial!$B$44', '$F$1').replace(/R(?=[1-9])/, 'Items!$R$').replace(/(?<=R\$)(\d*)/, this.getPriceCompanyPriceFormula) : null;
+    const priceCompanyPrice = idx > 0 ? this.itemsSheet.getRange(idx, 3).getFormula().replace('Trial!$B$44', '$F$1').replace(/R(?=[1-9])/, 'Items!$R$').replace(/(?<=R\$)(\d*)/, '$1') : null;
     this._setInSheetFormulaList = [
       this.itemsSheetName + '!$A$' + idx,
       this.itemsSheetName + '!$B$' + idx,
       this.itemsSheetName + '!$R$' + idx,
       this.itemsSheetName + '!$D$' + idx,
-      //'IF(' + this.itemsSheetName + '!$R$' + idx + '="","",' + this.itemsSheetName + '!$R$' + idx + '*F$1)',  // ここにItemsシートのC列の関数を入れないといけない
       priceCompanyPrice,
       this.itemsSheetName + '!$D$' + idx
     ];
