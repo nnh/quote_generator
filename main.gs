@@ -19,10 +19,14 @@ function onOpen() {
   const arr5 = [
     {name: "出力結果チェック", functionName: "check_output_values"}
   ];
+  const arr6 = [
+    {name: "Price再構成", functionName: "reorganizePriceSheets"}
+  ];
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   ss.addMenu("見積作成", arr);
   ss.addMenu("フィルタ", arr2);
   ss.addMenu("列再構成", arr3);
   ss.addMenu("PDF出力", arr4);
   ss.addMenu("出力結果チェック", arr5);
+  ss.addMenu("Price再構成", arr6);
 }
