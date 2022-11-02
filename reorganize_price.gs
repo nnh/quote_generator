@@ -129,6 +129,12 @@ class CopyItemsSheetPriceLogic extends CopyItemsSheet{
     return this._setInSheetFormulaList;
   }
   set setInSheetFormulaList(idx){
+    const variableCosts = new Map([
+      ['DB作成・eCRF作成・バリデーション', '="(変動 ※1)"'],
+      ['バリデーション報告書', '="(変動 ※2)"'],
+      ['中央モニタリング、定期モニタリングレポート作成', '="(変動 ※3)"'],
+      ['データクリーニング', '="(変動 ※4)"']
+    ]);
     const priceIdx = idx - 1;
     this._setInSheetFormulaList = [
       '=' + this.itemsSheetName + '!$A$' + idx, 
@@ -139,6 +145,16 @@ class CopyItemsSheetPriceLogic extends CopyItemsSheet{
       '=' + this.itemsSheetName + '!$T$' + idx, 
       '=' + this.itemsSheetName + '!$U$' + idx
     ];
+    if (idx < 1){
+      return;
+    } 
+    const variableCostCheck = this.itemsSheet.getRange(idx, 2).getValue();
+    if (variableCosts.has(variableCostCheck)){
+      this._setInSheetFormulaList[2] = variableCosts.get(variableCostCheck);
+      if (variableCostCheck === 'DB作成・eCRF作成・バリデーション'){
+        this._setInSheetFormulaList[4] = '="図1参照"';
+      }
+    }
   }
   /**
    * Get the referencing column from the sheet name.
