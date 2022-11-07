@@ -1,4 +1,4 @@
-function test20221102() {
+  function test20221102() {
   const inputSheetsName = [
     'Setup',
     'Registration_1',
@@ -31,7 +31,7 @@ function test20221102() {
   trialSheet.getRange('E39').setValue('2030/3/31');
   inputSheetsName.forEach(x => {
     const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x);
-    for (let i = 6; i < 84; i++){
+    for (let i = 6; i < 88; i++){
       if (targetSheet.getRange(i, 4).getValue() > 0){
         targetSheet.getRange(i, 6).setValue(2);
       }
@@ -63,6 +63,11 @@ function edit20221102() {
   // Quote
   ['Quote', 'Quote_nmc', 'Quote_oscr'].forEach(x => {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x);
+    for (let i = 12; i < 32; i++){
+      // 数式の行参照を絶対参照に変更する
+      const formula = sheet.getRange(i, 4).getFormula().replace(/(\D*)/, '$1$');
+      sheet.getRange(i, 4).setFormula(formula);
+    }
     if (sheet.getRange('C15').getValue() === '削除予定'){
       sheet.deleteRows(15, 2);
     }
@@ -72,10 +77,15 @@ function edit20221102() {
   // Quote
   ['Quote', 'Quote_nmc', 'Quote_oscr'].forEach(x => {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x);
-    if (sheet.getRange('C28').getValue() === ''){
-      sheet.deleteRows(28, 2);
+    for (let i = 12; i < 30; i++){
+      // 項目名の数式を再構成する
+      const targetRow = i - 11;
+      sheet.getRange(i, 3).setFormula('=PrimaryItems!A' + targetRow);
     }
   });
+  // Setup~Closing 試験事務局業務のSum対象範囲が足りていないので数式修正する
+  const yearsSheetsName = targetSheetsName.filter(x => !/Total.*/.test(x));
+  yearsSheetsName.forEach(x => SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x).getRange('I14').setFormula('sum(H15:H25)'));
 }
 function deleteTargetRows_(sheet, startRow, headingCol){
   if (sheet.getRange(startRow, headingCol).getValue() === '削除予定'){
