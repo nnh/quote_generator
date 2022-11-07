@@ -86,6 +86,10 @@ function edit20221102() {
   // Setup~Closing 試験事務局業務のSum対象範囲が足りていないので数式修正する
   const yearsSheetsName = targetSheetsName.filter(x => !/Total.*/.test(x));
   yearsSheetsName.forEach(x => SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x).getRange('I14').setFormula('sum(H15:H25)'));
+  // Total3
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Total3').deleteRows(8, 2);
+  // Price
+  reorganizePriceSheets();
 }
 function deleteTargetRows_(sheet, startRow, headingCol){
   if (sheet.getRange(startRow, headingCol).getValue() === '削除予定'){
