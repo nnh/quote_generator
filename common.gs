@@ -217,6 +217,7 @@ function register_script_property(){
   get_s_p.setProperty('number_of_cases_itemname', '目標症例数');
   get_s_p.setProperty('coefficient', '原資');
   get_s_p.setProperty('commercial_company_coefficient', '営利企業原資（製薬企業等）');
+  get_s_p.setProperty('reg1_setup_clinical_trials_office', 0);
 }
 /**
 * 指定した列に値が存在したらその行番号を返す。存在しなければ0を返す。
