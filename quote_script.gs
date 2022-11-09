@@ -446,7 +446,7 @@ class SetSheetItemValues{
     const central_monitoring = get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial') ? '中央モニタリング' : '中央モニタリング、定期モニタリングレポート作成';
     const ankan = get_count(get_quotation_request_value(this.array_quotation_request, '安全性管理事務局設置'), '設置・委託する', '安全性管理事務局業務');
     const kouan = get_count(get_quotation_request_value(this.array_quotation_request, '効安事務局設置'), '設置・委託する', '効果安全性評価委員会事務局業務');
-    const clinical_trials_office = [['事務局運営（試験開始前）', setup_clinical_trials_office], ['事務局運営（試験開始後から試験終了まで）', registration_clinical_trials_office]];
+    const clinical_trials_office = [['事務局運営（試験開始前）', setup_clinical_trials_office], ['事務局運営（試験開始後から試験終了まで）', registration_clinical_trials_office]].filter(x => x[1] > 0);
     const target_items = ['データベース管理料', central_monitoring, ankan, kouan].filter(x => x != '').map(x => [x, registration_month]);  
     return this.getSetValues(target_items.concat(clinical_trials_office), this.sheetname, input_values);
   }
@@ -487,19 +487,16 @@ class SetSheetItemValues{
   set_setup_clinical_trials_office(){
     const get_s_p = PropertiesService.getScriptProperties();
     get_s_p.setProperty('reg1_setup_clinical_trials_office', 0);
-    // this.clinical_trials_office_flgがfalseならばreturn
     if (!this.clinical_trials_office_flg){
       return '';
     }
-    // そのシートに入れる分のsetup期間を取得する
     const targetOfficeTerm = parseInt(get_s_p.getProperty('setup_term'));
-    // get_s_p.getProperty('setup_term')よりもSetupシートの期間が短ければRegistration1シートに情報を持ち越す
-    const targetTerm = targetOfficeTerm > this.trial_target_term ? targetOfficeTerm - this.trial_target_term : 0
-    if (targetTerm === 0){
-      return targetOfficeTerm;
-    } else {
+    const targetTerm = targetOfficeTerm - this.trial_target_terms
+    if (targetTerm > 0){
       get_s_p.setProperty('reg1_setup_clinical_trials_office', targetTerm);
       return this.trial_target_terms;
+    } else {
+      return targetOfficeTerm;
     }
   }
   set_setup_items_(input_values){
