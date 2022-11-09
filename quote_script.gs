@@ -605,11 +605,9 @@ class SetSheetItemValues{
     }
     let crb_first_year = '';
     let crb_after_second_year = '';
-    // 
-    let setup_clinical_trials_office = '';
     // CRB申請費用
     if (this.sheetname == get_s_p.getProperty('registration_1_sheet_name')){
-      setup_clinical_trials_office = get_s_p.getProperty('reg1_setup_clinical_trials_office');
+      crb_first_year = get_count(get_quotation_request_value(this.array_quotation_request, 'CRB申請'), 'あり', 1);
     } else {
       crb_after_second_year = get_count(get_quotation_request_value(this.array_quotation_request, 'CRB申請'), 'あり', 1);
     }
@@ -617,8 +615,8 @@ class SetSheetItemValues{
     const essential_documents_count = get_quotation_request_value(this.array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数');
     const essential_documents = Number.isInteger(essential_documents_count) ? get_s_p.getProperty('function_facilities') + ' * ' + essential_documents_count : '';  
     const set_items_list = [
-      ['CRB申請費用(初年度)', crb_first_year],
-      ['CRB申請費用(2年目以降)', crb_after_second_year],
+      ['名古屋医療センターCRB申請費用(初年度)', crb_first_year],
+      ['名古屋医療センターCRB申請費用(2年目以降)', crb_after_second_year],
       ['治験薬運搬', get_count(get_quotation_request_value(this.array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('function_facilities'))],
       ['開始前モニタリング・必須文書確認', essential_documents]
    ];
