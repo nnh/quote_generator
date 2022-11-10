@@ -355,8 +355,6 @@ function quote_script_main(){
     set_sheet_item_values.setSheetValues(x[sheetnameIdx], temp_all)
   });
   setImbalanceValues_(array_quotation_request);
-  // 事務局運営（試験開始前）をregistration1シートに設定する
-
   const setupToClosing = get_target_term_sheets();
   setupToClosing.forEach(x => x.getRange('B2').getValue() == '' ? x.hideSheet() : x.showSheet());
 }
@@ -415,7 +413,7 @@ class SetSheetItemValues{
     this.trial_end_date = Moment.moment(get_s_p.getProperty('trial_end_date'));
     const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
     this.target_col = getColumnString(const_count_col);
-    // 企業原資または調整事務局の有無が「あり」または医師主導治験
+    // 企業原資または調整事務局の有無が「あり」または医師主導治験ならば事務局運営を積む
     this.clinical_trials_office_flg = get_s_p.getProperty('trial_type_value') === get_s_p.getProperty('investigator_initiated_trial') || 
         get_quotation_request_value(this.array_quotation_request, get_s_p.getProperty('coefficient')) === get_s_p.getProperty('commercial_company_coefficient') ||
         get_quotation_request_value(this.array_quotation_request, '調整事務局設置の有無') === 'あり';
@@ -441,7 +439,7 @@ class SetSheetItemValues{
         setup_clinical_trials_office = get_s_p.getProperty('reg1_setup_clinical_trials_office');
       }
     }
-    // データベース管理料、中央モニタリング、安全性管理、効安、事務局運営（試験開始後から試験終了まで）
+    // データベース管理料、中央モニタリング、安全性管理、効安、事務局運営
     // 医師主導治験ならば「中央モニタリング」、それ以外ならば「中央モニタリング、定期モニタリングレポート作成」
     const central_monitoring = get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial') ? '中央モニタリング' : '中央モニタリング、定期モニタリングレポート作成';
     const ankan = get_count(get_quotation_request_value(this.array_quotation_request, '安全性管理事務局設置'), '設置・委託する', '安全性管理事務局業務');
