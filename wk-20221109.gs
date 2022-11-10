@@ -1,3 +1,50 @@
+function test20221109_main(){
+  test20221109_1();
+  test20221109_2();
+  test20221109_3();
+}
+function test20221109_3(){
+  // CRB申請のテスト
+  let targetMonth = 48;
+  console.log('CRB申請ありなら試験年数分算定');
+  execTest20221109_(
+    [['CRB申請', 'あり'],
+     ['試験終了日', '2026/9/30']],
+    [['事務局運営（試験開始前）', 0], 
+     ['SOP一式、CTR登録案、TMF雛形', 0], 
+     ['IRB承認確認、施設管理', 0], 
+     ['薬剤対応', 0], 
+     ['事務局運営（試験開始後から試験終了まで）', 0], 
+     ['事務局運営（試験終了時）', 0], 
+     ['PMDA対応、照会事項対応', 0], 
+     ['監査対応', 0], 
+     ['開始前モニタリング・必須文書確認', 24], 
+     ['症例モニタリング・SAE対応', 21], 
+     ['データベース管理料', targetMonth], 
+     ['中央モニタリング', targetMonth], 
+     ['名古屋医療センターCRB申請費用(初年度)', 1],
+     ['名古屋医療センターCRB申請費用(2年目以降)', 2],
+  ]);
+  console.log('CRB申請なしなら算定なし');
+  execTest20221109_(
+    [['CRB申請', 'なし'],
+     ['試験終了日', '2026/9/30']],
+    [['事務局運営（試験開始前）', 0], 
+     ['SOP一式、CTR登録案、TMF雛形', 0], 
+     ['IRB承認確認、施設管理', 0], 
+     ['薬剤対応', 0], 
+     ['事務局運営（試験開始後から試験終了まで）', 0], 
+     ['事務局運営（試験終了時）', 0], 
+     ['PMDA対応、照会事項対応', 0], 
+     ['監査対応', 0], 
+     ['開始前モニタリング・必須文書確認', 24], 
+     ['症例モニタリング・SAE対応', 21], 
+     ['データベース管理料', targetMonth], 
+     ['中央モニタリング', targetMonth], 
+     ['名古屋医療センターCRB申請費用(初年度)', 0],
+     ['名古屋医療センターCRB申請費用(2年目以降)', 0],
+  ]);
+}
 function test20221109_2(){
   // 事務局運営の月数のテスト
   let targetMonth;
@@ -82,31 +129,31 @@ function test20221109_1(){
   console.log('原資が営利企業原資（製薬企業等）ならば事務局運営が積まれることを確認する');
   execTest20221109_(
     [['原資', '営利企業原資（製薬企業等）']],
-    [['事務局運営（試験開始前）', 6], 
-     ['SOP一式、CTR登録案、TMF雛形', ''], 
-     ['IRB承認確認、施設管理', ''], 
-     ['薬剤対応', ''], 
+    [['事務局運営（試験開始前）', 3], 
+     ['SOP一式、CTR登録案、TMF雛形', 0], 
+     ['IRB承認確認、施設管理', 0], 
+     ['薬剤対応', 0], 
      ['事務局運営（試験開始後から試験終了まで）', targetMonth], 
      ['事務局運営（試験終了時）', 1], 
-     ['PMDA対応、照会事項対応', ''], 
-     ['監査対応', ''], 
+     ['PMDA対応、照会事項対応', 0], 
+     ['監査対応', 0], 
      ['開始前モニタリング・必須文書確認', 16], 
      ['症例モニタリング・SAE対応', 21], 
      ['データベース管理料', targetMonth], 
      ['中央モニタリング', targetMonth], 
      ['CSRの作成支援', 1]
   ]);
-  console.log('医師主導治験以外で公的資金で調整事務局設置の有無がなしならば事務局運営が積まれることを確認する');
+  console.log('医師主導治験以外で公的資金で調整事務局設置の有無がなしならば事務局運営が積まれないことを確認する');
   execTest20221109_(
     null,
-    [['事務局運営（試験開始前）', ''], 
-     ['SOP一式、CTR登録案、TMF雛形', ''], 
-     ['IRB承認確認、施設管理', ''], 
-     ['薬剤対応', ''], 
-     ['事務局運営（試験開始後から試験終了まで）', ''], 
-     ['事務局運営（試験終了時）', ''], 
-     ['PMDA対応、照会事項対応', ''], 
-     ['監査対応', ''], 
+    [['事務局運営（試験開始前）', 0], 
+     ['SOP一式、CTR登録案、TMF雛形', 0], 
+     ['IRB承認確認、施設管理', 0], 
+     ['薬剤対応', 0], 
+     ['事務局運営（試験開始後から試験終了まで）', 0], 
+     ['事務局運営（試験終了時）', 0], 
+     ['PMDA対応、照会事項対応', 0], 
+     ['監査対応', 0], 
      ['開始前モニタリング・必須文書確認', 16], 
      ['症例モニタリング・SAE対応', 21], 
      ['データベース管理料', targetMonth], 
@@ -162,7 +209,7 @@ function execTest20221109_(setKeyValues = null, setTotalKeyValues = null){
   }
   const itemNameIdx = 2;
   const countIdx = 5;
-  const totalValues = SpreadsheetApp.getActiveSpreadsheet().getDataRange().getValues().filter(x => x[itemNameIdx] !== '');
+  const totalValues = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Total').getDataRange().getValues().filter(x => x[itemNameIdx] !== '');
   totalCountMap.forEach((value, key) => {
     const target = totalValues.filter(x => x[itemNameIdx] === key);
     if (target.length === 1){
@@ -173,9 +220,7 @@ function execTest20221109_(setKeyValues = null, setTotalKeyValues = null){
     }
   });
   console.log('test end.')
-
 }
-
 function check20221109Comment(){
   const trialSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial');
   if (trialSheet.getRange('B13').getValue() !== '参加施設数を2施設と想定しております。'){
