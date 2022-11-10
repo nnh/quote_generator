@@ -112,3 +112,19 @@ function routineTest_individual(){
   const testResults = test.execRoutineTest(targetValues);
   testResults ? console.log('*** test OK. ***') : console.log('!!! test NG !!!');
 }
+function clearSheetsForTest(){
+  const targetSheetsName = [
+    'Setup',
+    'Registration_1',
+    'Registration_2',
+    'Interim_1',
+    'Observation_1',
+    'Interim_2',
+    'Observation_2',
+    'Closing'
+  ];
+  targetSheetsName.forEach(x => {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x);
+    sheet.getRange('F6:F94').clearContent();
+  })
+}

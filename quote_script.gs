@@ -413,6 +413,10 @@ class SetSheetItemValues{
     this.trial_end_date = Moment.moment(get_s_p.getProperty('trial_end_date'));
     const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
     this.target_col = getColumnString(const_count_col);
+    // 企業原資または調整事務局の有無が「あり」または医師主導治験ならば事務局運営を積む
+    this.clinical_trials_office_flg = get_s_p.getProperty('trial_type_value') === get_s_p.getProperty('investigator_initiated_trial') || 
+        get_quotation_request_value(this.array_quotation_request, get_s_p.getProperty('coefficient')) === get_s_p.getProperty('commercial_company_coefficient') ||
+        get_quotation_request_value(this.array_quotation_request, '調整事務局設置の有無') === 'あり';
   }
   set_registration_term_items_(input_values){
     const get_s_p = PropertiesService.getScriptProperties();
@@ -426,13 +430,23 @@ class SetSheetItemValues{
                               : this.trial_start_date <= this.trial_target_start_date && this.trial_target_end_date <= this.trial_end_date ? this.trial_target_terms 
                               : this.trial_target_start_date < this.trial_start_date ? this.trial_target_end_date.clone().add(1, 'days').diff(this.trial_start_date, 'months') 
                               : this.trial_end_date < this.trial_target_end_date ? this.trial_end_date.clone().add(1, 'days').diff(this.trial_target_start_date, 'months') : '';
-    // データベース管理料、中央モニタリング、安全性管理、効安
+    // 事務局運営
+    let setup_clinical_trials_office = 0;
+    let registration_clinical_trials_office = 0;
+    if (this.clinical_trials_office_flg){
+      registration_clinical_trials_office = registration_month;
+      if (this.sheetname === get_s_p.getProperty('registration_1_sheet_name')){
+        setup_clinical_trials_office = get_s_p.getProperty('reg1_setup_clinical_trials_office');
+      }
+    }
+    // データベース管理料、中央モニタリング、安全性管理、効安、事務局運営
     // 医師主導治験ならば「中央モニタリング」、それ以外ならば「中央モニタリング、定期モニタリングレポート作成」
     const central_monitoring = get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial') ? '中央モニタリング' : '中央モニタリング、定期モニタリングレポート作成';
     const ankan = get_count(get_quotation_request_value(this.array_quotation_request, '安全性管理事務局設置'), '設置・委託する', '安全性管理事務局業務');
     const kouan = get_count(get_quotation_request_value(this.array_quotation_request, '効安事務局設置'), '設置・委託する', '効果安全性評価委員会事務局業務');
+    const clinical_trials_office = [['事務局運営（試験開始前）', setup_clinical_trials_office], ['事務局運営（試験開始後から試験終了まで）', registration_clinical_trials_office]].filter(x => x[1] > 0);
     const target_items = ['データベース管理料', central_monitoring, ankan, kouan].filter(x => x != '').map(x => [x, registration_month]);  
-    return this.getSetValues(target_items, this.sheetname, input_values);
+    return this.getSetValues(target_items.concat(clinical_trials_office), this.sheetname, input_values);
   }
   getSetValues(target_items, sheetname, input_values){
     const get_s_p = PropertiesService.getScriptProperties();
@@ -463,31 +477,25 @@ class SetSheetItemValues{
     target_range.setValues(target_values);
   }
   set_all_sheet_common_items_(input_values){
-    const get_s_p = PropertiesService.getScriptProperties();
-    const project_management = this.trial_target_terms > 12 ? 12 : this.trial_target_terms;
-    let clinical_trials_office = ''; 
-    let investigator_initiated_trial_support = '';
-    let temp_str;
-    // 企業原資または調整事務局の有無が「あり」なら事務局運営をとる
-    temp_str = get_quotation_request_value(this.array_quotation_request, get_s_p.getProperty('coefficient'));
-    if (temp_str == get_s_p.getProperty('commercial_company_coefficient')){
-      clinical_trials_office = project_management; 
-    }
-    temp_str = get_quotation_request_value(this.array_quotation_request, '調整事務局設置の有無');
-    if (temp_str == 'あり'){
-      clinical_trials_office = project_management; 
-    }
-    // 医師主導治験ならば事務局運営、医師主導治験対応をとる
-    if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
-      clinical_trials_office = project_management; 
-      investigator_initiated_trial_support = project_management;
-    }
     const set_items_list = [
-      ['プロジェクト管理', 1],
-      ['事務局運営', clinical_trials_office],
-      ['医師主導治験対応', investigator_initiated_trial_support]
+      ['プロジェクト管理', 1]
     ];
     return this.getSetValues(set_items_list, this.sheetname, input_values);
+  }
+  set_setup_clinical_trials_office(){
+    const get_s_p = PropertiesService.getScriptProperties();
+    get_s_p.setProperty('reg1_setup_clinical_trials_office', 0);
+    if (!this.clinical_trials_office_flg){
+      return '';
+    }
+    const targetOfficeTerm = parseInt(get_s_p.getProperty('setup_term'));
+    const targetTerm = targetOfficeTerm - this.trial_target_terms
+    if (targetTerm > 0){
+      get_s_p.setProperty('reg1_setup_clinical_trials_office', targetTerm);
+      return this.trial_target_terms;
+    } else {
+      return targetOfficeTerm;
+    }
   }
   set_setup_items_(input_values){
     const get_s_p = PropertiesService.getScriptProperties();
@@ -499,6 +507,9 @@ class SetSheetItemValues{
     let office_irb_str = 'IRB準備・承認確認';
     let office_irb = '';
     let set_accounts = '初期アカウント設定（施設・ユーザー）、IRB承認確認';
+    // 事務局運営
+    const clinical_trials_office = this.set_setup_clinical_trials_office();
+    let drug_support = '';
     // trial!C29が空白でない場合は初期アカウント設定数をC29から取得する
     const dm_irb = '=if(isblank(' + get_s_p.getProperty('trial_sheet_name') +'!C' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + '), ' + 
                    get_s_p.getProperty('trial_sheet_name') + '!B' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + ',' + 
@@ -508,6 +519,7 @@ class SetSheetItemValues{
       office_irb_str = 'IRB承認確認、施設管理';
       office_irb = get_s_p.getProperty('function_facilities');
       set_accounts = '初期アカウント設定（施設・ユーザー）';
+      drug_support = get_s_p.getProperty('function_facilities');
     }
     const set_items_list = [
       ['プロトコルレビュー・作成支援（図表案、統計解析計画書案を含む）', 1],
@@ -517,7 +529,9 @@ class SetSheetItemValues{
       ['特定臨床研究法申請資料作成支援', get_count(get_s_p.getProperty('trial_type_value'), get_s_p.getProperty('specified_clinical_trial'), get_s_p.getProperty('function_facilities'))],
       ['ミーティング準備・実行', get_count(get_quotation_request_value(this.array_quotation_request, 'キックオフミーティング'), 'あり', 1)],
       ['SOP一式、CTR登録案、TMF雛形', sop],
+      ['事務局運営（試験開始前）', clinical_trials_office],
       [office_irb_str, office_irb],
+      ['薬剤対応', drug_support],
       ['モニタリング準備業務（関連資料作成、キックオフ参加）', get_count_more_than(get_quotation_request_value(this.array_quotation_request, '1例あたりの実地モニタリング回数'), 0, 1)],
       ['EDCライセンス・データベースセットアップ', 1],
       ['業務分析・DM計画書の作成・CTR登録案の作成', 1],
@@ -545,10 +559,14 @@ class SetSheetItemValues{
     let final_analysis_table_count = get_quotation_request_value(this.array_quotation_request, '統計解析に必要な図表数');
     let clinical_conference = '';
     let closing_meeting = '';
+    let pmda_support = '';
+    let audit_support = '';
     if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
       csr = 'CSRの作成支援';
       csr_count = 1;
       final_analysis = '最終解析プログラム作成、解析実施（ダブル）';
+      pmda_support = 1;
+      audit_support = 1;
       // 医師主導治験で症例検討会ありの場合症例検討会資料作成に1をセット、ミーティング1回追加
       if (get_count(get_quotation_request_value(this.array_quotation_request, '症例検討会'), 'あり', 1) > 0){
         clinical_conference = 1;
@@ -560,9 +578,13 @@ class SetSheetItemValues{
         set_trial_comment_('統計解析に必要な帳票数を50表と想定しております。');
       }
     }
+    const clinical_trials_office = this.clinical_trials_office_flg ? 1 : '';
     const set_items_list = [
       ['ミーティング準備・実行', closing_meeting],
       ['データクリーニング', 1],
+      ['事務局運営（試験終了時）', clinical_trials_office],
+      ['PMDA対応、照会事項対応', pmda_support],
+      ['監査対応', audit_support],
       ['データベース固定作業、クロージング', 1],
       ['症例検討会資料作成', clinical_conference],
       ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', get_count_more_than(final_analysis_table_count, 0, 1)],
@@ -591,8 +613,8 @@ class SetSheetItemValues{
     const essential_documents_count = get_quotation_request_value(this.array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数');
     const essential_documents = Number.isInteger(essential_documents_count) ? get_s_p.getProperty('function_facilities') + ' * ' + essential_documents_count : '';  
     const set_items_list = [
-      ['CRB申請費用(初年度)', crb_first_year],
-      ['CRB申請費用(2年目以降)', crb_after_second_year],
+      ['名古屋医療センターCRB申請費用(初年度)', crb_first_year],
+      ['名古屋医療センターCRB申請費用(2年目以降)', crb_after_second_year],
       ['治験薬運搬', get_count(get_quotation_request_value(this.array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('function_facilities'))],
       ['開始前モニタリング・必須文書確認', essential_documents]
    ];

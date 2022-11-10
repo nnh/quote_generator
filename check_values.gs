@@ -280,14 +280,14 @@ function check_output_values() {
   total_checkitems.push({itemname:'国内学会発表', value:''});  
   total_checkitems.push({itemname:'国際学会発表', value:''});  
   total_checkitems.push({itemname:'論文作成', value:''});  
-  var temp_name = 'CRB申請費用(初年度)';
+  var temp_name = '名古屋医療センターCRB申請費用(初年度)';
   if (get_quotation_request_value(array_quotation_request, 'CRB申請') == 'あり'){
     var temp_value = 1;
   } else {
     var temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
-  var temp_name = 'CRB申請費用(2年目以降)';
+  var temp_name = '名古屋医療センターCRB申請費用(2年目以降)';
   if (get_quotation_request_value(array_quotation_request, 'CRB申請') == 'あり'){
     var temp_value = trial_year > 1 ? trial_year - 1 : '';
   } else {
