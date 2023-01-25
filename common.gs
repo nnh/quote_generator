@@ -4,7 +4,9 @@
 class FilterVisibleHidden{
   constructor(){
     this.ss = SpreadsheetApp.getActiveSpreadsheet();
-    this.sheets = this.ss.getSheets();
+    // Price, PriceLogic, and PriceLogicCompany sheets are excluded.
+    const targetSheetNames = ['Price', 'PriceLogicCompany', 'PriceLogic'];
+    this.sheets = this.ss.getSheets().filter(x => !targetSheetNames.some(v => x.getName() === v));
   }
   getFilters(){
     return this.sheets.map(sheet => sheet.getFilter()).filter(x => x);
