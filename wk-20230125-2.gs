@@ -8,8 +8,11 @@ function myFunction(){
     // 2行目から最終行までH列に1をセット
     targetValues.fill(['1']);
     targetRange.setValues(targetValues);
-    // 65-68行目を非表示にするためH列に0をセット
-    sheet.getRange('H65:H68').setValues([[0],[0],[0],[0]]);
+    // 57-68行目を非表示にするためH列に0をセット
+    const targetRange1 = sheet.getRange('H57:H68');
+    const targetValues1 = targetRange1.getValues();
+    targetValues1.fill(['0']);
+    targetRange1.setValues(targetValues1);
     // 72-91行目を非表示にするためH列に0をセット
     const targetRange2 = sheet.getRange('H72:H91');
     const targetValues2 = targetRange2.getValues();
