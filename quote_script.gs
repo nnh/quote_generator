@@ -370,7 +370,6 @@ function setImbalanceValues_(array_quotation_request){
   const setupAndClosingExclusion = ['Setup', 'Closing']; 
   const patientRegistrationFee = '症例登録毎の支払';
   const targetImbalance = [
-      ['その他会議（のべ回数）',　setupAndClosingExclusion, 'TV会議', null],
       ['1例あたりの実地モニタリング回数', setupAndClosingExclusion, '症例モニタリング・SAE対応', get_s_p.getProperty('number_of_cases_itemname')],
       ['監査対象施設数', setupAndClosingExclusion, '施設監査費用', null],
       [patientRegistrationFee, setupAndClosingExclusion, '症例登録', get_s_p.getProperty('number_of_cases_itemname')]

@@ -343,14 +343,6 @@ function check_output_values() {
     var total_ammount = 0;
   }
   total_ammount_checkitems.push({itemname:'研究協力費', value:total_ammount});
-  var temp_name = 'TV会議';
-  const tvConference = get_quotation_request_value(array_quotation_request, 'その他会議（のべ回数）');
-  if (Number.isInteger(tvConference)){
-    var temp_value = tvConference;
-  } else {
-    var temp_value = '';
-  }
-  total_checkitems.push({itemname:temp_name, value:temp_value});
   const discount_byYear = checkDiscountByYearSheet_().every(x => x) ? 'OK' : 'NG：値が想定と異なる'; 
   let temp_check_1= [];
   temp_check_1.push([discount_byYear, 'Setup〜Closingシートの割引後合計のチェック']);  
