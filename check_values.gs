@@ -77,7 +77,7 @@ function check_output_values() {
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   total_checkitems.push({itemname:'削除予定', value:''});  
   total_checkitems.push({itemname:'システム開発', value:''});  
-  total_checkitems.push({itemname:'プロジェクト管理', value:1});  
+  total_checkitems.push({itemname:'プロジェクト管理', value:total_months});  
   var temp_name = '事務局運営';
   if ((get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')) | 
       ((get_quotation_request_value(array_quotation_request, '調整事務局設置の有無') == 'あり')) |
@@ -126,7 +126,7 @@ function check_output_values() {
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
   total_checkitems.push({itemname:'契約・支払手続、実施計画提出支援', value:''});  
-  var temp_name = 'モニタリング準備業務（関連資料作成、キックオフ参加）';
+  var temp_name = 'モニタリング準備業務（関連資料作成）';
   if (get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数') > 0){
     var temp_value = 1;
   } else {
@@ -162,12 +162,7 @@ function check_output_values() {
   total_checkitems.push({itemname:temp_name, value:facilities_value});
   total_checkitems.push({itemname:'入力の手引作成', value:1});  
   var temp_value = trial_months;
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
-    var temp_name = '中央モニタリング';
-  } else {
-    var temp_name = '中央モニタリング、定期モニタリングレポート作成';
-  }
-  total_checkitems.push({itemname:temp_name, value:temp_value});
+  total_checkitems.push({itemname:'ロジカルチェック、マニュアルチェック、クエリ対応', value:temp_value});
   const interim_count = target_total.sheet.getRange(target_total.array_item['中間解析報告書作成（出力結果＋表紙）'], target_total.col).getValue();
   const closing_count = target_total.sheet.getRange(target_total.array_item['データベース固定作業、クロージング'], target_total.col).getValue();
   total_checkitems.push({itemname:'データクリーニング', value:interim_count + closing_count});  
