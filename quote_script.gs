@@ -438,9 +438,8 @@ class SetSheetItemValues{
         setup_clinical_trials_office = get_s_p.getProperty('reg1_setup_clinical_trials_office');
       }
     }
-    // データベース管理料、中央モニタリング、安全性管理、効安、事務局運営
-    // 医師主導治験ならば「中央モニタリング」、それ以外ならば「中央モニタリング、定期モニタリングレポート作成」
-    const central_monitoring = get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial') ? '中央モニタリング' : '中央モニタリング、定期モニタリングレポート作成';
+    const central_monitoring = 'ロジカルチェック、マニュアルチェック、クエリ対応';
+    // データベース管理料安全性管理、効安、事務局運営
     const ankan = get_count(get_quotation_request_value(this.array_quotation_request, '安全性管理事務局設置'), '設置・委託する', '安全性管理事務局業務');
     const kouan = get_count(get_quotation_request_value(this.array_quotation_request, '効安事務局設置'), '設置・委託する', '効果安全性評価委員会事務局業務');
     const clinical_trials_office = [['事務局運営（試験開始前）', setup_clinical_trials_office], ['事務局運営（試験開始後から試験終了まで）', registration_clinical_trials_office]].filter(x => x[1] > 0);
