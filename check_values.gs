@@ -75,8 +75,6 @@ function check_output_values() {
     var temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
-  total_checkitems.push({itemname:'削除予定', value:''});  
-  total_checkitems.push({itemname:'システム開発', value:''});  
   total_checkitems.push({itemname:'プロジェクト管理', value:total_months});  
   var temp_name = '事務局運営';
   if ((get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')) | 
@@ -93,7 +91,6 @@ function check_output_values() {
   } else {
     var temp_value = '';
   }
-  total_checkitems.push({itemname:'医師主導治験対応', value:temp_value});
   var temp_name = 'ミーティング準備・実行';
   var temp_value = 0;
   if (get_quotation_request_value(array_quotation_request, 'キックオフミーティング') == 'あり'){
