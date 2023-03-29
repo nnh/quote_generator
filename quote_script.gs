@@ -531,7 +531,7 @@ class SetSheetItemValues{
       ['事務局運営（試験開始前）', clinical_trials_office],
       [office_irb_str, office_irb],
       ['薬剤対応', drug_support],
-      ['モニタリング準備業務（関連資料作成、キックオフ参加）', get_count_more_than(get_quotation_request_value(this.array_quotation_request, '1例あたりの実地モニタリング回数'), 0, 1)],
+      ['モニタリング準備業務（関連資料作成）', get_count_more_than(get_quotation_request_value(this.array_quotation_request, '1例あたりの実地モニタリング回数'), 0, 1)],
       ['EDCライセンス・データベースセットアップ', 1],
       ['業務分析・DM計画書の作成・CTR登録案の作成', 1],
       ['DB作成・eCRF作成・バリデーション', 1],
