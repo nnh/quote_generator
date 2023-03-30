@@ -9,6 +9,8 @@ function check_output_values() {
   const trial_months_col = 5;
   var output_row = 1;
   var output_col = 1;
+  let setup_month = 0;
+  let closing_month = 0;
   var setup_closing_months = 0;
   sheet.check.clear();
   const trial_start_end = [['OK/NG', '詳細', '', ''],
@@ -23,13 +25,16 @@ function check_output_values() {
   output_col++;
   if ((get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')) | 
       (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('specified_clinical_trial'))){
-    setup_closing_months = 12;
+    setup_month = 6;
+    closing_month = 6;
   } else {
-    setup_closing_months = 6;
+    setup_month = 3;
+    closing_month = 3;
     if (get_quotation_request_value(array_quotation_request, '研究結果報告書作成支援') == 'あり'){
-      setup_closing_months = setup_closing_months + 3;
+      closing_month = closing_month + 3;
     }
   }
+  setup_closing_months = setup_month + closing_month;
   SpreadsheetApp.flush();
   // 試験月数, setup~closing月数を取得
   const trial_months = sheet.check.getRange(output_row, trial_months_col).getValue();
@@ -76,16 +81,20 @@ function check_output_values() {
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   total_checkitems.push({itemname:'プロジェクト管理', value:total_months});  
-  var temp_name = '事務局運営';
+  let office_count = '';
   if ((get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')) | 
       ((get_quotation_request_value(array_quotation_request, '調整事務局設置の有無') == 'あり')) |
       ((get_quotation_request_value(array_quotation_request, get_s_p.getProperty('coefficient')) == get_s_p.getProperty('commercial_company_coefficient')))
      ){
-    var temp_value = total_months;
+    temp_value = trial_months;
+    office_count = 1
+
   } else {
     var temp_value = '';
   }
-  total_checkitems.push({itemname:temp_name, value:temp_value});
+  total_checkitems.push({itemname:'事務局運営（試験開始後から試験終了まで）', value:temp_value});
+  total_checkitems.push({itemname:'事務局運営（試験開始前）', value:setup_month});
+  total_checkitems.push({itemname:'事務局運営（試験終了時）', value:office_count});
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
     var temp_value = total_months;
   } else {
@@ -98,6 +107,27 @@ function check_output_values() {
   }
   if (get_quotation_request_value(array_quotation_request, '症例検討会') == 'あり'){
     temp_value++;
+  }
+  total_checkitems.push({itemname:temp_name, value:temp_value});
+  temp_name = '薬剤対応';
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
+    temp_value = facilities_value;
+  } else {
+    temp_value = '';
+  }
+  total_checkitems.push({itemname:temp_name, value:temp_value});
+  temp_name = 'PMDA対応、照会事項対応';
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
+    temp_value = 1;
+  } else {
+    temp_value = '';
+  }
+  total_checkitems.push({itemname:temp_name, value:temp_value});
+  temp_name = '監査対応';
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
+    temp_value = 1;
+  } else {
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
   var temp_name = 'SOP一式、CTR登録案、TMF雛形';
