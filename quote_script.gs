@@ -115,6 +115,7 @@ function set_trial_sheet_(sheet, array_quotation_request){
   const const_registration_end = '症例登録終了日';
   const const_trial_end = '試験終了日';
   const const_crf = 'CRF項目数';
+  const const_acronym = '試験実施番号';
   const const_facilities = get_s_p.getProperty('facilities_itemname');
   const const_number_of_cases = get_s_p.getProperty('number_of_cases_itemname');
   const const_coefficient = get_s_p.getProperty('coefficient');
@@ -129,7 +130,7 @@ function set_trial_sheet_(sheet, array_quotation_request){
     ['見積発行先', 4],
     ['研究代表者名', 8],
     ['試験課題名', 9],
-    ['試験実施番号', 10],
+    [const_acronym, 10],
     [const_trial_type, 27],
     [const_number_of_cases, get_s_p.getProperty('trial_number_of_cases_row')],
     [const_facilities, get_s_p.getProperty('trial_const_facilities_row')], 
@@ -211,6 +212,9 @@ function set_trial_sheet_(sheet, array_quotation_request){
           } else {
             temp_str = temp_str;
           }
+          break;
+        case const_acronym:
+          SpreadsheetApp.getActiveSpreadsheet().rename(`Quote ${temp_str} ${Utilities.formatDate(new Date(), 'JST', 'yyyyMMdd')}`);
           break;
         default:
           break;
