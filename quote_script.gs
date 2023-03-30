@@ -476,7 +476,7 @@ class SetSheetItemValues{
   }
   set_all_sheet_common_items_(input_values){
     const set_items_list = [
-      ['プロジェクト管理', this.trial_target_terms]
+      ['プロジェクト管理', this.trial_target_terms < 12 ? this.trial_target_terms : 12]
     ];
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
