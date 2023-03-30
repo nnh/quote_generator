@@ -115,6 +115,7 @@ function set_trial_sheet_(sheet, array_quotation_request){
   const const_registration_end = '症例登録終了日';
   const const_trial_end = '試験終了日';
   const const_crf = 'CRF項目数';
+  const const_acronym = '試験実施番号';
   const const_facilities = get_s_p.getProperty('facilities_itemname');
   const const_number_of_cases = get_s_p.getProperty('number_of_cases_itemname');
   const const_coefficient = get_s_p.getProperty('coefficient');
@@ -129,7 +130,7 @@ function set_trial_sheet_(sheet, array_quotation_request){
     ['見積発行先', 4],
     ['研究代表者名', 8],
     ['試験課題名', 9],
-    ['試験実施番号', 10],
+    [const_acronym, 10],
     [const_trial_type, 27],
     [const_number_of_cases, get_s_p.getProperty('trial_number_of_cases_row')],
     [const_facilities, get_s_p.getProperty('trial_const_facilities_row')], 
@@ -211,6 +212,9 @@ function set_trial_sheet_(sheet, array_quotation_request){
           } else {
             temp_str = temp_str;
           }
+          break;
+        case const_acronym:
+          SpreadsheetApp.getActiveSpreadsheet().rename(`Quote ${temp_str} ${Utilities.formatDate(new Date(), 'JST', 'yyyyMMdd')}`);
           break;
         default:
           break;
@@ -438,9 +442,8 @@ class SetSheetItemValues{
         setup_clinical_trials_office = get_s_p.getProperty('reg1_setup_clinical_trials_office');
       }
     }
-    // データベース管理料、中央モニタリング、安全性管理、効安、事務局運営
-    // 医師主導治験ならば「中央モニタリング」、それ以外ならば「中央モニタリング、定期モニタリングレポート作成」
-    const central_monitoring = get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial') ? '中央モニタリング' : '中央モニタリング、定期モニタリングレポート作成';
+    const central_monitoring = 'ロジカルチェック、マニュアルチェック、クエリ対応';
+    // データベース管理料安全性管理、効安、事務局運営
     const ankan = get_count(get_quotation_request_value(this.array_quotation_request, '安全性管理事務局設置'), '設置・委託する', '安全性管理事務局業務');
     const kouan = get_count(get_quotation_request_value(this.array_quotation_request, '効安事務局設置'), '設置・委託する', '効果安全性評価委員会事務局業務');
     const clinical_trials_office = [['事務局運営（試験開始前）', setup_clinical_trials_office], ['事務局運営（試験開始後から試験終了まで）', registration_clinical_trials_office]].filter(x => x[1] > 0);
@@ -477,7 +480,7 @@ class SetSheetItemValues{
   }
   set_all_sheet_common_items_(input_values){
     const set_items_list = [
-      ['プロジェクト管理', 1]
+      ['プロジェクト管理', this.trial_target_terms < 12 ? this.trial_target_terms : 12]
     ];
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
@@ -531,7 +534,7 @@ class SetSheetItemValues{
       ['事務局運営（試験開始前）', clinical_trials_office],
       [office_irb_str, office_irb],
       ['薬剤対応', drug_support],
-      ['モニタリング準備業務（関連資料作成、キックオフ参加）', get_count_more_than(get_quotation_request_value(this.array_quotation_request, '1例あたりの実地モニタリング回数'), 0, 1)],
+      ['モニタリング準備業務（関連資料作成）', get_count_more_than(get_quotation_request_value(this.array_quotation_request, '1例あたりの実地モニタリング回数'), 0, 1)],
       ['EDCライセンス・データベースセットアップ', 1],
       ['業務分析・DM計画書の作成・CTR登録案の作成', 1],
       ['DB作成・eCRF作成・バリデーション', 1],
