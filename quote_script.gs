@@ -567,7 +567,6 @@ class SetSheetItemValues{
       csr = 'CSRの作成支援';
       csr_count = 1;
       final_analysis = '最終解析プログラム作成、解析実施（ダブル）';
-      pmda_support = 1;
       audit_support = 1;
       // 医師主導治験で症例検討会ありの場合症例検討会資料作成に1をセット、ミーティング1回追加
       if (get_count(get_quotation_request_value(this.array_quotation_request, '症例検討会'), 'あり', 1) > 0){
