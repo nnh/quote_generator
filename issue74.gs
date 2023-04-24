@@ -1,7 +1,20 @@
 const startRowNumber = 5;
 const endRowNumber = 94;
 const colLNumber = 12;
-function test20230424_2(targetSheet='Closing'){
+const targetSheetName = [
+  'Setup', 
+  'Registration_1', 
+  'Registration_2', 
+  'Interim_1', 
+  'Observation_1', 
+  'Interim_2', 
+  'Observation_2', 
+  'Closing'
+];
+function test20230424_main(){
+  targetSheetName.forEach(x => test20230424_2_(x));
+}
+function test20230424_2_(targetSheet='Closing'){
   const targetRange = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(targetSheet).getRange(startRowNumber, colLNumber, endRowNumber - startRowNumber + 1, 1);
   const target = targetRange.getFormulas();
   const check = target.map(x => {
@@ -17,14 +30,6 @@ function test20230424_2(targetSheet='Closing'){
 function test20230424_1_(){
   //const test = SpreadsheetApp.getActiveSpreadsheet().getSheets().map(x => [x.getName()]);
   //SpreadsheetApp.getActiveSpreadsheet().getSheetByName('シート21').getRange(1, 1, test.length, 1).setValues(test);
-  const targetSheetName = ['Setup', 
-'Registration_1', 
-'Registration_2', 
-'Interim_1', 
-'Observation_1', 
-'Interim_2', 
-'Observation_2', 
-'Closing'];
   const sheetName = targetSheetName[0];
   const targetFormulas = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange(startRowNumber, colLNumber, endRowNumber - startRowNumber + 1, 1).getFormulas();
   SpreadsheetApp.getActiveSpreadsheet().getSheetByName('シート21').getRange(1, 1, targetFormulas.length, 1).setFormulas(targetFormulas);
