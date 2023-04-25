@@ -22,11 +22,11 @@ function myFunction() {
     sheet.getRange(97, 2, 2, 2).setValues(
       [
 	      ['割引後合計', ''],
-	      ['合計', '（税抜）'],
+	      ['合計', '（税込）'],
       ]
     );
     sheet.getRange('H97').setFormula('=H96*(1-Trial!$B$47)');
-    sheet.getRange('H98').setFormula('=H97*(1+Trial!$B$47)');
+    sheet.getRange('H98').setFormula('=H97*(1+Trial!$B$45)');
     sheet.getRange('L97:L98').setFormulas([['=if(Trial!$B$47=0,0,1)'], ['=if(H96<>H98, 1, 0)']]);
   });
   const total2 = ss.getSheetByName('Total2');
