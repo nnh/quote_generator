@@ -357,7 +357,7 @@ function getTotal2YearsText_(targetValue, idx, sheetNameAddress){
   const targetSheetName = total2.getRange(sheetNameAddress).getValue();
   const addYear = sheetNames.filter(x => x === targetSheetName).length - 1;
   const startDate = addYear === 0 ? targetValue[idx.get('startDate')] : new Date(targetValue[idx.get('startDate')].getFullYear() + addYear, targetValue[idx.get('startDate')].getMonth(), targetValue[idx.get('startDate')].getDate());
-  const endDate = addYear === 0 ? targetValue[idx.get('endDate')] : new Date(startDate.getFullYear() + 1, startDate.getMonth(), 0);
+  const endDate = targetValue[idx.get('months')] < 12 ? targetValue[idx.get('endDate')] : new Date(startDate.getFullYear() + 1, startDate.getMonth(), 0);
   const outputStartDate = Utilities.formatDate(startDate, 'JST', 'yyyy/MM/dd');
   const outputEndDate = Utilities.formatDate(endDate, 'JST', 'yyyy/MM/dd');
   return `${outputStartDate}\n〜\n${outputEndDate}`;
@@ -381,6 +381,7 @@ function getTotal2Years(sheetNameAddress = 'D2'){
       ['years', 2],
       ['startDate', 3],
       ['endDate', 4],
+      ['months', 5],
     ]
   );
   const targetValue = target[0];

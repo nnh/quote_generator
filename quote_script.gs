@@ -361,6 +361,7 @@ function quote_script_main(){
   setImbalanceValues_(array_quotation_request);
   const setupToClosing = get_target_term_sheets();
   setupToClosing.forEach(x => x.getRange('B2').getValue() == '' ? x.hideSheet() : x.showSheet());
+  sheet.total2.getRange('A1').setValue('');
   SpreadsheetApp.flush();
 }
 function setImbalanceValues_(array_quotation_request){

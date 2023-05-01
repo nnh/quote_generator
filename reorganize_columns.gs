@@ -187,6 +187,8 @@ function total2_3_add_del_cols(){
   total2_3_show_hidden_cols();
   //　0の行を非表示にするフィルタをセット
   filterhidden();
+  // recalculate
+  target_sheets.forEach(x => x.getRange('A1').setValue(''));
   SpreadsheetApp.flush();
 }
 /**
