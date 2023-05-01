@@ -187,6 +187,7 @@ function total2_3_add_del_cols(){
   total2_3_show_hidden_cols();
   //　0の行を非表示にするフィルタをセット
   filterhidden();
+  SpreadsheetApp.flush();
 }
 /**
 * Total2, Total3シートの列構成用

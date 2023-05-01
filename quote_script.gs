@@ -361,6 +361,7 @@ function quote_script_main(){
   setImbalanceValues_(array_quotation_request);
   const setupToClosing = get_target_term_sheets();
   setupToClosing.forEach(x => x.getRange('B2').getValue() == '' ? x.hideSheet() : x.showSheet());
+  SpreadsheetApp.flush();
 }
 function setImbalanceValues_(array_quotation_request){
   // 年毎に設定する値が不均等である項目への対応
