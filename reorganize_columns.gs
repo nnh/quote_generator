@@ -183,12 +183,15 @@ function total2_3_add_del_cols(){
       });
     });
   }
-  SpreadsheetApp.flush();
   const sheet = get_sheets();
   const goukei_col = get_years_target_col(sheet.total2, '合計');
-  const setFormulaTotal2Array1 = new Array(goukei_col - 4 + 1).fill('=getTotal2Years(address(2, column()))');
-  sheet.total2.getRange(`D4:${getColumnString(goukei_col)}4`).setFormulas([setFormulaTotal2Array1]);
-  SpreadsheetApp.flush();
+  for (let i = 3; i < goukei_col; i++){
+    const colNumber = i + 1;
+    const target = getTotal2Years(`${getColumnString(colNumber)}2`);
+    if (target){
+      sheet.total2.getRange(4, colNumber).setValue(target);
+    }
+  }
   // 合計0円の年度を非表示にする
   total2_3_show_hidden_cols();
   //　0の行を非表示にするフィルタをセット
