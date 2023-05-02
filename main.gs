@@ -2,7 +2,6 @@
 * メニューに追加
 */
 function onOpen() {
-  const test = PropertiesService.getScriptProperties().getProperty("quotation_request_sheet_name");
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Quotation Request');
   if (sheet){
     if (sheet.getRange("A2").getValue() === "quote-generator-2"){

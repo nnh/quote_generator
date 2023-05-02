@@ -351,3 +351,42 @@ class GetArrayDividedItemsCountAdd extends GetArrayDividedItemsCount{
     return this.devidedItemCount(totalNumber, target, 1, target.length - 1);
   }
 }
+function getTotal2YearsText_(targetValue, idx, sheetNameAddress){
+  const total2 = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Total2');
+  const sheetNames = total2.getRange(`D2:${sheetNameAddress}`).getValues()[0];
+  const targetSheetName = total2.getRange(sheetNameAddress).getValue();
+  const addYear = sheetNames.filter(x => x === targetSheetName).length - 1;
+  const startDate = addYear === 0 ? targetValue[idx.get('startDate')] : new Date(targetValue[idx.get('startDate')].getFullYear() + addYear, targetValue[idx.get('startDate')].getMonth(), targetValue[idx.get('startDate')].getDate());
+  const endDate = targetValue[idx.get('months')] < 12 ? targetValue[idx.get('endDate')] : new Date(startDate.getFullYear() + 1, startDate.getMonth(), 0);
+  const outputStartDate = Utilities.formatDate(startDate, 'JST', 'yyyy/MM/dd');
+  const outputEndDate = Utilities.formatDate(endDate, 'JST', 'yyyy/MM/dd');
+  return `${outputStartDate}\n〜\n${outputEndDate}`;
+}
+function getTotal2Years(sheetNameAddress = 'D2'){
+  const trial = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial');
+  const total2 = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Total2');
+  if (trial === null || total2 === null){
+    return;
+  }
+  const sheetName = total2.getRange(sheetNameAddress).getValue();
+  if (sheetName === ""){
+    return;
+  }
+  const target = trial.getRange('A32:F39').getValues().filter(x => x[0] === sheetName);
+  if (target.length !== 1){
+    return;
+  }
+  const idx = new Map(
+    [
+      ['years', 2],
+      ['startDate', 3],
+      ['endDate', 4],
+      ['months', 5],
+    ]
+  );
+  const targetValue = target[0];
+  if (targetValue[idx.get('startDate')] === '' || targetValue[idx.get('endDate')] === ''){
+    return;
+  }
+  return getTotal2YearsText_(targetValue, idx, sheetNameAddress);
+}
