@@ -530,7 +530,7 @@ class SetSheetItemValues{
       ['AMED申請資料作成支援', get_count(get_quotation_request_value(this.array_quotation_request, 'AMED申請資料作成支援'), 'あり', 1)],
       ['特定臨床研究法申請資料作成支援', get_count(get_s_p.getProperty('trial_type_value'), get_s_p.getProperty('specified_clinical_trial'), get_s_p.getProperty('function_facilities'))],
       ['ミーティング準備・実行', get_count(get_quotation_request_value(this.array_quotation_request, 'キックオフミーティング'), 'あり', 1)],
-      ['SOP一式、CTR登録案、TMF雛形', sop],
+      ['SOP一式、CTR登録案、TMF管理', sop],
       ['事務局運営（試験開始前）', clinical_trials_office],
       [office_irb_str, office_irb],
       ['薬剤対応', drug_support],
