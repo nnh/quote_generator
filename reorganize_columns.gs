@@ -183,15 +183,6 @@ function total2_3_add_del_cols(){
       });
     });
   }
-  const sheet = get_sheets();
-  const goukei_col = get_years_target_col(sheet.total2, '合計');
-  for (let i = 3; i < goukei_col; i++){
-    const colNumber = i + 1;
-    const target = getTotal2Years(`${getColumnString(colNumber)}2`);
-    if (target){
-      sheet.total2.getRange(4, colNumber).setValue(target);
-    }
-  }
   // 合計0円の年度を非表示にする
   total2_3_show_hidden_cols();
   //　0の行を非表示にするフィルタをセット
