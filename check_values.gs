@@ -118,7 +118,9 @@ function check_output_values() {
   total_checkitems.push({itemname:temp_name, value:temp_value});
   temp_name = 'PMDA対応、照会事項対応';
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
-    temp_value = 1;
+    // issue 72
+    //temp_value = 1;
+    temp_value = '';
   } else {
     temp_value = '';
   }
@@ -130,7 +132,7 @@ function check_output_values() {
     temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
-  var temp_name = 'SOP一式、CTR登録案、TMF雛形';
+  var temp_name = 'SOP一式、CTR登録案、TMF管理';
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
     var temp_value = 1;
   } else {
@@ -367,10 +369,10 @@ function check_output_values() {
   total_ammount_checkitems.push({itemname:'研究協力費', value:total_ammount});
   const discount_byYear = checkDiscountByYearSheet_().every(x => x) ? 'OK' : 'NG：値が想定と異なる'; 
   let temp_check_1= [];
-  temp_check_1.push([discount_byYear, 'Setup〜Closingシートの割引後合計のチェック']);  
+  temp_check_1.push([discount_byYear, 'Setup〜Closingシートの特別値引後合計のチェック']);  
   temp_check_1.push(compareTotalSheetTotaltoVerticalTotal_());  
   temp_check_1.push(compareTotal2Total3SheetVerticalTotalToHorizontalTotal_());
-  temp_check_1.push([checkQuoteSum_().every(x => x) ? 'OK' : 'NG：値が想定と異なる', 'Quote, total, total2, total3の合計・割引後合計一致チェック']);
+  temp_check_1.push([checkQuoteSum_().every(x => x) ? 'OK' : 'NG：値が想定と異なる', 'Quote, total, total2, total3の合計・特別値引後合計一致チェック']);
   temp_check_1.push(compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_());
   // over all
   const res_total = total_checkitems.map(checkitems => check_itemName_and_value(target_total, checkitems.itemname, checkitems.value)); 
@@ -450,7 +452,7 @@ class CompareTotal2Total3SheetVerticalTotalToHorizontal{
       let res = {};
       const goukeiRowCol = this.getTargetRowCol(x, '合計', '合計');
       res.verticalTotal = this.getVerticalTotal(x, goukeiRowCol) * (1 - this.discountRate);
-      const discountRowCol = this.getTargetRowCol(x, '割引後合計', '合計');
+      const discountRowCol = this.getTargetRowCol(x, '特別値引後合計', '合計');
       res.horizontalTotal = this.getHorizontalTotal(x, discountRowCol);
       return res;
     });
@@ -467,5 +469,5 @@ function compareTotal2Total3SheetVerticalTotalToHorizontalTotal_(){
 function compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_(){
   const cp = new CompareTotal2Total3SheetVerticalTotalToHorizontal;
   const res = cp.compareDiscountTotal();
-  return [res.every(x => x) ? 'OK' : 'NG', 'Total2, Total3の縦計*割引率と割引後合計の横計のチェック'];
+  return [res.every(x => x) ? 'OK' : 'NG', 'Total2, Total3の縦計*特別値引率と特別値引後合計の横計のチェック'];
 }
