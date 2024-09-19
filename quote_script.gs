@@ -524,7 +524,7 @@ class SetSheetItemValues{
       drug_support = get_s_p.getProperty('function_facilities');
     }
     const set_items_list = [
-      ['プロトコルレビュー・作成支援（図表案、統計解析計画書案を含む）', 1],
+      ['プロトコルレビュー・作成支援', 1],
       ['検討会実施（TV会議等）', 4],
       ['PMDA相談資料作成支援', get_count(get_quotation_request_value(this.array_quotation_request, 'PMDA相談資料作成支援'), 'あり', 1)],
       ['AMED申請資料作成支援', get_count(get_quotation_request_value(this.array_quotation_request, 'AMED申請資料作成支援'), 'あり', 1)],
