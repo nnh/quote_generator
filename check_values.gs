@@ -81,19 +81,21 @@ function check_output_values() {
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   total_checkitems.push({itemname:'プロジェクト管理', value:total_months});  
+  let office_bef_month = "";
   let office_count = '';
   if ((get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')) | 
       ((get_quotation_request_value(array_quotation_request, '調整事務局設置の有無') == 'あり')) |
       ((get_quotation_request_value(array_quotation_request, get_s_p.getProperty('coefficient')) == get_s_p.getProperty('commercial_company_coefficient')))
      ){
     temp_value = trial_months;
-    office_count = 1
+    office_count = 1;
+    office_bef_month = setup_month
 
   } else {
     var temp_value = '';
   }
   total_checkitems.push({itemname:'事務局運営（試験開始後から試験終了まで）', value:temp_value});
-  total_checkitems.push({itemname:'事務局運営（試験開始前）', value:setup_month});
+  total_checkitems.push({itemname:'事務局運営（試験開始前）', value:office_bef_month});
   total_checkitems.push({itemname:'事務局運営（試験終了時）', value:office_count});
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
     var temp_value = total_months;
