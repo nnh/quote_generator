@@ -178,7 +178,7 @@ function check_output_values() {
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   total_checkitems.push({itemname:'問い合わせ対応', value:''});  
   total_checkitems.push({itemname:'EDCライセンス・データベースセットアップ', value:1});  
-  total_checkitems.push({itemname:'データベース管理料', value:trial_months});  
+  total_checkitems.push({itemname:'データベース管理料', value:trial_months+closing_month});  
   total_checkitems.push({itemname:'業務分析・DM計画書の作成・CTR登録案の作成', value:1});  
   total_checkitems.push({itemname:'紙CRFのEDC代理入力（含む問合せ）', value:''});  
   total_checkitems.push({itemname:'DB作成・eCRF作成・バリデーション', value:1});  
