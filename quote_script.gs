@@ -355,7 +355,8 @@ function quote_script_main(){
     const temp_reg = set_sheet_item_values.set_registration_term_items_(temp_setup);
     const temp_reg_2 = set_sheet_item_values.set_registration_items_(temp_reg);
     const temp_close = set_sheet_item_values.set_closing_items_(temp_reg_2);
-    const temp_all = set_sheet_item_values.set_all_sheet_common_items_(temp_close);
+    const temp_exclude_setup = set_sheet_item_values.set_all_sheet_exclude_setup_(temp_close)
+    const temp_all = set_sheet_item_values.set_all_sheet_common_items_(temp_exclude_setup);
     set_sheet_item_values.setSheetValues(x[sheetnameIdx], temp_all)
   });
   setImbalanceValues_(array_quotation_request);
@@ -421,6 +422,13 @@ class SetSheetItemValues{
         get_quotation_request_value(this.array_quotation_request, get_s_p.getProperty('coefficient')) === get_s_p.getProperty('commercial_company_coefficient') ||
         get_quotation_request_value(this.array_quotation_request, '調整事務局設置の有無') === 'あり';
   }
+  get_registration_month_(){
+    const registration_month =  this.trial_target_terms > 12 ? 12
+                              : this.trial_start_date <= this.trial_target_start_date && this.trial_target_end_date <= this.trial_end_date ? this.trial_target_terms 
+                              : this.trial_target_start_date < this.trial_start_date ? this.trial_target_end_date.clone().add(1, 'days').diff(this.trial_start_date, 'months') 
+                              : this.trial_end_date < this.trial_target_end_date ? this.trial_end_date.clone().add(1, 'days').diff(this.trial_target_start_date, 'months') : '';
+    return(registration_month);
+  }
   set_registration_term_items_(input_values){
     const get_s_p = PropertiesService.getScriptProperties();
     if (
@@ -429,10 +437,7 @@ class SetSheetItemValues{
     ){
       return input_values;
     }
-    const registration_month =  this.trial_target_terms > 12 ? 12
-                              : this.trial_start_date <= this.trial_target_start_date && this.trial_target_end_date <= this.trial_end_date ? this.trial_target_terms 
-                              : this.trial_target_start_date < this.trial_start_date ? this.trial_target_end_date.clone().add(1, 'days').diff(this.trial_start_date, 'months') 
-                              : this.trial_end_date < this.trial_target_end_date ? this.trial_end_date.clone().add(1, 'days').diff(this.trial_target_start_date, 'months') : '';
+    const registration_month =  this.get_registration_month_();
     // 事務局運営
     let setup_clinical_trials_office = 0;
     let registration_clinical_trials_office = 0;
@@ -443,11 +448,11 @@ class SetSheetItemValues{
       }
     }
     const central_monitoring = 'ロジカルチェック、マニュアルチェック、クエリ対応';
-    // データベース管理料安全性管理、効安、事務局運営
+    // 安全性管理、効安、事務局運営
     const ankan = get_count(get_quotation_request_value(this.array_quotation_request, '安全性管理事務局設置'), '設置・委託する', '安全性管理事務局業務');
     const kouan = get_count(get_quotation_request_value(this.array_quotation_request, '効安事務局設置'), '設置・委託する', '効果安全性評価委員会事務局業務');
     const clinical_trials_office = [['事務局運営（試験開始前）', setup_clinical_trials_office], ['事務局運営（試験開始後から試験終了まで）', registration_clinical_trials_office]].filter(x => x[1] > 0);
-    const target_items = ['データベース管理料', central_monitoring, ankan, kouan].filter(x => x != '').map(x => [x, registration_month]);  
+    const target_items = [central_monitoring, ankan, kouan].filter(x => x != '').map(x => [x, registration_month]);  
     return this.getSetValues(target_items.concat(clinical_trials_office), this.sheetname, input_values);
   }
   getSetValues(target_items, sheetname, input_values){
@@ -478,26 +483,51 @@ class SetSheetItemValues{
     const target_range = this.getTargetRange(sheetname);
     target_range.setValues(target_values);
   }
+  set_all_sheet_exclude_setup_(input_values){
+    const get_s_p = PropertiesService.getScriptProperties();
+    if (this.sheetname == get_s_p.getProperty('setup_sheet_name')) {
+      const dummy = this.set_setup_term_('reg1_setup_database_management');
+    }
+    if (
+      (this.sheetname == get_s_p.getProperty('setup_sheet_name') && this.trial_target_terms <= parseInt(get_s_p.getProperty('setup_term')))
+    ){
+      return input_values;
+    }
+    let databaseManagementTerm = this.trial_target_terms < 12 ? this.trial_target_terms : 12;
+    if (this.sheetname == get_s_p.getProperty('setup_sheet_name')) {
+      databaseManagementTerm = databaseManagementTerm - parseInt(get_s_p.getProperty('setup_term'));
+    }
+    if (this.sheetname === get_s_p.getProperty('registration_1_sheet_name')){
+      databaseManagementTerm = databaseManagementTerm - parseInt(get_s_p.getProperty('reg1_setup_database_management'));
+    }
+    const set_items_list = [
+      ['データベース管理料', databaseManagementTerm]
+    ];
+    return this.getSetValues(set_items_list, this.sheetname, input_values);
+  }
   set_all_sheet_common_items_(input_values){
     const set_items_list = [
       ['プロジェクト管理', this.trial_target_terms < 12 ? this.trial_target_terms : 12]
     ];
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
-  set_setup_clinical_trials_office(){
+  set_setup_term_(property_name){
     const get_s_p = PropertiesService.getScriptProperties();
-    get_s_p.setProperty('reg1_setup_clinical_trials_office', 0);
+    get_s_p.setProperty(property_name, 0);
+    const tempTerm = parseInt(get_s_p.getProperty('setup_term'));
+    const targetTerm = tempTerm - this.trial_target_terms
+    if (targetTerm > 0){
+      get_s_p.setProperty(property_name, targetTerm);
+      return this.trial_target_terms;
+    } else {
+      return tempTerm;
+    }
+  }
+  set_setup_clinical_trials_office(){
     if (!this.clinical_trials_office_flg){
       return '';
     }
-    const targetOfficeTerm = parseInt(get_s_p.getProperty('setup_term'));
-    const targetTerm = targetOfficeTerm - this.trial_target_terms
-    if (targetTerm > 0){
-      get_s_p.setProperty('reg1_setup_clinical_trials_office', targetTerm);
-      return this.trial_target_terms;
-    } else {
-      return targetOfficeTerm;
-    }
+    return this.set_setup_term_('reg1_setup_clinical_trials_office');
   }
   set_setup_items_(input_values){
     const get_s_p = PropertiesService.getScriptProperties();
