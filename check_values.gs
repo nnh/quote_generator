@@ -290,7 +290,7 @@ function check_output_values() {
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   var temp_name = '症例登録';
-  if (get_quotation_request_value(array_quotation_request, '症例登録毎の支払い') == 'あり'){
+  if (get_quotation_request_value(array_quotation_request, '症例登録毎の支払') == 'あり'){
     var temp_value = number_of_cases_value;
   } else {
     var temp_value = '';
