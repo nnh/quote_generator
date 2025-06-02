@@ -559,7 +559,7 @@ class SetSheetItemValues{
       ['PMDA相談資料作成支援', get_count(get_quotation_request_value(this.array_quotation_request, 'PMDA相談資料作成支援'), 'あり', 1)],
       ['AMED申請資料作成支援', get_count(get_quotation_request_value(this.array_quotation_request, 'AMED申請資料作成支援'), 'あり', 1)],
       ['特定臨床研究法申請資料作成支援', get_count(get_s_p.getProperty('trial_type_value'), get_s_p.getProperty('specified_clinical_trial'), get_s_p.getProperty('function_facilities'))],
-      ['ミーティング準備・実行', get_count(get_quotation_request_value(this.array_quotation_request, 'キックオフミーティング'), 'あり', 1)],
+      ['キックオフミーティング準備・実行', get_count(get_quotation_request_value(this.array_quotation_request, 'キックオフミーティング'), 'あり', 1)],
       ['SOP一式、CTR登録案、TMF管理', sop],
       ['事務局運営（試験開始前）', clinical_trials_office],
       [office_irb_str, office_irb],
@@ -611,7 +611,7 @@ class SetSheetItemValues{
     }
     const clinical_trials_office = this.clinical_trials_office_flg ? 1 : '';
     const set_items_list = [
-      ['ミーティング準備・実行', closing_meeting],
+      ['症例検討会準備・実行', closing_meeting],
       ['データクリーニング', 1],
       ['事務局運営（試験終了時）', clinical_trials_office],
       ['PMDA対応、照会事項対応', pmda_support],
