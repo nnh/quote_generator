@@ -102,13 +102,19 @@ function check_output_values() {
   } else {
     var temp_value = '';
   }
-  var temp_name = 'ミーティング準備・実行';
-  var temp_value = 0;
+  temp_name = 'キックオフミーティング準備・実行';
+  temp_value = '';
   if (get_quotation_request_value(array_quotation_request, 'キックオフミーティング') == 'あり'){
-    temp_value++;
+    temp_value = 1;
+  } else {
+    temp_value = '';
   }
+  total_checkitems.push({itemname:temp_name, value:temp_value});
+  temp_name = '症例検討会準備・実行';
   if (get_quotation_request_value(array_quotation_request, '症例検討会') == 'あり'){
-    temp_value++;
+    temp_value= 1;
+  } else {
+    temp_value='';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
   temp_name = '薬剤対応';
