@@ -173,6 +173,14 @@ function issue102_template_fix_main() {
 ""].map(x => [x]);
   itemsSheet.getRange("S1:S99").setValues(itemsPriceFormulas);
   itemsSheet.getRange("S83").setNumberFormat("#,##0_);(#,##0)");
+  // 人日の設定がない項目に対応
+  itemsSheet.getRange("R72").setValue('=round(800000*TIAI!$B$2/100, -3)');
+  itemsSheet.getRange("R73").setValue('=round(200000*TIAI!$B$2/100, -3)');
+  // 変動項目
+  itemsSheet.getRange("R38").setValue('=round((100000+IF(Trial!$B$30<100,4500*Trial!$B$30,IF(Trial!$B$30<1000,4500*100+2250*(Trial!$B$30-100),4500*100+2250*900+1100*(Trial!$B$30-1000))))*TIAI!$B$2/100, -3)');
+  itemsSheet.getRange("R39").setValue('=round((Trial!$B$30*250)*TIAI!$B$2/100, -3)');
+  itemsSheet.getRange("R43").setValue('=round((round(log(Trial!$B$28,10+log(Trial!$B$28,2))*log(Trial!$B$30,10)*Trial!$C$27*25000,-3))*TIAI!$B$2/100, -3)');
+  itemsSheet.getRange("R44").setValue('=round((round(log(Trial!$B$28,10)*log(Trial!$B$30,10)*Trial!$C$27*75000,-3))*TIAI!$B$2/100, -3)');
 
   // Items, Priceシートの一番下の行、PriceLogicCompany, PriceLogicシートの94行目くらいに「*2015年の第3次産業活動指数を基準に単価を調整」「*1 2015年の第3次産業活動指数：100」「*2 2025年の第3次産業活動指数：107」を入れる
   const sheetAndStartRowAndCol = [
