@@ -170,6 +170,7 @@ function check_output_values() {
     var temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
+/*
   var temp_name = '開始前モニタリング・必須文書確認';
   if (get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数') > 0){
     var temp_value = parseInt(get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数')) * facilities_value * trial_ceil_year;
@@ -177,12 +178,14 @@ function check_output_values() {
     var temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
+
   var temp_name = '症例モニタリング・SAE対応';
   if (get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数') > 0){
     var temp_value = parseInt(get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数')) * number_of_cases_value;
   } else {
     var temp_value = '';
   }
+*/
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   total_checkitems.push({itemname:'問い合わせ対応', value:''});  
   total_checkitems.push({itemname:'EDCライセンス・データベースセットアップ', value:1});  

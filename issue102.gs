@@ -182,19 +182,6 @@ function issue102_template_fix_main() {
   itemsSheet.getRange("R43").setValue('=round((round(log(Trial!$B$28,10+log(Trial!$B$28,2))*log(Trial!$B$30,10)*Trial!$C$27*25000,-3))*TIAI!$B$2/100, -3)');
   itemsSheet.getRange("R44").setValue('=round((round(log(Trial!$B$28,10)*log(Trial!$B$30,10)*Trial!$C$27*75000,-3))*TIAI!$B$2/100, -3)');
 
-  // Items, Priceシートの一番下の行、PriceLogicCompany, PriceLogicシートの94行目くらいに「*2015年の第3次産業活動指数を基準に単価を調整」「*1 2015年の第3次産業活動指数：100」「*2 2025年の第3次産業活動指数：107」を入れる
-  const sheetAndStartRowAndCol = [
-    [itemsSheet, 97, 1],
-    [priceSheet, 97, 1],
-  ];
-  const setTextArray2 =["*2015年の第3次産業活動指数を基準に単価を調整", "*1 2015年の第3次産業活動指数：100", "*2 2025年の第3次産業活動指数：107"];
-  sheetAndStartRowAndCol.forEach(([sheet, startRow, col]) => {
-    setTextArray2.forEach((value, idx) => {
-      const targetRange = sheet.getRange(startRow + idx, col);
-      targetRange.setValue(value);
-      targetRange.setFontWeight("normal");
-    }); 
-  });
   ss.getSheetByName("PrimaryItems").getRange("A1").setValue(`=QUERY(Items!A:A, "where A <> '' and A <> '準備作業' and A <> 'EDC構築' and A <> '中央モニタリング' and A <> 'データセット作成' and NOT A LIKE '%合計' and NOT A LIKE '*%'")`);
   // PriceLogicCompany, PriceLogicシートの表2 単価(1人日)基準を更新する
   const priceLogicTargetStartRow = 103;
@@ -212,6 +199,33 @@ function issue102_template_fix_main() {
   priceLogicCompanySheet.getRange(priceLogicTargetStartRow + 1, 3).setValue(`=65000*$D112*${addSheetName}!$B$2/100`);
   priceLogicCompanySheet.getRange(priceLogicTargetStartRow + 2, 3).setValue(`=80000*$D112*${addSheetName}!$B$2/100`);
   priceLogicCompanySheet.getRange(priceLogicTargetStartRow + 3, 3).setValue(`=100000*$D112*${addSheetName}!$B$2/100`);
+  // Items, Priceシートの一番下の行、PriceLogicCompany, PriceLogicシートの94行目くらいに「*2015年の第3次産業活動指数を基準に単価を調整」「*1 2015年の第3次産業活動指数：100」「*2 2025年の第3次産業活動指数：107」を入れる
+  const sheetAndStartRowAndCol = [
+    [itemsSheet, 97, 1],
+    [priceSheet, 97, 1],
+  ];
+  const setTextArray2 =["*2015年の第3次産業活動指数を基準に単価を調整", "*1 2015年の第3次産業活動指数：100", "*2 2025年の第3次産業活動指数：107"];
+  sheetAndStartRowAndCol.forEach(([sheet, startRow, col]) => {
+    issue102_setTextArray_(setTextArray2, sheet, startRow, col);
+  });
+  const sheetAndInsertRowAndCol = [
+    [priceLogicSheet, 92, 1],
+    [priceLogicCompanySheet, 92, 1]
+  ];
+  sheetAndInsertRowAndCol.forEach(([sheet, insertRow, col]) => {
+    if (sheet.getRange(insertRow + 1, col).getValue() !== setTextArray2[0]) {
+      sheet.insertRowsAfter(insertRow, setTextArray2.length);
+    } 
+    const startRow = insertRow + setTextArray2.length;
+    issue102_setTextArray_(setTextArray2, sheet, startRow, col);    
+  });
+}
+function issue102_setTextArray_(setTextArray, sheet, startRow, col) {
+      setTextArray.forEach((value, idx) => {
+      const targetRange = sheet.getRange(startRow + idx, col);
+      targetRange.setValue(value);
+      targetRange.setFontWeight("normal");
+    }); 
 }
 function issue102_iSsFirstCharEquals_(text) {
   if (typeof text === 'string') { // 対象が文字列であることを確認

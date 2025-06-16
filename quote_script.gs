@@ -375,7 +375,7 @@ function setImbalanceValues_(array_quotation_request){
   const setupAndClosingExclusion = ['Setup', 'Closing']; 
   const patientRegistrationFee = '症例登録毎の支払';
   const targetImbalance = [
-      ['1例あたりの実地モニタリング回数', setupAndClosingExclusion, '症例モニタリング・SAE対応', get_s_p.getProperty('number_of_cases_itemname')],
+//      ['1例あたりの実地モニタリング回数', setupAndClosingExclusion, '症例モニタリング・SAE対応', get_s_p.getProperty('number_of_cases_itemname')],
       ['監査対象施設数', setupAndClosingExclusion, '施設監査費用', null],
       [patientRegistrationFee, setupAndClosingExclusion, '症例登録', get_s_p.getProperty('number_of_cases_itemname')]
     ];
@@ -646,8 +646,8 @@ class SetSheetItemValues{
     const set_items_list = [
       ['名古屋医療センターCRB申請費用(初年度)', crb_first_year],
       ['名古屋医療センターCRB申請費用(2年目以降)', crb_after_second_year],
-      ['治験薬運搬', get_count(get_quotation_request_value(this.array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('function_facilities'))],
-      ['開始前モニタリング・必須文書確認', essential_documents]
+      ['治験薬運搬', get_count(get_quotation_request_value(this.array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('function_facilities'))]
+//      ['開始前モニタリング・必須文書確認', essential_documents]
    ];
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
