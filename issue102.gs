@@ -57,6 +57,7 @@ function issue102_template_fix_main() {
   if (itemsSheet === null || priceLogicCompanySheet === null || priceLogicSheet === null || priceSheet === null) {
     return;
   }
+  [priceLogicSheet, priceLogicCompanySheet].forEach(sheet => sheet.getRange("B1").setValue("【名古屋医療センター臨床研究支援業務単価表（案）2025年度】"));
   let targetSheet = ss.getSheetByName(addSheetName);
   if (targetSheet === null) {
     // シートが存在しない場合は新しいシートを挿入し、名前を設定
