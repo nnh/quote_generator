@@ -1,4 +1,6 @@
-function issue102_logAllDataValidationInfoInRange() {
+const addSheetName = "TIAI";
+
+function issue102_logAllDataValidationInfoInRange_() {
   const target = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Items").getRange("B4:B94");
   const res = issue102_logAllDataValidationInfoInRange_(target);
   console.log(res);
@@ -46,7 +48,6 @@ function issue102_logAllDataValidationInfoInRange_(range) {
   return result;
 }
 function issue102_template_fix_main() {
-  const addSheetName = "TIAI";
   const itemsSheetName = "Items"; // ★ 移動先の基準となる「Items」シートの名前
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const itemsSheet = ss.getSheetByName(itemsSheetName);
@@ -184,41 +185,98 @@ function issue102_template_fix_main() {
 
   ss.getSheetByName("PrimaryItems").getRange("A1").setValue(`=QUERY(Items!A:A, "where A <> '' and A <> '準備作業' and A <> 'EDC構築' and A <> '中央モニタリング' and A <> 'データセット作成' and NOT A LIKE '%合計' and NOT A LIKE '*%'")`);
   // PriceLogicCompany, PriceLogicシートの表2 単価(1人日)基準を更新する
-  const priceLogicTargetStartRow = 103;
-  [priceLogicSheet].forEach(sheet => {
-    let setFormulaText = "";
-    for (let i = 0; i < 4; i++) {
-      const range = sheet.getRange(priceLogicTargetStartRow + i, 3);
-      const value = range.getValue();
-      if (!issue102_iSsFirstCharEquals_(value))
-        setFormulaText = `=${value}*${addSheetName}!$B$2/100`;
-        range.setValue(setFormulaText);
-    }
-  });
-  priceLogicCompanySheet.getRange(priceLogicTargetStartRow, 3).setValue(`=50000*$D112*${addSheetName}!$B$2/100`);
-  priceLogicCompanySheet.getRange(priceLogicTargetStartRow + 1, 3).setValue(`=65000*$D112*${addSheetName}!$B$2/100`);
-  priceLogicCompanySheet.getRange(priceLogicTargetStartRow + 2, 3).setValue(`=80000*$D112*${addSheetName}!$B$2/100`);
-  priceLogicCompanySheet.getRange(priceLogicTargetStartRow + 3, 3).setValue(`=100000*$D112*${addSheetName}!$B$2/100`);
+  new Issue102PriceLogicTable2(priceLogicSheet, "表2 単価(1人日)基準").pricelogic();
+  new Issue102PriceLogicTable2(priceLogicCompanySheet, "表2 主担当者単価(1人日)基準").pricelogic();
+  // PriceLogicCompany, PriceLogicシートの※1を更新する
+  [priceLogicCompanySheet, priceLogicSheet].forEach(sheet => issue102_priceLogic_annotation1_(sheet));
   // Items, Priceシートの一番下の行、PriceLogicCompany, PriceLogicシートの94行目くらいに「*2015年の第3次産業活動指数を基準に単価を調整」「*1 2015年の第3次産業活動指数：100」「*2 2025年の第3次産業活動指数：107」を入れる
-  const sheetAndStartRowAndCol = [
-    [itemsSheet, 97, 1],
-    [priceSheet, 97, 1],
-  ];
-  const setTextArray2 =["*2015年の第3次産業活動指数を基準に単価を調整", "*1 2015年の第3次産業活動指数：100", "*2 2025年の第3次産業活動指数：107"];
-  sheetAndStartRowAndCol.forEach(([sheet, startRow, col]) => {
-    issue102_setTextArray_(setTextArray2, sheet, startRow, col);
-  });
-  const sheetAndInsertRowAndCol = [
-    [priceLogicSheet, 92, 1],
-    [priceLogicCompanySheet, 92, 1]
-  ];
-  sheetAndInsertRowAndCol.forEach(([sheet, insertRow, col]) => {
-    if (sheet.getRange(insertRow + 1, col).getValue() !== setTextArray2[0]) {
-      sheet.insertRowsAfter(insertRow, setTextArray2.length);
-    } 
-    const startRow = insertRow + setTextArray2.length;
-    issue102_setTextArray_(setTextArray2, sheet, startRow, col);    
-  });
+  issue102_addText_([itemsSheet, priceSheet, priceLogicSheet, priceLogicCompanySheet]);
+}
+function issue102_addText_(targetSheets) {
+  const [itemsSheet, priceSheet, priceLogicSheet, priceLogicCompanySheet] = targetSheets;
+  const [itemsAddTextRow, priceAddTextRow] = itemsSheet.getRange("A96").getValue() === "合計" ? [97, 94] : itemsSheet.getRange("A96").getValue() === "" ? [96, 93] : [-1, -1];
+  if (itemsAddTextRow === -1) {
+    throw Error("itemsAndPriceAddTextRow");
+  }
+  const setTextArray =[["*2015年の第3次産業活動指数を基準に単価を調整"], ["*1 2015年の第3次産業活動指数：100"], ["*2 2025年の第3次産業活動指数：107"]];
+  itemsSheet.getRange(itemsAddTextRow, 1, setTextArray.length, 1).setValues(setTextArray);
+  itemsSheet.getRange(itemsAddTextRow, 1, setTextArray.length, 1).setFontWeight(null);
+  priceSheet.getRange(priceAddTextRow, 1, setTextArray.length, 1).setValues(setTextArray);
+  priceSheet.getRange(priceAddTextRow, 1, setTextArray.length, 1).setFontWeight(null);
+  const priceLogicAddTextRow = priceLogicSheet.getRange("A94").getValue() === "※1:" ? 93 : priceLogicSheet.getRange("A95").getValue() === "※1:" ? 94 : -1;
+  if (priceLogicAddTextRow === -1) {
+    return;
+  } 
+  [priceLogicSheet, priceLogicCompanySheet].forEach(sheet => {
+    sheet.insertRowsBefore(priceLogicAddTextRow, 3);
+    sheet.getRange(priceLogicAddTextRow, 1, setTextArray.length, 1).setValues(setTextArray);
+    sheet.getRange(priceLogicAddTextRow, 1, setTextArray.length, 1).setFontWeight(null);
+  }); 
+
+}
+function issue102_priceLogic_annotation1_(sheet) {
+  console.log(sheet.getRange("B99").getValue());
+  if (sheet.getName() === "PriceLogic" && sheet.getRange("B99").getValue() !== 550000) {
+    return;
+  }
+  if (sheet.getName() === "PriceLogicCompany" && sheet.getRange("B99").getValue() !== 550000) {
+    return;
+  }
+  for (let row = 98; row <= 102; row++) {
+    const range = sheet.getRange(row, 2);
+    const value = range.getValue();
+    const setValueNum = sheet.getName() === "PriceLogic" ? issue102_roundToNearest100_(Number(value) * 1.07) : issue102_roundToNearest100_(issue102_roundToNearest100_(Number(value) * 1.07) *1.5);
+    range.setValue(setValueNum);
+  }
+  for (let row = 107; row <= 109; row++) {
+    const annotationRange = sheet.getRange(row, 1);
+    if (!issue102_iSsFirstCharEquals_(annotationRange.getValue())) {
+      const temp = `="${annotationRange.getValue()}*" & ${addSheetName}!$B$2/100`;
+      annotationRange.setValue(temp);
+    }
+  }
+}
+class Issue102PriceLogicTable2{
+  constructor(sheet, title) {
+    this.sheet = sheet;
+    this.title = title
+    this.targetRow = this.getTitleRow();
+  }
+  getTitleRow() {
+    const titleRow = this.sheet.getRange(1, 3, this.sheet.getLastRow(), 1).getValues().map((value, idx) => value[0] === this.title ? idx : null).filter(x => x !== null);
+    if (titleRow.length === 0) {
+      throw Error("getTitleRow");
+    }
+    const targetStartRow = titleRow[0] + 3;
+    return targetStartRow;
+  }
+  pricelogic() {
+    for (let i = 0; i < 4; i++) {
+      const outputRow = this.targetRow + i;
+      const range = this.sheet.getRange(outputRow, 3);
+      const value = range.getValue();
+      let setFormulaText = null;
+      if (this.sheet.getName() === "PriceLogic") {
+        if (!issue102_iSsFirstCharEquals_(range.getFormula())) {
+          setFormulaText = `=${value}*${addSheetName}!$B$2/100`;
+        }
+      } else if (this.sheet.getName() === "PriceLogicCompany") {
+        const test = this.sheet.getRange(1, 3, this.sheet.getLastRow(), 1).getValues();
+        const coefficientRow = this.sheet.getRange(1, 3, this.sheet.getLastRow(), 1).getValues().map((value, idx) => value[0] === "係数" ? idx :null).filter(x => x !== null);
+        if (coefficientRow.length === 0) {
+          throw Error(coefficientRow);
+        }
+        const coefficientRange = `$D${coefficientRow[0]+1}`;
+        setFormulaText = `=PriceLogic!C${outputRow}*${coefficientRange}`;        
+      }
+      if (setFormulaText !== null) {
+        range.setValue(setFormulaText);
+      }
+    }
+  }
+}
+function issue102_roundToNearest100_(amount) {
+  return Math.round(amount / 1000) * 1000;
 }
 function issue102_setTextArray_(setTextArray, sheet, startRow, col) {
       setTextArray.forEach((value, idx) => {
