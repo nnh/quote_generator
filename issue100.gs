@@ -34,6 +34,10 @@ const setupToClosingSheetNames = [
   'Observation_2',
   'Closing',
 ];
+function issue100_fix_filter_formula() {
+  setupToClosingSheetNames.forEach(sheetName => SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange("L14").setValue('=if(AND(or(H15="", H15=0),or(H16="", H16=0),or(H17="",H17=0),or(H18="",H18=0),or(H19="",H19=0),or(H20="",H20=0),or(H21="",H21=0),or(H22="",H22=0),or(H23="",H23=0),or(H24="",H24=0),or(H25="", H25=0),or(H26="",H26=0)),0,2)'));
+  total2SheetNames.forEach(sheetName => SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange("N14").setValue('=if(AND(L15="",L16="",L17="",L18="",L19="",L20="",L21="",L22="",L23="",L24="",L25="",L26=""),0,2)'))
+}
 function issue100_getSheets_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheets = ss.getSheets();
@@ -308,6 +312,7 @@ function issue100_template_fix_main() {
   issue100_setSetupToClosingSheet_();
   issue100_setTotal1Sheet_();
   issue100_setTotal2Sheet_();
+  issue100_fix_filter_formula();
 }
 function issue100_script_test(testFlag=null) {
   if (testFlag === null) {
