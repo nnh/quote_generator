@@ -164,29 +164,21 @@ function check_output_values() {
   total_checkitems.push({itemname:temp_name, value:temp_value});
   total_checkitems.push({itemname:'契約・支払手続、実施計画提出支援', value:''});  
   var temp_name = 'モニタリング準備業務（関連資料作成）';
-  if (get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数') > 0){
+  if (get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数') > 0 || get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数') > 0){
     var temp_value = 1;
   } else {
     var temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
-/*
-  var temp_name = '開始前モニタリング・必須文書確認';
-  if (get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数') > 0){
-    var temp_value = parseInt(get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数')) * facilities_value * trial_ceil_year;
+  temp_name = `開始前モニタリング・必須文書確認
+症例モニタリング・SAE対応`;
+  if (get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数') > 0 || get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数') > 0){
+    temp_value = 999; // dummy
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
-  total_checkitems.push({itemname:temp_name, value:temp_value});
-
-  var temp_name = '症例モニタリング・SAE対応';
-  if (get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数') > 0){
-    var temp_value = parseInt(get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数')) * number_of_cases_value;
-  } else {
-    var temp_value = '';
-  }
-*/
   total_checkitems.push({itemname:temp_name, value:temp_value});  
+
   total_checkitems.push({itemname:'問い合わせ対応', value:''});  
   total_checkitems.push({itemname:'EDCライセンス・データベースセットアップ', value:1});  
   total_checkitems.push({itemname:'データベース管理料', value:trial_months+closing_month});  
