@@ -257,6 +257,9 @@ function check_output_values() {
   }
   if (get_quotation_request_value(array_quotation_request, '最終解析業務の依頼') == 'あり'){
     var temp_value = get_quotation_request_value(array_quotation_request, '統計解析に必要な図表数');
+    if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial') && temp_value < 50){
+      temp_value = 50;
+    }
   } else {
     var temp_value = '';
   }
@@ -349,7 +352,11 @@ function check_output_values() {
   total_checkitems.push({itemname:'QOL調査', value:''});  
   var temp_name = '治験薬運搬';
   if (get_quotation_request_value(array_quotation_request, temp_name) == 'あり'){
-    var temp_value = facilities_value * trial_year;
+    if (trial_year > 0) {
+      temp_value = facilities_value * trial_year;
+    } else {
+      temp_value = facilities_value;
+    }
   } else {
     var temp_value = '';
   }
