@@ -1,18 +1,40 @@
+/**
+ * Check if an item name exists in the target sheet and validate its value
+ * @param {Object} target - Target object containing sheet, array_item, col, and optional footer
+ * @param {string} item_name - The item name to search for
+ * @param {*} value_ok - The expected value to validate against
+ * @return {Array} Array with [status, message] where status is 'OK' or 'NG:...'
+ */
 function check_itemName_and_value(target, item_name, value_ok){
-  if (target.footer != null){
-    var temp_item_name = item_name + target.footer; 
-  } else {
-    var temp_item_name = item_name; 
+  if (!target || !target.sheet || !target.array_item || !target.col) {
+    return ['NG：対象オブジェクトが不正です', 'target object is invalid or missing required properties'];
   }
-  const res_message = 'シート名:' + target.sheet.getName() + ',項目名:' + temp_item_name + ',想定値:' + value_ok;
-  if (!(target.array_item[item_name] > 0)){
-    return ['NG：該当する項目名なし', res_message];
+  
+  if (!item_name) {
+    return ['NG：項目名が指定されていません', 'item_name is required'];
   }
-  var check_value = target.sheet.getRange(target.array_item[item_name], target.col).getValue();
-  if (check_value != value_ok){
-    return ['NG：値が想定と異なる', res_message];
+  
+  const displayItemName = target.footer ? item_name + target.footer : item_name;
+  
+  const resultMessage = `シート名:${target.sheet.getName()},項目名:${displayItemName},想定値:${value_ok}`;
+  
+  const itemRowNumber = target.array_item[item_name];
+  if (!itemRowNumber || itemRowNumber <= 0) {
+    return ['NG：該当する項目名なし', resultMessage];
   }
-  return ['OK', res_message];
+  
+  let actualValue;
+  try {
+    actualValue = target.sheet.getRange(itemRowNumber, target.col).getValue();
+  } catch (error) {
+    return ['NG：セル値の取得に失敗しました', `${resultMessage}, エラー:${error.message}`];
+  }
+  
+  if (actualValue != value_ok) {
+    return ['NG：値が想定と異なる', `${resultMessage}, 実際の値:${actualValue}`];
+  }
+  
+  return ['OK', resultMessage];
 }
 function get_total_amount(target){
   const items = target.sheet.getRange(target.item_cols).getValues().flat();
