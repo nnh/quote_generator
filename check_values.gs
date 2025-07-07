@@ -7,11 +7,11 @@ function check_output_values() {
   const facilities_value = get_quotation_request_value(array_quotation_request, get_s_p.getProperty('facilities_itemname'));  
   const number_of_cases_value = get_quotation_request_value(array_quotation_request, get_s_p.getProperty('number_of_cases_itemname'));
   const trial_months_col = 5;
-  var output_row = 1;
-  var output_col = 1;
+  let output_row = 1;
+  let output_col = 1;
   let setup_month = 0;
   let closing_month = 0;
-  var setup_closing_months = 0;
+  let setup_closing_months = 0;
   sheet.check.clear();
   const trial_start_end = [['OK/NG', '詳細', '', ''],
                            ['',
@@ -45,7 +45,7 @@ function check_output_values() {
   const total_total_ammount = get_total_amount({sheet:sheet.total, item_cols:'B:B', total_row_itemname:'合計', header_row:4, total_col_itemname:'金額'});
   const total2_total_ammount = get_total_amount({sheet:sheet.total2, item_cols:'B:B', total_row_itemname:'合計', header_row:4, total_col_itemname:'合計'});
   const total3_total_ammount = get_total_amount({sheet:sheet.total3, item_cols:'B:B', total_row_itemname:'合計', header_row:3, total_col_itemname:'合計'});
-  var ammount_check = [null, 'Total, Total2, Total3の合計金額チェック'];
+  const ammount_check = [null, 'Total, Total2, Total3の合計金額チェック'];
   if ((total_total_ammount == total2_total_ammount) & (total_total_ammount == total3_total_ammount)){
     ammount_check[0] = 'OK';
     ammount_check[1] = ammount_check[1] + ' ,想定値:' + total_total_ammount;
@@ -54,8 +54,8 @@ function check_output_values() {
   }
   output_row++;
   sheet.check.getRange(output_row, 1, 1, ammount_check.length).setValues([ammount_check]);
-  var total_checkitems = [];
-  var total_ammount_checkitems = [];
+  const total_checkitems = [];
+  const total_ammount_checkitems = [];
   const target_total = {sheet:sheet.total, 
                         array_item:get_fy_items(sheet.total, get_s_p.getProperty('fy_sheet_items_col')), 
                         col:parseInt(get_s_p.getProperty('fy_sheet_count_col')), 
@@ -66,18 +66,18 @@ function check_output_values() {
                                 footer:'（金額）'};
   total_checkitems.push({itemname:'プロトコルレビュー・作成支援', value:1});  
   total_checkitems.push({itemname:'検討会実施（TV会議等）', value:4}); 
-  var temp_name = 'PMDA相談資料作成支援';
+  let temp_name = 'PMDA相談資料作成支援';
   if (get_quotation_request_value(array_quotation_request, temp_name) == 'あり'){
-    var temp_value = 1;
+    let temp_value = 1;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
-  var temp_name = 'AMED申請資料作成支援';
+  temp_name = 'AMED申請資料作成支援';
   if (get_quotation_request_value(array_quotation_request, temp_name) == 'あり'){
-    var temp_value = 1;
+    temp_value = 1;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   total_checkitems.push({itemname:'プロジェクト管理', value:total_months});  
@@ -98,9 +98,9 @@ function check_output_values() {
   total_checkitems.push({itemname:'事務局運営（試験開始前）', value:office_bef_month});
   total_checkitems.push({itemname:'事務局運営（試験終了時）', value:office_count});
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
-    var temp_value = total_months;
+    temp_value = total_months;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   temp_name = 'キックオフミーティング準備・実行';
   temp_value = '';
@@ -372,13 +372,13 @@ function check_output_values() {
   total_checkitems.push({itemname:'CDISC対応費', value:''});  
   total_checkitems.push({itemname:'中央診断謝金', value:''});  
   if (get_quotation_request_value(array_quotation_request, '研究協力費、負担軽減費配分管理') == 'あり'){
-    var total_ammount = get_quotation_request_value(array_quotation_request, '研究協力費、負担軽減費');
+    let total_ammount = get_quotation_request_value(array_quotation_request, '研究協力費、負担軽減費');
   } else {
-    var total_ammount = 0;
+    total_ammount = 0;
   }
   total_ammount_checkitems.push({itemname:'研究協力費', value:total_ammount});
   const discount_byYear = checkDiscountByYearSheet_().every(x => x) ? 'OK' : 'NG：値が想定と異なる'; 
-  let temp_check_1= [];
+  const temp_check_1= [];
   temp_check_1.push([discount_byYear, 'Setup〜Closingシートの特別値引後合計のチェック']);  
   temp_check_1.push(compareTotalSheetTotaltoVerticalTotal_());  
   temp_check_1.push(compareTotal2Total3SheetVerticalTotalToHorizontalTotal_());
