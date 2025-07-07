@@ -92,7 +92,7 @@ function check_output_values() {
     office_bef_month = setup_month
 
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:'事務局運営（試験開始後から試験終了まで）', value:temp_value});
   total_checkitems.push({itemname:'事務局運営（試験開始前）', value:office_bef_month});
@@ -140,34 +140,34 @@ function check_output_values() {
     temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
-  var temp_name = 'SOP一式、CTR登録案、TMF管理';
+  temp_name = 'SOP一式、CTR登録案、TMF管理';
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
-    var temp_value = 1;
+    temp_value = 1;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
-    var temp_name = 'IRB承認確認、施設管理';
-    var temp_value = facilities_value;
+    temp_name = 'IRB承認確認、施設管理';
+    temp_value = facilities_value;
   } else {
-    var temp_name = 'IRB準備・承認確認';
-    var temp_value = '';
+    temp_name = 'IRB準備・承認確認';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
-  var temp_name = '特定臨床研究法申請資料作成支援';
+  temp_name = '特定臨床研究法申請資料作成支援';
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('specified_clinical_trial')){
-    var temp_value = facilities_value;
+    temp_value = facilities_value;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
   total_checkitems.push({itemname:'契約・支払手続、実施計画提出支援', value:''});  
-  var temp_name = 'モニタリング準備業務（関連資料作成）';
+  temp_name = 'モニタリング準備業務（関連資料作成）';
   if (get_quotation_request_value(array_quotation_request, '1例あたりの実地モニタリング回数') > 0 || get_quotation_request_value(array_quotation_request, '年間1施設あたりの必須文書実地モニタリング回数') > 0){
-    var temp_value = 1;
+    temp_value = 1;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   temp_name = `開始前モニタリング・必須文書確認
@@ -187,41 +187,41 @@ function check_output_values() {
   total_checkitems.push({itemname:'DB作成・eCRF作成・バリデーション', value:1});  
   total_checkitems.push({itemname:'バリデーション報告書', value:1});  
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
-    var temp_name = '初期アカウント設定（施設・ユーザー）';
+    temp_name = '初期アカウント設定（施設・ユーザー）';
   } else {
-    var temp_name = '初期アカウント設定（施設・ユーザー）、IRB承認確認';
+    temp_name = '初期アカウント設定（施設・ユーザー）、IRB承認確認';
   }
   total_checkitems.push({itemname:temp_name, value:facilities_value});
   total_checkitems.push({itemname:'入力の手引作成', value:1});  
-  var temp_value = trial_months;
+  temp_value = trial_months;
   total_checkitems.push({itemname:'ロジカルチェック、マニュアルチェック、クエリ対応', value:temp_value});
   const interim_count = target_total.sheet.getRange(target_total.array_item['中間解析報告書作成（出力結果＋表紙）'], target_total.col).getValue();
   const closing_count = target_total.sheet.getRange(target_total.array_item['データベース固定作業、クロージング'], target_total.col).getValue();
   total_checkitems.push({itemname:'データクリーニング', value:interim_count + closing_count});  
   total_checkitems.push({itemname:'データベース固定作業、クロージング', value:1});  
-  var temp_name = '症例検討会資料作成';
+  temp_name = '症例検討会資料作成';
   if (get_quotation_request_value(array_quotation_request, '症例検討会') == 'あり'){
-    var temp_value = 1;
+    temp_value = 1;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
-  var temp_name = '安全性管理事務局業務';
+  temp_name = '安全性管理事務局業務';
   if (get_quotation_request_value(array_quotation_request, '安全性管理事務局設置') == '設置・委託する'){
-    var temp_value = trial_months;
+    temp_value = trial_months;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
-  var temp_name = '効果安全性評価委員会事務局業務';
+  temp_name = '効果安全性評価委員会事務局業務';
   if (get_quotation_request_value(array_quotation_request, '効安事務局設置') == '設置・委託する'){
-    var temp_value = trial_months;
+    temp_value = trial_months;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});    
-  var temp_name = '統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成';
-  var temp_value = 0;
+  temp_name = '統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成';
+  temp_value = 0;
   if (get_quotation_request_value(array_quotation_request, '中間解析業務の依頼') == 'あり'){
     temp_value++;
   }
@@ -229,128 +229,128 @@ function check_output_values() {
     temp_value++;
   }
   if (temp_value == 0){
-    var temp_value = '';
+    temp_value = '';
   } 
   total_checkitems.push({itemname:temp_name, value:temp_value});    
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
-    var temp_name = '中間解析プログラム作成、解析実施（ダブル）';
+    temp_name = '中間解析プログラム作成、解析実施（ダブル）';
   } else {
-    var temp_name = '中間解析プログラム作成、解析実施（シングル）';
+    temp_name = '中間解析プログラム作成、解析実施（シングル）';
   }
   if (get_quotation_request_value(array_quotation_request, '中間解析業務の依頼') == 'あり'){
-    var temp_value = '回数がQuotation Requestシートの中間解析に必要な図表数*Quotation Requestシートの中間解析の頻度であることを確認';
+    temp_value = '回数がQuotation Requestシートの中間解析に必要な図表数*Quotation Requestシートの中間解析の頻度であることを確認';
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
-  var temp_name = '中間解析報告書作成（出力結果＋表紙）';
+  temp_name = '中間解析報告書作成（出力結果＋表紙）';
   if (get_quotation_request_value(array_quotation_request, '中間解析業務の依頼') == 'あり'){
-    var temp_value = 1;
+    temp_value = 1;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
-    var temp_name = '最終解析プログラム作成、解析実施（ダブル）';
+    temp_name = '最終解析プログラム作成、解析実施（ダブル）';
   } else {
-    var temp_name = '最終解析プログラム作成、解析実施（シングル）';
+    temp_name = '最終解析プログラム作成、解析実施（シングル）';
   }
   if (get_quotation_request_value(array_quotation_request, '最終解析業務の依頼') == 'あり'){
-    var temp_value = get_quotation_request_value(array_quotation_request, '統計解析に必要な図表数');
+    temp_value = get_quotation_request_value(array_quotation_request, '統計解析に必要な図表数');
     if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial') && temp_value < 50){
       temp_value = 50;
     }
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
-  var temp_name = '最終解析報告書作成（出力結果＋表紙）';
+  temp_name = '最終解析報告書作成（出力結果＋表紙）';
   if (get_quotation_request_value(array_quotation_request, '最終解析業務の依頼') == 'あり'){
-    var temp_value = 1;
+    temp_value = 1;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
-    var temp_name = 'CSRの作成支援';
-    var temp_value = 1;
+    temp_name = 'CSRの作成支援';
+    temp_value = 1;
   } else {
-    var temp_name = '研究結果報告書の作成';
+    temp_name = '研究結果報告書の作成';
     if (get_quotation_request_value(array_quotation_request, '研究結果報告書作成支援') == 'あり'){
-      var temp_value = 1;
+      temp_value = 1;
     } else {
-      var temp_value = '';
+      temp_value = '';
     }
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
   total_checkitems.push({itemname:'監査計画書作成', value:''});  
   total_checkitems.push({itemname:'施設監査', value:''});  
   total_checkitems.push({itemname:'監査報告書作成', value:''});  
-  var temp_name = '試験開始準備費用';
+  temp_name = '試験開始準備費用';
   if (get_quotation_request_value(array_quotation_request, temp_name) == 'あり'){
-    var temp_value = facilities_value;
+    temp_value = facilities_value;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
-  var temp_name = '症例登録';
+  temp_name = '症例登録';
   if (get_quotation_request_value(array_quotation_request, '症例登録毎の支払') == 'あり'){
-    var temp_value = number_of_cases_value;
+    temp_value = number_of_cases_value;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
-  var temp_name = '症例報告';
+  temp_name = '症例報告';
   if (get_quotation_request_value(array_quotation_request, '症例最終報告書提出毎の支払') == 'あり'){
-    var temp_value = number_of_cases_value;
+    temp_value = number_of_cases_value;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
   total_checkitems.push({itemname:'国内学会発表', value:''});  
   total_checkitems.push({itemname:'国際学会発表', value:''});  
   total_checkitems.push({itemname:'論文作成', value:''});  
-  var temp_name = '名古屋医療センターCRB申請費用(初年度)';
+  temp_name = '名古屋医療センターCRB申請費用(初年度)';
   if (get_quotation_request_value(array_quotation_request, 'CRB申請') == 'あり'){
-    var temp_value = 1;
+    temp_value = 1;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
-  var temp_name = '名古屋医療センターCRB申請費用(2年目以降)';
+  temp_name = '名古屋医療センターCRB申請費用(2年目以降)';
   if (get_quotation_request_value(array_quotation_request, 'CRB申請') == 'あり'){
-    var temp_value = trial_year > 1 ? trial_year - 1 : '';
+    temp_value = trial_year > 1 ? trial_year - 1 : '';
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
-  var temp_name = '外部監査費用';
+  temp_name = '外部監査費用';
   if (get_quotation_request_value(array_quotation_request, '監査対象施設数') > 0){
-    var temp_value = 2;
+    temp_value = 2;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
-  var temp_name = '施設監査費用';
+  temp_name = '施設監査費用';
   if (get_quotation_request_value(array_quotation_request, '監査対象施設数') > 0){
-    var temp_value = get_quotation_request_value(array_quotation_request, '監査対象施設数');
+    temp_value = get_quotation_request_value(array_quotation_request, '監査対象施設数');
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
-  var temp_name = '保険料';
+  temp_name = '保険料';
   const insuranceFee = get_quotation_request_value(array_quotation_request, temp_name);
   if (insuranceFee > 0){    
-    var temp_value = 1;
-    var temp_total_ammount = insuranceFee;
+    temp_value = 1;
+    let temp_total_ammount = insuranceFee;
   } else {
-    var temp_value = '';
-    var temp_total_ammount = 0;
+    temp_value = '';
+    temp_total_ammount = 0;
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
   total_ammount_checkitems.push({itemname:temp_name, value:temp_total_ammount});
   total_checkitems.push({itemname:'QOL調査', value:''});  
-  var temp_name = '治験薬運搬';
+  temp_name = '治験薬運搬';
   if (get_quotation_request_value(array_quotation_request, temp_name) == 'あり'){
     if (trial_year > 0) {
       temp_value = facilities_value * trial_year;
@@ -358,14 +358,14 @@ function check_output_values() {
       temp_value = facilities_value;
     }
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
-  var temp_name = '治験薬管理（中央）';
+  temp_name = '治験薬管理（中央）';
   if (get_quotation_request_value(array_quotation_request, '治験薬管理') == 'あり'){
-    var temp_value = 1;
+    temp_value = 1;
   } else {
-    var temp_value = '';
+    temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
   total_checkitems.push({itemname:'翻訳', value:''});  
