@@ -81,20 +81,8 @@ function check_output_values() {
   total_checkitems.push({itemname:'検討会実施（TV会議等）', value:MEETING_COUNT});
   let temp_name; 
   let temp_value;
-  temp_name = 'PMDA相談資料作成支援';
-  if (get_quotation_request_value(array_quotation_request, temp_name) == 'あり'){
-    temp_value = 1;
-  } else {
-    temp_value = '';
-  }
-  total_checkitems.push({itemname:temp_name, value:temp_value});  
-  temp_name = 'AMED申請資料作成支援';
-  if (get_quotation_request_value(array_quotation_request, temp_name) == 'あり'){
-    temp_value = 1;
-  } else {
-    temp_value = '';
-  }
-  total_checkitems.push({itemname:temp_name, value:temp_value});  
+  addConditionalCheckItem(total_checkitems, 'PMDA相談資料作成支援', array_quotation_request, 'PMDA相談資料作成支援');  
+  addConditionalCheckItem(total_checkitems, 'AMED申請資料作成支援', array_quotation_request, 'AMED申請資料作成支援');  
   total_checkitems.push({itemname:'プロジェクト管理', value:total_months});  
   let office_bef_month = "";
   let office_count = '';
@@ -117,21 +105,8 @@ function check_output_values() {
   } else {
     temp_value = '';
   }
-  temp_name = 'キックオフミーティング準備・実行';
-  temp_value = '';
-  if (get_quotation_request_value(array_quotation_request, 'キックオフミーティング') == 'あり'){
-    temp_value = 1;
-  } else {
-    temp_value = '';
-  }
-  total_checkitems.push({itemname:temp_name, value:temp_value});
-  temp_name = '症例検討会準備・実行';
-  if (get_quotation_request_value(array_quotation_request, '症例検討会') == 'あり'){
-    temp_value= 1;
-  } else {
-    temp_value='';
-  }
-  total_checkitems.push({itemname:temp_name, value:temp_value});
+  addConditionalCheckItem(total_checkitems, 'キックオフミーティング準備・実行', array_quotation_request, 'キックオフミーティング');
+  addConditionalCheckItem(total_checkitems, '症例検討会準備・実行', array_quotation_request, '症例検討会');
   temp_name = '薬剤対応';
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
     temp_value = facilities_value;
@@ -148,20 +123,8 @@ function check_output_values() {
     temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});
-  temp_name = '監査対応';
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
-    temp_value = 1;
-  } else {
-    temp_value = '';
-  }
-  total_checkitems.push({itemname:temp_name, value:temp_value});
-  temp_name = 'SOP一式、CTR登録案、TMF管理';
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
-    temp_value = 1;
-  } else {
-    temp_value = '';
-  }
-  total_checkitems.push({itemname:temp_name, value:temp_value});
+  addTrialTypeCheckItem(total_checkitems, '監査対応', array_quotation_request, get_s_p, 1);
+  addTrialTypeCheckItem(total_checkitems, 'SOP一式、CTR登録案、TMF管理', array_quotation_request, get_s_p, 1);
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
     temp_name = 'IRB承認確認、施設管理';
     temp_value = facilities_value;
@@ -214,13 +177,7 @@ function check_output_values() {
   const closing_count = target_total.sheet.getRange(target_total.array_item['データベース固定作業、クロージング'], target_total.col).getValue();
   total_checkitems.push({itemname:'データクリーニング', value:interim_count + closing_count});  
   total_checkitems.push({itemname:'データベース固定作業、クロージング', value:1});  
-  temp_name = '症例検討会資料作成';
-  if (get_quotation_request_value(array_quotation_request, '症例検討会') == 'あり'){
-    temp_value = 1;
-  } else {
-    temp_value = '';
-  }
-  total_checkitems.push({itemname:temp_name, value:temp_value});
+  addConditionalCheckItem(total_checkitems, '症例検討会資料作成', array_quotation_request, '症例検討会');
   temp_name = '安全性管理事務局業務';
   if (get_quotation_request_value(array_quotation_request, '安全性管理事務局設置') == '設置・委託する'){
     temp_value = trial_months;
@@ -258,13 +215,7 @@ function check_output_values() {
     temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
-  temp_name = '中間解析報告書作成（出力結果＋表紙）';
-  if (get_quotation_request_value(array_quotation_request, '中間解析業務の依頼') == 'あり'){
-    temp_value = 1;
-  } else {
-    temp_value = '';
-  }
-  total_checkitems.push({itemname:temp_name, value:temp_value});  
+  addConditionalCheckItem(total_checkitems, '中間解析報告書作成（出力結果＋表紙）', array_quotation_request, '中間解析業務の依頼');  
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
     temp_name = '最終解析プログラム作成、解析実施（ダブル）';
   } else {
@@ -279,13 +230,7 @@ function check_output_values() {
     temp_value = '';
   }
   total_checkitems.push({itemname:temp_name, value:temp_value});  
-  temp_name = '最終解析報告書作成（出力結果＋表紙）';
-  if (get_quotation_request_value(array_quotation_request, '最終解析業務の依頼') == 'あり'){
-    temp_value = 1;
-  } else {
-    temp_value = '';
-  }
-  total_checkitems.push({itemname:temp_name, value:temp_value});  
+  addConditionalCheckItem(total_checkitems, '最終解析報告書作成（出力結果＋表紙）', array_quotation_request, '最終解析業務の依頼');  
   if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.getProperty('investigator_initiated_trial')){
     temp_name = 'CSRの作成支援';
     temp_value = 1;
@@ -408,6 +353,25 @@ function check_output_values() {
   const output_values =  output_values_1.concat(temp_check_1);
   output_row++;
   sheet.check.getRange(output_row, 1, output_values.length, output_values[0].length).setValues(output_values);
+}
+
+/**
+ * Helper function to add conditional check item based on 'あり' condition
+ */
+function addConditionalCheckItem(checkItems, itemName, requestArray, conditionKey, trueValue = 1, falseValue = '') {
+  const temp_value = get_quotation_request_value(requestArray, conditionKey) === 'あり' ? trueValue : falseValue;
+  checkItems.push({itemname: itemName, value: temp_value});
+  return temp_value;
+}
+
+/**
+ * Helper function to add check item based on trial type
+ */
+function addTrialTypeCheckItem(checkItems, itemName, requestArray, properties, investigatorValue, otherValue = '') {
+  const trialType = get_quotation_request_value(requestArray, '試験種別');
+  const temp_value = trialType === properties.getProperty('investigator_initiated_trial') ? investigatorValue : otherValue;
+  checkItems.push({itemname: itemName, value: temp_value});
+  return temp_value;
 }
 /**
  * In the Total sheet, compare the total to the vertical total.
