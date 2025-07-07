@@ -66,8 +66,9 @@ function check_output_values() {
                                 footer:'（金額）'};
   total_checkitems.push({itemname:'プロトコルレビュー・作成支援', value:1});  
   total_checkitems.push({itemname:'検討会実施（TV会議等）', value:4}); 
-  let temp_name = 'PMDA相談資料作成支援';
+  let temp_name; 
   let temp_value;
+  temp_name = 'PMDA相談資料作成支援';
   if (get_quotation_request_value(array_quotation_request, temp_name) == 'あり'){
     temp_value = 1;
   } else {
