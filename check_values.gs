@@ -685,6 +685,7 @@ function createMiscellaneousItems_() {
   ];
 }
 }
+
 /**
  * Compare the total amount to the vertical total in the Total sheet
  * @return {Array} Array with [status, message] where status is 'OK' or 'NG:...'
