@@ -684,7 +684,6 @@ function createMiscellaneousItems_() {
     {itemname: '中央診断謝金', value: ''}
   ];
 }
-}
 
 /**
  * Compare the total amount to the vertical total in the Total sheet
