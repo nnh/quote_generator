@@ -371,8 +371,9 @@ function check_output_values() {
   total_checkitems.push({itemname:'翻訳', value:''});  
   total_checkitems.push({itemname:'CDISC対応費', value:''});  
   total_checkitems.push({itemname:'中央診断謝金', value:''});  
+  let total_ammount;
   if (get_quotation_request_value(array_quotation_request, '研究協力費、負担軽減費配分管理') == 'あり'){
-    let total_ammount = get_quotation_request_value(array_quotation_request, '研究協力費、負担軽減費');
+    total_ammount = get_quotation_request_value(array_quotation_request, '研究協力費、負担軽減費');
   } else {
     total_ammount = 0;
   }
