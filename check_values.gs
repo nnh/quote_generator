@@ -878,12 +878,3 @@ function compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_() {
     return ['NG：エラーが発生しました', `割引比較でエラー: ${error.message}`];
   }
 }
-function compareTotal2Total3SheetVerticalTotalToHorizontalTotal_(){
-  const cp = new CompareTotal2Total3SheetVerticalTotalToHorizontal;
-  return cp.compareTotal();
-}
-function compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_(){
-  const cp = new CompareTotal2Total3SheetVerticalTotalToHorizontal;
-  const res = cp.compareDiscountTotal();
-  return [res.every(x => x) ? 'OK' : 'NG', 'Total2, Total3の縦計*特別値引率と特別値引後合計の横計のチェック'];
-}
