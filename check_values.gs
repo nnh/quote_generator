@@ -310,7 +310,7 @@ function buildCheckItems(array_quotation_request, get_s_p, sheet, trialPeriods, 
     temp_name = 'CSRの作成支援';
     temp_value = 1;
   } else {
-    temp_name = '研究結果報告書作成支援';
+    temp_name = '研究結果報告書の作成';
     if (get_quotation_request_value(array_quotation_request, '研究結果報告書作成支援') == 'あり'){
       temp_value = 1;
     } else {
@@ -388,11 +388,7 @@ function buildCheckItems(array_quotation_request, get_s_p, sheet, trialPeriods, 
   let temp_total_amount;
   if (insuranceFee > 0){    
     temp_value = 1;
-    if (trial_year > 0) {
-      temp_total_amount = insuranceFee * trial_year;
-    } else {
-      temp_total_amount = insuranceFee * MAX_INSURANCE_MULTIPLIER;
-    }
+    temp_total_amount = insuranceFee;
   } else {
     temp_value = '';
     temp_total_amount = 0;
@@ -405,9 +401,9 @@ function buildCheckItems(array_quotation_request, get_s_p, sheet, trialPeriods, 
   temp_name = '治験薬運搬';
   if (get_quotation_request_value(array_quotation_request, temp_name) == 'あり'){
     if (trial_year > 0) {
-      temp_value = trial_year;
+      temp_value = facilities_value * trial_year;
     } else {
-      temp_value = trial_ceil_year;
+      temp_value = facilities_value;
     }
   } else {
     temp_value = '';
@@ -432,7 +428,7 @@ function buildCheckItems(array_quotation_request, get_s_p, sheet, trialPeriods, 
   } else {
     total_amount = 0;
   }
-  total_amount_checkitems.push({itemname:'研究協力費、負担軽減費', value:total_amount});
+  total_amount_checkitems.push({itemname:'研究協力費', value:total_amount});
   
   return { total_checkitems, total_amount_checkitems, target_total };
 }
