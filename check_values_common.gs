@@ -32,9 +32,9 @@ function check_itemName_and_value(target, item_name, value_ok){
   
   if (actualValue != value_ok) {
     return ['NG：値が想定と異なる', `${resultMessage}, 実際の値:${actualValue}`];
+  } else {
+    return ['OK', `${resultMessage}, 実際の値:${actualValue}`];
   }
-  
-  return ['OK', resultMessage];
 }
 /**
  * Get the total amount from a target sheet based on item and column names
