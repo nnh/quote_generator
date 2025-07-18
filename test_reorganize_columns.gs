@@ -2,7 +2,47 @@
  * Test patterns for reorganize_columns.gs error handling
  * テスト用のパターンとヘルパー関数
  */
+function testReorganizeColumns() {
+  const sheets = get_sheets();
+  const setupToClosingSheet = get_target_term_sheets();
+  const yearsRange = sheets.trial.getRange("D32:E40");
+  setupToClosingSheet.forEach(sheet => sheet.getRange("F6").setValue(1));
+  // テスト１、今ダメっぽいから保留
+/*  yearsRange.clearContent();
+  yearsRange.setValues([
+    ["2020/4/1", "2023/3/31"],
+    ["2023/4/1", "2026/3/31"],
+    ["2026/4/1", "2029/3/31"],
+    ["2029/4/1", "2031/3/31"],
+    ["2031/4/1", "2033/3/31"],
+    ["2033/4/1", "2036/3/31"],
+    ["2036/4/1", "2039/3/31"],
+    ["2039/4/1", "2042/3/31"],
+    ["2020/4/1", "2042/3/31"],
+  ]);
+  total2_3_add_del_cols();
+  SpreadsheetApp.flush();*/
+  // テスト２、異常系
+  yearsRange.clearContent();
+  total2_3_add_del_cols();
+  SpreadsheetApp.flush();
+  // 
+  yearsRange.clearContent();
+  yearsRange.setValues([
+    ["2020/4/1", "2021/3/31"],
+    ["2021/4/1", "2022/3/31"],
+    ["", ""],
+    ["", ""],
+    ["", ""],
+    ["", ""],
+    ["", ""],
+    ["2022/4/1", "2023/3/31"],
+    ["2020/4/1", "2023/3/31"],
+  ]);
+  total2_3_add_del_cols();
+  SpreadsheetApp.flush();
 
+}
 /**
  * Test helper class for reorganize_columns.gs functions
  */

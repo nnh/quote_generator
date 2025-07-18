@@ -303,6 +303,8 @@ function show_hidden_cols(target_sheet){
         const value = temp_range.getValue();
         if (typeof value === 'number') {
           value > 0 ? target_sheet.unhideColumn(temp_range) : target_sheet.hideColumn(temp_range);
+        } else {
+          target_sheet.hideColumn(temp_range);
         }
       }
     }
@@ -540,20 +542,21 @@ function extract_target_sheet(){
         console.warn('Empty total sheet name found');
         return res;
       }
-      
-      total_foot_T.forEach(foot => {
+      // Total3は_nmc, _oscrが存在しない
+      const sheetsToAdd = total_foot_T.filter((_, idx) => {
+        return !(total === total3_sheet_name.toLowerCase() && idx > 0);
+      })
+      .map(foot => {
         const sheet_key = total + foot;
         if (sheet[sheet_key]) {
-          res.push(sheet[sheet_key]);
-        } else {
-          console.warn(`Sheet "${sheet_key}" not found`);
+          return sheet[sheet_key];
         }
-      });
-      
-      // total2_*, total3_* 存在しないシートを対象外にする
-      return res.filter(x => x != null);
+        console.warn(`Sheet "${sheet_key}" not found`);
+        return null; // 存在しない場合はnullを返しておく
+      })
+      .filter(sheetObject => sheetObject !== null);
+      return res.concat(sheetsToAdd);
     }, []);
-    
     if (target_sheets.length === 0) {
       console.warn('No target sheets found');
     }
