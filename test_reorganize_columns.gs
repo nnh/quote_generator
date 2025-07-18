@@ -293,6 +293,7 @@ function testReorganizeColumnsErrorHandling() {
  */
 function testColumnOperationScenarios() {
   console.log('🧪 通常操作テスト開始 (Normal operation test starting)');
+  console.log('⚠️  このテスト中に表示されるワーニングは期待される動作です (Warnings during this test are expected behavior)');
   console.log('Testing column operation scenarios...');
   
   try {
@@ -301,6 +302,7 @@ function testColumnOperationScenarios() {
     
     // Test normal operation
     console.log('Testing normal init_cols operation...');
+    console.log('注意: Setup/Closingシートが見つからないワーニングは正常な動作です (Note: Setup/Closing sheet warnings are normal behavior)');
     addDel.init_cols();
     console.log('init_cols completed successfully');
     
