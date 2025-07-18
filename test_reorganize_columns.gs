@@ -244,6 +244,8 @@ class TestReorganizeColumns {
    */
   runAllTests() {
     console.log('Starting reorganize_columns.gs error handling tests...');
+    console.log('注意: 以下のエラーとワーニングは意図的なテストの一部です (Note: The following errors and warnings are intentional test behavior)');
+    console.log('='.repeat(80));
     
     this.testAddDelColumnsWithNullSheet();
     this.testAddTargetSetterValidation();
@@ -254,6 +256,9 @@ class TestReorganizeColumns {
     this.testRecursiveLoopPrevention();
     this.testInitColsErrorHandling();
     this.testAddColsErrorHandling();
+    
+    console.log('='.repeat(80));
+    console.log('テスト完了 - 上記のエラー/ワーニングは期待される動作です (Test completed - above errors/warnings are expected behavior)');
     
     const summary = this.getSummary();
     console.log(`Tests completed: ${summary.passed}/${summary.total} passed`);
@@ -273,14 +278,21 @@ class TestReorganizeColumns {
  * Main test function to run all reorganize_columns tests
  */
 function testReorganizeColumnsErrorHandling() {
+  console.log('🧪 エラーハンドリングテスト開始 (Error handling test starting)');
+  console.log('⚠️  これから表示されるエラーとワーニングは全て意図的なテストです (All upcoming errors and warnings are intentional tests)');
+  
   const tester = new TestReorganizeColumns();
-  return tester.runAllTests();
+  const result = tester.runAllTests();
+  
+  console.log('✅ エラーハンドリングテスト完了 (Error handling test completed)');
+  return result;
 }
 
 /**
  * Test specific scenarios for column operations
  */
 function testColumnOperationScenarios() {
+  console.log('🧪 通常操作テスト開始 (Normal operation test starting)');
   console.log('Testing column operation scenarios...');
   
   try {
@@ -297,6 +309,7 @@ function testColumnOperationScenarios() {
     addDel.add_target = ['Test Header', 'Test Value', 3];
     console.log('add_target assignment completed successfully');
     
+    console.log('✅ 通常操作テスト完了 (Normal operation test completed)');
     return true;
   } catch (error) {
     console.error('Column operation test failed:', error.toString());
@@ -308,12 +321,14 @@ function testColumnOperationScenarios() {
  * Test the complete workflow
  */
 function testCompleteWorkflow() {
+  console.log('🧪 完全ワークフローテスト開始 (Complete workflow test starting)');
+  console.log('⚠️  このテスト中に表示されるワーニングは期待される動作です (Warnings during this test are expected behavior)');
   console.log('Testing complete reorganize_columns workflow...');
   
   try {
     // Test the main function with error handling
     total2_3_add_del_cols();
-    console.log('Complete workflow test completed');
+    console.log('✅ 完全ワークフローテスト完了 (Complete workflow test completed)');
     return true;
   } catch (error) {
     console.error('Complete workflow test failed:', error.toString());
