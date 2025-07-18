@@ -2,11 +2,11 @@ class SetTestValues{
   constructor(){
     const scriptProperties = PropertiesService.getScriptProperties();
     this.trialYearsStartRow = parseInt(scriptProperties.getProperty('trial_setup_row'));
-    this.trialYearsStartCol = parseInt(scriptProperties.getProperty('trial_start_date_col'));
-    this.trialYearsDiscountCol = parseInt(scriptProperties.getProperty('trial_discount_col'));
-    this.trialYearsDiscountRateCol = parseInt(scriptProperties.getProperty('trial_discount_rate_col'));
-    this.const_itemsDiscount = parseInt(scriptProperties.getProperty('const_itemsDiscount'));
-    this.constDiscountAllPeriodRangeAddr = scriptProperties.getProperty('const_discount_all_period_range_addr');
+    this.trialYearsStartCol = parseInt(scriptProperties.getProperty('trial_start_col'));
+    this.trialYearsDiscountCol = 7;
+    this.trialYearsDiscountRateCol = 8;
+    this.const_itemsDiscount = 1100000;
+    this.constDiscountAllPeriodRangeAddr = 'B46';
   }
   
   setTestValue(targetRange, setValue){

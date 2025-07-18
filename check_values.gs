@@ -271,7 +271,7 @@ function buildCheckItems(array_quotation_request, get_s_p, sheet, trialPeriods, 
     temp_name = '中間解析プログラム作成、解析実施（シングル）';
   }
   if (get_quotation_request_value(array_quotation_request, '中間解析業務の依頼') == 'あり'){
-    temp_value = get_quotation_request_value(array_quotation_request, '統計解析に必要な図表数');
+    temp_value = get_quotation_request_value(array_quotation_request, '中間解析に必要な図表数');
   } else {
     temp_value = '';
   }
