@@ -42,7 +42,10 @@ function setTestValuesAndCompare_(dateArray, testIdx, total2SumAddress) {
 }
 function testReorganizeColumns() {
   const setupToClosingSheet = get_target_term_sheets();
-  setupToClosingSheet.forEach(sheet => sheet.getRange("F6").setValue(1));
+  setupToClosingSheet.forEach((sheet, idx) => {
+    sheet.getRange("F:F").clearContent();
+    sheet.getRange("F7").setValue(idx + 1)
+  });
   // 正常系
   let testIndex = 1;
   const test1Values = [

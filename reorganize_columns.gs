@@ -152,14 +152,17 @@ class Add_del_columns {
       }
       
       duplication_col_numbers.sort((x, y) => y - x);
-      for (let i = 0; i < duplication_col_numbers.length; i++) {
-        const colNum = duplication_col_numbers[i];
-        if (colNum > 0 && colNum <= this.sheet.getLastColumn()) {
-          this.sheet.deleteColumn(colNum);
+      
+      const batchGroups = this._groupConsecutiveColumns(duplication_col_numbers, false);
+      
+      batchGroups.forEach(group => {
+        const startCol = group.start - group.count + 1;
+        if (startCol > 0 && startCol <= this.sheet.getLastColumn()) {
+          this.sheet.deleteColumns(startCol, group.count);
         } else {
-          console.warn(`Invalid column number for deletion: ${colNum}`);
+          console.warn(`Invalid column range for batch deletion: start=${startCol}, count=${group.count}`);
         }
-      }      
+      });      
     } catch (error) {
       console.error('Error in remove_col:', error.toString());
     }
@@ -180,23 +183,27 @@ class Add_del_columns {
         return;
       }
       
-      const empty_idx = header_t.indexOf('');
-      if (empty_idx < 0) {
+      // Collect all empty column indices
+      const emptyColumns = [];
+      header_t.forEach((header, index) => {
+        if (header === '') {
+          emptyColumns.push(index + 1);
+        }
+      });
+      
+      if (emptyColumns.length === 0) {
         return;
       }
       
-      const col_to_delete = empty_idx + 1;
-      if (col_to_delete > 0 && col_to_delete <= this.sheet.getLastColumn()) {
-        this.sheet.deleteColumn(col_to_delete);
-        
-        // 再帰呼び出しの前に無限ループ防止チェック
-        const new_header_t = this.get_setup_closing_range();
-        if (new_header_t && JSON.stringify(new_header_t) !== JSON.stringify(header_t)) {
-          this.remove_cols_without_header();
+      const batchGroups = this._groupConsecutiveColumns(emptyColumns, true);
+      
+      batchGroups.reverse().forEach(group => {
+        if (group.start > 0 && group.start <= this.sheet.getLastColumn()) {
+          this.sheet.deleteColumns(group.start, group.count);
+        } else {
+          console.warn(`Invalid column range for batch deletion: start=${group.start}, count=${group.count}`);
         }
-      } else {
-        console.warn(`Invalid column number for deletion: ${col_to_delete}`);
-      }
+      });
     } catch (error) {
       console.error('Error in remove_cols_without_header:', error.toString());
     }
@@ -255,26 +262,59 @@ class Add_del_columns {
         return;
       }
       
-      this.sheet.insertColumnAfter(col_number);
+      // Calculate how many columns need to be added
+      const columns_to_add = this.target_columns_count - columns_count;
+      if (columns_to_add <= 0) {
+        return;
+      }
       
+      // Batch insert all needed columns at once
+      this.sheet.insertColumnsAfter(col_number, columns_to_add);
+      
+      // Copy the source column to all newly inserted columns
       const lastRow = this.sheet.getLastRow();
       if (lastRow > 0) {
         const sourceRange = this.sheet.getRange(1, col_number, lastRow, 1);
-        const targetRange = this.sheet.getRange(1, col_number + 1, lastRow, 1);
-        sourceRange.copyTo(targetRange);
-      }
-      
-      // 再帰呼び出しの前に無限ループ防止チェック
-      const new_header_t = this.get_setup_closing_range();
-      if (new_header_t) {
-        const new_columns_count = new_header_t.filter(x => x == this.target_head).length;
-        if (new_columns_count < this.target_columns_count && new_columns_count > columns_count) {
-          this.add_cols();
+        for (let i = 1; i <= columns_to_add; i++) {
+          const targetRange = this.sheet.getRange(1, col_number + i, lastRow, 1);
+          sourceRange.copyTo(targetRange);
         }
       }
     } catch (error) {
       console.error('Error in add_cols:', error.toString());
     }
+  }
+  /**
+   * Groups consecutive column numbers for batch operations
+   * @param {Array<number>} columnNumbers Array of column numbers to group
+   * @param {boolean} ascending Whether to group in ascending order (for insertions) or descending (for deletions)
+   * @return {Array<{start: number, count: number}>} Array of batch groups
+   */
+  _groupConsecutiveColumns(columnNumbers, ascending = true) {
+    if (columnNumbers.length === 0) return [];
+    
+    const sorted = ascending ? 
+      [...columnNumbers].sort((a, b) => a - b) : 
+      [...columnNumbers].sort((a, b) => b - a);
+    
+    const groups = [];
+    let currentGroup = { start: sorted[0], count: 1 };
+    
+    for (let i = 1; i < sorted.length; i++) {
+      const expected = ascending ? 
+        currentGroup.start + currentGroup.count : 
+        currentGroup.start - currentGroup.count;
+      
+      if (sorted[i] === expected) {
+        currentGroup.count++;
+      } else {
+        groups.push(currentGroup);
+        currentGroup = { start: sorted[i], count: 1 };
+      }
+    }
+    groups.push(currentGroup);
+    
+    return groups;
   }
 }
 /**
