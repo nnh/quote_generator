@@ -1,14 +1,48 @@
 /**
+* Configuration cache class to optimize PropertiesService access
+*/
+class ConfigCache {
+  constructor() {
+    try {
+      const scriptProperties = PropertiesService.getScriptProperties();
+      if (!scriptProperties) {
+        console.error('Failed to get script properties');
+        this.isValid = false;
+        return;
+      }
+      
+      this.setupSheetName = scriptProperties.getProperty('setup_sheet_name');
+      this.closingSheetName = scriptProperties.getProperty('closing_sheet_name');
+      this.total2SheetName = scriptProperties.getProperty('total2_sheet_name');
+      this.total3SheetName = scriptProperties.getProperty('total3_sheet_name');
+      this.nameNmc = scriptProperties.getProperty('name_nmc');
+      this.nameOscr = scriptProperties.getProperty('name_oscr');
+      
+      this.isValid = true;
+    } catch (error) {
+      console.error('Error initializing ConfigCache:', error.toString());
+      this.isValid = false;
+    }
+  }
+  
+  hasRequiredProperties() {
+    return this.isValid && this.setupSheetName && this.closingSheetName && 
+           this.total2SheetName && this.total3SheetName;
+  }
+}
+
+/**
 * Setup~Closingの間で見出しが空白の行は削除する。
 * @param {sheet} sheet Total2/Total3を指定
 * @param {number} term_row Total2/Total3シートの年度の上の行
 * @return {boolean}
 */
 class Add_del_columns {
-  constructor(sheet) {
+  constructor(sheet, configCache = null) {
     this.sheet = sheet;
     this.term_row = 2;
     this.dummy_str = '***dummy***';
+    this.configCache = configCache || new ConfigCache();
   }
   /**
   * 見出し行の文字列を取得する。Setupより左、Closingより右の情報はダミー文字列に置き換える。
@@ -32,20 +66,21 @@ class Add_del_columns {
         return null;
       }
       
-      const get_s_p = PropertiesService.getScriptProperties();
-      const setup_sheet_name = get_s_p.getProperty('setup_sheet_name');
-      const closing_sheet_name = get_s_p.getProperty('closing_sheet_name');
+      if (!this.configCache.isValid) {
+        console.error('ConfigCache is not valid');
+        return null;
+      }
       
-      if (!setup_sheet_name || !closing_sheet_name) {
+      if (!this.configCache.hasRequiredProperties()) {
         console.error('Setup or Closing sheet name property is not set');
         return null;
       }
       
-      const setup_idx = header_t.indexOf(setup_sheet_name);
-      const closing_idx = header_t.indexOf(closing_sheet_name);
+      const setup_idx = header_t.indexOf(this.configCache.setupSheetName);
+      const closing_idx = header_t.indexOf(this.configCache.closingSheetName);
       
       if (setup_idx < 0 || closing_idx < 0){
-        console.warn(`Setup sheet (${setup_sheet_name}) or Closing sheet (${closing_sheet_name}) not found in header`);
+        console.warn(`Setup sheet (${this.configCache.setupSheetName}) or Closing sheet (${this.configCache.closingSheetName}) not found in header`);
         return null;
       }
       
@@ -100,8 +135,16 @@ class Add_del_columns {
       
       let duplication_col_numbers = duplication_cols.map(x => {
         const idx = header_t.indexOf(x);
-        return idx >= 0 ? idx + 1 : null;
-      }).filter(x => x !== null);
+        let removeColIndexes = [];
+        for (let col = idx + 1; col <= header_t.length; col++) {
+          if (x === header_t[col]) {
+            removeColIndexes.push(col);
+          } else {
+            break;
+          }
+        }
+        return(removeColIndexes);
+      }).flat();
       
       if (duplication_col_numbers.length === 0) {
         console.warn('No valid column numbers found for deletion');
@@ -109,21 +152,14 @@ class Add_del_columns {
       }
       
       duplication_col_numbers.sort((x, y) => y - x);
-      
-      for (let i = duplication_col_numbers.length - 1; i >= 0; i--){
+      for (let i = 0; i < duplication_col_numbers.length; i++) {
         const colNum = duplication_col_numbers[i];
         if (colNum > 0 && colNum <= this.sheet.getLastColumn()) {
           this.sheet.deleteColumn(colNum);
         } else {
           console.warn(`Invalid column number for deletion: ${colNum}`);
         }
-      }
-      
-      // 再帰呼び出しの前に無限ループ防止チェック
-      const new_header_t = this.get_setup_closing_range();
-      if (new_header_t && JSON.stringify(new_header_t) !== JSON.stringify(header_t)) {
-        this.remove_col();
-      }
+      }      
     } catch (error) {
       console.error('Error in remove_col:', error.toString());
     }
@@ -247,28 +283,28 @@ class Add_del_columns {
 * @param {sheet} target_sheet シート名
 * @return none
 */
-function show_hidden_cols(target_sheet){
+function show_hidden_cols(target_sheet, configCache = null){
   try {
     if (!target_sheet) {
       console.error('Target sheet is not provided');
       return;
     }
     
-    const get_s_p = PropertiesService.getScriptProperties();
-    if (!get_s_p) {
+    const cache = configCache || new ConfigCache();
+    if (!cache.isValid) {
       console.error('Failed to get script properties');
       return;
     }
     
     // 「合計」行を取得
-    const goukei_row = get_goukei_row(target_sheet);
+    const goukei_row = get_goukei_row(target_sheet, cache);
     if (!goukei_row || goukei_row <= 0) {
       console.warn('Could not find goukei row');
       return;
     }
     
     // 「合計」列を取得
-    const goukei_col = get_years_target_col(target_sheet, '合計');
+    const goukei_col = get_years_target_col(target_sheet, '合計', cache);
     if (!goukei_col || goukei_col <= 0) {
       console.warn('Could not find goukei column');
       return;
@@ -282,15 +318,14 @@ function show_hidden_cols(target_sheet){
       return;
     }
     
-    const setup_sheet_name = get_s_p.getProperty('setup_sheet_name');
-    if (!setup_sheet_name) {
+    if (!cache.setupSheetName) {
       console.error('Setup sheet name property not found');
       return;
     }
     
-    const setup_idx = header_t.indexOf(setup_sheet_name);
+    const setup_idx = header_t.indexOf(cache.setupSheetName);
     if (setup_idx < 0) {
-      console.warn(`Setup sheet "${setup_sheet_name}" not found in header`);
+      console.warn(`Setup sheet "${cache.setupSheetName}" not found in header`);
       return;
     }
     
@@ -314,12 +349,13 @@ function show_hidden_cols(target_sheet){
 }
 function total2_3_show_hidden_cols(){
   try {
-    const target_sheets = extract_target_sheet();
+    const cache = new ConfigCache();
+    const target_sheets = extract_target_sheet(cache);
     if (!target_sheets || target_sheets.length === 0) {
       console.warn('No target sheets found for show_hidden_cols');
       return;
     }
-    target_sheets.forEach(x => show_hidden_cols(x));
+    target_sheets.forEach(x => show_hidden_cols(x, cache));
   } catch (error) {
     console.error('Error in total2_3_show_hidden_cols:', error.toString());
   }
@@ -330,7 +366,7 @@ function total2_3_show_hidden_cols(){
 * @param {string} target_str 検索する文字列
 * @return {number}
 */
-function get_years_target_col(sheet, target_str){
+function get_years_target_col(sheet, target_str, configCache = null){
   try {
     if (!sheet) {
       console.error('Sheet is not provided');
@@ -342,23 +378,15 @@ function get_years_target_col(sheet, target_str){
       return null;
     }
     
-    const get_s_p = PropertiesService.getScriptProperties();
-    if (!get_s_p) {
-      console.error('Failed to get script properties');
-      return null;
-    }
-    
-    const sheet_name = sheet.getName();
-    const total2_sheet_name = get_s_p.getProperty('total2_sheet_name');
-    const total3_sheet_name = get_s_p.getProperty('total3_sheet_name');
-    
-    if (!total2_sheet_name || !total3_sheet_name) {
+    const cache = configCache || new ConfigCache();
+    if (!cache.isValid || !cache.total2SheetName || !cache.total3SheetName) {
       console.error('Total2 or Total3 sheet name properties not found');
       return null;
     }
     
-    const target_row = sheet_name.includes(total2_sheet_name) ? 4 
-                     : sheet_name.includes(total3_sheet_name) ? 3 
+    const sheet_name = sheet.getName();
+    const target_row = sheet_name.includes(cache.total2SheetName) ? 4 
+                     : sheet_name.includes(cache.total3SheetName) ? 3 
                      : null;
     
     if (!target_row){
@@ -390,30 +418,22 @@ function get_years_target_col(sheet, target_str){
 * @param {sheet} sheet Total2/Total3を指定
 * @return {number}
 */
-function get_goukei_row(sheet){
+function get_goukei_row(sheet, configCache = null){
   try {
     if (!sheet) {
       console.error('Sheet is not provided');
       return null;
     }
     
-    const get_s_p = PropertiesService.getScriptProperties();
-    if (!get_s_p) {
-      console.error('Failed to get script properties');
-      return null;
-    }
-    
-    const sheet_name = sheet.getName();
-    const total2_sheet_name = get_s_p.getProperty('total2_sheet_name');
-    const total3_sheet_name = get_s_p.getProperty('total3_sheet_name');
-    
-    if (!total2_sheet_name || !total3_sheet_name) {
+    const cache = configCache || new ConfigCache();
+    if (!cache.isValid || !cache.total2SheetName || !cache.total3SheetName) {
       console.error('Total2 or Total3 sheet name properties not found');
       return null;
     }
     
-    const target_col = sheet_name.includes(total2_sheet_name) ? 2 
-                     : sheet_name.includes(total3_sheet_name) ? 2 
+    const sheet_name = sheet.getName();
+    const target_col = sheet_name.includes(cache.total2SheetName) ? 2 
+                     : sheet_name.includes(cache.total3SheetName) ? 2 
                      : null;
     
     if (!target_col){
@@ -459,7 +479,8 @@ function total2_3_add_del_cols(){
     //　フィルタを解除し全行表示する
     filtervisible();
     
-    const target_sheets = extract_target_sheet();
+    const cache = new ConfigCache();
+    const target_sheets = extract_target_sheet(cache);
     if (!target_sheets || target_sheets.length === 0) {
       console.error('No target sheets found for column operations');
       return;
@@ -468,7 +489,7 @@ function total2_3_add_del_cols(){
     // 列を初期化する
     target_sheets.forEach(x => {
       if (x) {
-        new Add_del_columns(x).init_cols();
+        new Add_del_columns(x, cache).init_cols();
       }
     });
     
@@ -484,7 +505,7 @@ function total2_3_add_del_cols(){
     if (add_columns.length > 0){
       target_sheets.forEach(x => {
         if (x) {
-          const add_del = new Add_del_columns(x);
+          const add_del = new Add_del_columns(x, cache);
           add_columns.forEach(y => {
             if (y && Array.isArray(y)) {
               add_del.add_target = y;
@@ -510,10 +531,10 @@ function total2_3_add_del_cols(){
 * @param none
 * @return {[sheet]}
 */
-function extract_target_sheet(){
+function extract_target_sheet(configCache = null){
   try {
-    const get_s_p = PropertiesService.getScriptProperties();
-    if (!get_s_p) {
+    const cache = configCache || new ConfigCache();
+    if (!cache.isValid) {
       console.error('Failed to get script properties');
       return [];
     }
@@ -524,18 +545,13 @@ function extract_target_sheet(){
       return [];
     }
     
-    const total2_sheet_name = get_s_p.getProperty('total2_sheet_name');
-    const total3_sheet_name = get_s_p.getProperty('total3_sheet_name');
-    const name_nmc = get_s_p.getProperty('name_nmc');
-    const name_oscr = get_s_p.getProperty('name_oscr');
-    
-    if (!total2_sheet_name || !total3_sheet_name) {
+    if (!cache.total2SheetName || !cache.total3SheetName) {
       console.error('Total2 or Total3 sheet name properties not found');
       return [];
     }
     
-    const total_T = [total2_sheet_name.toLowerCase(), total3_sheet_name.toLowerCase()];
-    const total_foot_T = ['', name_nmc ? '_' + name_nmc : '', name_oscr ? '_' + name_oscr : ''].filter(x => x !== null);
+    const total_T = [cache.total2SheetName.toLowerCase(), cache.total3SheetName.toLowerCase()];
+    const total_foot_T = ['', cache.nameNmc ? '_' + cache.nameNmc : '', cache.nameOscr ? '_' + cache.nameOscr : ''].filter(x => x !== null);
     
     const target_sheets = total_T.reduce((res, total) => {
       if (!total) {
@@ -544,7 +560,7 @@ function extract_target_sheet(){
       }
       // Total3は_nmc, _oscrが存在しない
       const sheetsToAdd = total_foot_T.filter((_, idx) => {
-        return !(total === total3_sheet_name.toLowerCase() && idx > 0);
+        return !(total === cache.total3SheetName.toLowerCase() && idx > 0);
       })
       .map(foot => {
         const sheet_key = total + foot;
