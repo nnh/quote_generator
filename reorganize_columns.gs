@@ -135,8 +135,16 @@ class Add_del_columns {
       
       let duplication_col_numbers = duplication_cols.map(x => {
         const idx = header_t.indexOf(x);
-        return idx >= 0 ? idx + 1 : null;
-      }).filter(x => x !== null);
+        let removeColIndexes = [];
+        for (let col = idx + 1; col <= header_t.length; col++) {
+          if (x === header_t[col]) {
+            removeColIndexes.push(col);
+          } else {
+            break;
+          }
+        }
+        return(removeColIndexes);
+      }).flat();
       
       if (duplication_col_numbers.length === 0) {
         console.warn('No valid column numbers found for deletion');
@@ -144,21 +152,14 @@ class Add_del_columns {
       }
       
       duplication_col_numbers.sort((x, y) => y - x);
-      
-      for (let i = duplication_col_numbers.length - 1; i >= 0; i--){
+      for (let i = 0; i < duplication_col_numbers.length; i++) {
         const colNum = duplication_col_numbers[i];
         if (colNum > 0 && colNum <= this.sheet.getLastColumn()) {
           this.sheet.deleteColumn(colNum);
         } else {
           console.warn(`Invalid column number for deletion: ${colNum}`);
         }
-      }
-      
-      // 再帰呼び出しの前に無限ループ防止チェック
-      const new_header_t = this.get_setup_closing_range();
-      if (new_header_t && JSON.stringify(new_header_t) !== JSON.stringify(header_t)) {
-        this.remove_col();
-      }
+      }      
     } catch (error) {
       console.error('Error in remove_col:', error.toString());
     }
