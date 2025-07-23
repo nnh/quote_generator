@@ -67,21 +67,32 @@ function testGetSetupClosingTermFunction() {
 
 /**
  * Create mock quotation request data for testing
- * Creates a simple mock data structure for the physician-initiated trial test
+ * Creates a 2D array structure matching A1:AQ2 getValues() format (2 rows, 43 columns)
  */
 function createMockQuotationRequestData_(trialType) {
   if (trialType === null || trialType === undefined) {
     return null;
   }
   
-  // Create mock data structure similar to actual quotation request
+  // Create 2D array structure matching A1:AQ2 range (2 rows, 43 columns A-AQ)
   const mockData = [];
   
-  // Add trial type row at the expected index
-  mockData[QuoteScriptConstants.TRIAL_TYPE_ROW] = ['', trialType];
+  // Row 1 (index 0) - Headers or first row data
+  const row1 = new Array(43).fill(''); // 43 columns from A to AQ
+  mockData.push(row1);
   
-  // Add research report support row (set to 'なし' for this simple test)
-  mockData[50] = ['', 'なし']; // Assuming research report support is at row 50
+  // Row 2 (index 1) - Data row containing trial type
+  const row2 = new Array(43).fill(''); // 43 columns from A to AQ
+  
+  // Set trial type at column B (index 1) in row 2
+  // This matches the expected structure where trial type is in the second column
+  row2[1] = trialType;
+  
+  // Set research report support to 'なし' at an appropriate column
+  // Assuming it's in a later column, using column C (index 2) for this test
+  row2[2] = 'なし';
+  
+  mockData.push(row2);
   
   return mockData;
 }
