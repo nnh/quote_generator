@@ -29,7 +29,7 @@ function testGetSetupClosingTermFunction() {
     console.log('📝 既存のプロパティをクリア');
     
     // Create mock quotation request data
-    const mockData = createMockQuotationRequestData_('医師主導治験');
+    const mockData = createMockQuotationRequestData_('医師主導治験', 'なし');
     console.log('📝 モックデータ作成完了');
     
     // Execute the function
@@ -45,7 +45,7 @@ function testGetSetupClosingTermFunction() {
     console.log(`  closing_term: ${actualClosing}`);
     
     // Validate results
-    if (actualSetup === '6' && actualClosing === '6') {
+    if (actualSetup === '6.0' && actualClosing === '6.0') {
       console.log('✅ テスト成功: 医師主導治験で両方の期間が6ヶ月に設定されました');
       console.log('⏰ テスト終了時刻: ' + new Date().toLocaleString('ja-JP'));
       return true;
@@ -69,7 +69,7 @@ function testGetSetupClosingTermFunction() {
  * Create mock quotation request data for testing
  * Creates a 2D array structure matching A1:AQ2 getValues() format (2 rows, 43 columns)
  */
-function createMockQuotationRequestData_(trialType) {
+function createMockQuotationRequestData_(trialType, reportSupport) {
   if (trialType === null || trialType === undefined) {
     return null;
   }
@@ -79,18 +79,14 @@ function createMockQuotationRequestData_(trialType) {
   
   // Row 1 (index 0) - Headers or first row data
   const row1 = new Array(43).fill(''); // 43 columns from A to AQ
+  row1[6] = "試験種別";
+  row1[12] = "研究結果報告書作成支援";
   mockData.push(row1);
   
   // Row 2 (index 1) - Data row containing trial type
   const row2 = new Array(43).fill(''); // 43 columns from A to AQ
-  
-  // Set trial type at column B (index 1) in row 2
-  // This matches the expected structure where trial type is in the second column
-  row2[1] = trialType;
-  
-  // Set research report support to 'なし' at an appropriate column
-  // Assuming it's in a later column, using column C (index 2) for this test
-  row2[2] = 'なし';
+  row2[6] = trialType;
+  row2[12] = reportSupport;
   
   mockData.push(row2);
   
