@@ -199,8 +199,8 @@ function register_script_property(){
   get_s_p.setProperty('trial_number_of_cases_row', 28);
   get_s_p.setProperty('trial_const_facilities_row', 29);
   get_s_p.setProperty('trial_comment_range', 'B12:B26');
-  get_s_p.setProperty('function_number_of_cases', '=' + get_s_p.getProperty('trial_sheet_name') + '!B' + parseInt(get_s_p.getProperty('trial_number_of_cases_row'))); 
-  get_s_p.setProperty('function_facilities', '=' + get_s_p.getProperty('trial_sheet_name') + '!B' + parseInt(get_s_p.getProperty('trial_const_facilities_row'))); 
+  get_s_p.setProperty('function_number_of_cases', '=Trial!B28'); 
+  get_s_p.setProperty('function_facilities', '=Trial!B29'); 
   get_s_p.setProperty('folder_id', '');
   get_s_p.setProperty('cost_of_prepare_quotation_request', '試験開始準備費用');
   get_s_p.setProperty('cost_of_registration_quotation_request', '症例登録毎の支払');  
@@ -210,14 +210,14 @@ function register_script_property(){
   get_s_p.setProperty('cost_of_report_item', '症例報告');
   get_s_p.setProperty('name_nmc', 'nmc');
   get_s_p.setProperty('name_oscr', 'oscr');
-  get_s_p.setProperty('quote_nmc_sheet_name', 'Quote_' + get_s_p.getProperty('name_nmc'));
-  get_s_p.setProperty('total_nmc_sheet_name', 'Total_' + get_s_p.getProperty('name_nmc'));
-  get_s_p.setProperty('total2_nmc_sheet_name', 'Total2_' + get_s_p.getProperty('name_nmc'));
-  get_s_p.setProperty('total3_nmc_sheet_name', 'Total3_' + get_s_p.getProperty('name_nmc'));
-  get_s_p.setProperty('quote_oscr_sheet_name', 'Quote_' + get_s_p.getProperty('name_oscr'));
-  get_s_p.setProperty('total_oscr_sheet_name', 'Total_' + get_s_p.getProperty('name_oscr'));
-  get_s_p.setProperty('total2_oscr_sheet_name', 'Total2_' + get_s_p.getProperty('name_oscr'));
-  get_s_p.setProperty('total3_oscr_sheet_name', 'Total3_' + get_s_p.getProperty('name_oscr'));
+  get_s_p.setProperty('quote_nmc_sheet_name', 'Quote_nmc');
+  get_s_p.setProperty('total_nmc_sheet_name', 'Total_nmc');
+  get_s_p.setProperty('total2_nmc_sheet_name', 'Total2_nmc');
+  get_s_p.setProperty('total3_nmc_sheet_name', 'Total3_nmc');
+  get_s_p.setProperty('quote_oscr_sheet_name', 'Quote_oscr');
+  get_s_p.setProperty('total_oscr_sheet_name', 'Total_oscr');
+  get_s_p.setProperty('total2_oscr_sheet_name', 'Total2_oscr');
+  get_s_p.setProperty('total3_oscr_sheet_name', 'Total3_oscr');
   get_s_p.setProperty('value_check_sheet_name', 'Check');
   get_s_p.setProperty('facilities_itemname', '実施施設数');
   get_s_p.setProperty('number_of_cases_itemname', '目標症例数');
@@ -240,8 +240,8 @@ function get_row_num_matched_value(target_sheet, target_col_num, target_value){
 * Set script properties and sheet protection permissions. Wait 10 seconds after setting the script properties.
 */
 function initial_process(){
-  const get_s_p = PropertiesService.getScriptProperties();
-  if (get_s_p.getProperty('quote_sheet_name') === null){
+  const cache = new ConfigCache();
+  if (!cache.isValid || cache.quoteSheetName === null){
     register_script_property();
     Utilities.sleep(10000);
   } else {

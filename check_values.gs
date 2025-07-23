@@ -152,7 +152,7 @@ function buildCheckItems(array_quotation_request, cache, sheet, trialPeriods, fa
   total_checkitems.push({itemname:'事務局運営（試験開始前）', value:office_bef_month});
   total_checkitems.push({itemname:'事務局運営（試験終了時）', value:office_count});
   
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.cache.investigatorInitiatedTrial){
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == cache.investigatorInitiatedTrial){
     temp_value = total_months;
   } else {
     temp_value = '';
@@ -162,7 +162,7 @@ function buildCheckItems(array_quotation_request, cache, sheet, trialPeriods, fa
   addConditionalCheckItem(total_checkitems, '症例検討会準備・実行', array_quotation_request, '症例検討会');
   
   temp_name = '薬剤対応';
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.cache.investigatorInitiatedTrial){
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == cache.investigatorInitiatedTrial){
     temp_value = facilities_value;
   } else {
     temp_value = '';
@@ -170,7 +170,7 @@ function buildCheckItems(array_quotation_request, cache, sheet, trialPeriods, fa
   total_checkitems.push({itemname:temp_name, value:temp_value});
   
   temp_name = 'PMDA対応、照会事項対応';
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.cache.investigatorInitiatedTrial){
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == cache.investigatorInitiatedTrial){
     temp_value = '';
   } else {
     temp_value = '';
@@ -180,7 +180,7 @@ function buildCheckItems(array_quotation_request, cache, sheet, trialPeriods, fa
   addTrialTypeCheckItem(total_checkitems, '監査対応', array_quotation_request, cache, 1);
   addTrialTypeCheckItem(total_checkitems, 'SOP一式、CTR登録案、TMF管理', array_quotation_request, cache, 1);
   
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.cache.investigatorInitiatedTrial){
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == cache.investigatorInitiatedTrial){
     temp_name = 'IRB承認確認、施設管理';
     temp_value = facilities_value;
   } else {
@@ -224,7 +224,7 @@ function buildCheckItems(array_quotation_request, cache, sheet, trialPeriods, fa
   total_checkitems.push({itemname:'DB作成・eCRF作成・バリデーション', value:1});  
   total_checkitems.push({itemname:'バリデーション報告書', value:1});  
   
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.cache.investigatorInitiatedTrial){
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == cache.investigatorInitiatedTrial){
     temp_name = '初期アカウント設定（施設・ユーザー）';
   } else {
     temp_name = '初期アカウント設定（施設・ユーザー）、IRB承認確認';
@@ -271,7 +271,7 @@ function buildCheckItems(array_quotation_request, cache, sheet, trialPeriods, fa
   } 
   total_checkitems.push({itemname:temp_name, value:temp_value});    
   
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.cache.investigatorInitiatedTrial){
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == cache.investigatorInitiatedTrial){
     temp_name = '中間解析プログラム作成、解析実施（ダブル）';
   } else {
     temp_name = '中間解析プログラム作成、解析実施（シングル）';
@@ -285,14 +285,14 @@ function buildCheckItems(array_quotation_request, cache, sheet, trialPeriods, fa
   
   addConditionalCheckItem(total_checkitems, '中間解析報告書作成（出力結果＋表紙）', array_quotation_request, '中間解析業務の依頼');  
   
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.cache.investigatorInitiatedTrial){
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == cache.investigatorInitiatedTrial){
     temp_name = '最終解析プログラム作成、解析実施（ダブル）';
   } else {
     temp_name = '最終解析プログラム作成、解析実施（シングル）';
   }
   if (get_quotation_request_value(array_quotation_request, '最終解析業務の依頼') == 'あり'){
     temp_value = get_quotation_request_value(array_quotation_request, '統計解析に必要な図表数');
-    if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.cache.investigatorInitiatedTrial && temp_value < MIN_ANALYSIS_TABLES){
+    if (get_quotation_request_value(array_quotation_request, '試験種別') == cache.investigatorInitiatedTrial && temp_value < MIN_ANALYSIS_TABLES){
       temp_value = MIN_ANALYSIS_TABLES;
     }
   } else {
@@ -302,7 +302,7 @@ function buildCheckItems(array_quotation_request, cache, sheet, trialPeriods, fa
   
   addConditionalCheckItem(total_checkitems, '最終解析報告書作成（出力結果＋表紙）', array_quotation_request, '最終解析業務の依頼');  
   
-  if (get_quotation_request_value(array_quotation_request, '試験種別') == get_s_p.cache.investigatorInitiatedTrial){
+  if (get_quotation_request_value(array_quotation_request, '試験種別') == cache.investigatorInitiatedTrial){
     temp_name = 'CSRの作成支援';
     temp_value = 1;
   } else {
@@ -468,9 +468,9 @@ function addConditionalCheckItem(checkItems, itemName, requestArray, conditionKe
 /**
  * Helper function to add check item based on trial type
  */
-function addTrialTypeCheckItem(checkItems, itemName, requestArray, properties, investigatorValue, otherValue = '') {
+function addTrialTypeCheckItem(checkItems, itemName, requestArray, cache, investigatorValue, otherValue = '') {
   const trialType = get_quotation_request_value(requestArray, '試験種別');
-  const temp_value = trialType === properties.getProperty('investigator_initiated_trial') ? investigatorValue : otherValue;
+  const temp_value = trialType === cache.investigatorInitiatedTrial ? investigatorValue : otherValue;
   checkItems.push({itemname: itemName, value: temp_value});
   return temp_value;
 }

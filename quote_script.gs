@@ -567,7 +567,7 @@ class SetSheetItemValues{
     const tempTerm = parseInt(cache.setupTerm);
     const targetTerm = tempTerm - this.trial_target_terms
     if (targetTerm > 0){
-      get_s_p.setProperty(property_name, targetTerm);
+      cache.scriptProperties.setProperty(property_name, targetTerm);
       return this.trial_target_terms;
     } else {
       return tempTerm;
@@ -612,7 +612,7 @@ class SetSheetItemValues{
       ['検討会実施（TV会議等）', 4],
       ['PMDA相談資料作成支援', get_count(get_quotation_request_value(this.array_quotation_request, 'PMDA相談資料作成支援'), 'あり', 1)],
       ['AMED申請資料作成支援', get_count(get_quotation_request_value(this.array_quotation_request, 'AMED申請資料作成支援'), 'あり', 1)],
-      ['特定臨床研究法申請資料作成支援', get_count(get_s_p.getProperty('trial_type_value'), get_s_p.getProperty('specified_clinical_trial'), get_s_p.getProperty('function_facilities'))],
+      ['特定臨床研究法申請資料作成支援', get_count(cache.trialTypeValue, cache.specifiedClinicalTrial, cache.scriptProperties.getProperty('function_facilities'))],
       ['キックオフミーティング準備・実行', get_count(get_quotation_request_value(this.array_quotation_request, 'キックオフミーティング'), 'あり', 1)],
       ['SOP一式、CTR登録案、TMF管理', sop],
       ['事務局運営（試験開始前）', clinical_trials_office],
@@ -626,7 +626,7 @@ class SetSheetItemValues{
       [set_accounts, dm_irb],
       ['入力の手引作成', 1],
       ['外部監査費用', get_count_more_than(get_quotation_request_value(this.array_quotation_request, '監査対象施設数'), 0, 1)],
-      [get_s_p.getProperty('cost_of_prepare_item'), get_count(get_quotation_request_value(this.array_quotation_request, get_s_p.getProperty('cost_of_prepare_quotation_request')), 'あり', get_s_p.getProperty('function_facilities'))],
+      [cache.costOfPrepareItem, get_count(get_quotation_request_value(this.array_quotation_request, cache.costOfPrepareQuotationRequest), 'あり', cache.scriptProperties.getProperty('function_facilities'))],
       ['保険料', get_count_more_than(get_quotation_request_value(this.array_quotation_request, '保険料'), 0, 1)],
       ['治験薬管理（中央）', get_count(get_quotation_request_value(this.array_quotation_request, '治験薬管理'), 'あり', 1)]
     ];
@@ -651,7 +651,7 @@ class SetSheetItemValues{
     let closing_meeting = '';
     let pmda_support = '';
     let audit_support = '';
-    if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
+    if (cache.trialTypeValue == cache.investigatorInitiatedTrial){
       csr = 'CSRの作成支援';
       csr_count = 1;
       final_analysis = '最終解析プログラム作成、解析実施（ダブル）';
@@ -680,7 +680,7 @@ class SetSheetItemValues{
       [final_analysis, get_count_more_than(final_analysis_table_count, 0, final_analysis_table_count)],
       ['最終解析報告書作成（出力結果＋表紙）', get_count_more_than(final_analysis_table_count, 0, 1)],
       [csr, csr_count],
-      [get_s_p.getProperty('cost_of_report_item'), get_count(get_quotation_request_value(this.array_quotation_request, get_s_p.getProperty('cost_of_report_quotation_request')), 'あり', get_s_p.getProperty('function_number_of_cases'))],
+      [cache.costOfReportItem, get_count(get_quotation_request_value(this.array_quotation_request, cache.costOfReportQuotationRequest), 'あり', cache.scriptProperties.getProperty('function_number_of_cases'))],
       ['外部監査費用', get_count_more_than(get_quotation_request_value(this.array_quotation_request, '監査対象施設数'), 0, 1)]
     ];
     return this.getSetValues(set_items_list, this.sheetname, input_values);
@@ -697,7 +697,7 @@ class SetSheetItemValues{
     let crb_first_year = '';
     let crb_after_second_year = '';
     // CRB申請費用
-    if (this.sheetname == get_s_p.getProperty('registration_1_sheet_name')){
+    if (this.sheetname == cache.registration1SheetName){
       crb_first_year = get_count(get_quotation_request_value(this.array_quotation_request, 'CRB申請'), 'あり', 1);
     } else {
       crb_after_second_year = get_count(get_quotation_request_value(this.array_quotation_request, 'CRB申請'), 'あり', 1);
@@ -705,15 +705,19 @@ class SetSheetItemValues{
     const set_items_list = [
       ['名古屋医療センターCRB申請費用(初年度)', crb_first_year],
       ['名古屋医療センターCRB申請費用(2年目以降)', crb_after_second_year],
-      ['治験薬運搬', get_count(get_quotation_request_value(this.array_quotation_request, '治験薬運搬'), 'あり', get_s_p.getProperty('function_facilities'))]
+      ['治験薬運搬', get_count(get_quotation_request_value(this.array_quotation_request, '治験薬運搬'), 'あり', cache.scriptProperties.getProperty('function_facilities'))]
    ];
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
   setInterimAnalysis(){
-    const get_s_p = PropertiesService.getScriptProperties();
+    const cache = new ConfigCache();
+    if (!cache.isValid) {
+      console.error('Failed to initialize ConfigCache in setInterimAnalysis');
+      return;
+    }
     const dataCleaning_before = this.getTargetItemCount('データクリーニング');
     const dataCleaning = dataCleaning_before > 0 ? dataCleaning_before + 1 : 1;
-    const interimAnalysis = get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial') ? '中間解析プログラム作成、解析実施（ダブル）' : '中間解析プログラム作成、解析実施（シングル）'; 
+    const interimAnalysis = cache.trialTypeValue == cache.investigatorInitiatedTrial ? '中間解析プログラム作成、解析実施（ダブル）' : '中間解析プログラム作成、解析実施（シングル）';
     const interimTableCount = get_quotation_request_value(this.array_quotation_request, '中間解析に必要な図表数');
     const set_items_list = [
       ['統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成', 1],
@@ -730,10 +734,14 @@ class SetSheetItemValues{
    * @return {number} 回数
    */
   getTargetItemCount(itemname){
-    const get_s_p = PropertiesService.getScriptProperties();
+    const cache = new ConfigCache();
+    if (!cache.isValid) {
+      console.error('Failed to initialize ConfigCache in getTargetItemCount');
+      return 0;
+    }
     const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(this.sheetname);
-    const targetRow = get_row_num_matched_value(targetSheet, get_s_p.getProperty('fy_sheet_items_col'), itemname);
-    return targetSheet.getRange(targetRow, parseInt(get_s_p.getProperty('fy_sheet_count_col'))).getValue();
+    const targetRow = get_row_num_matched_value(targetSheet, cache.fySheetItemsCol, itemname);
+    return targetSheet.getRange(targetRow, parseInt(cache.fySheetCountCol)).getValue();
   }
 }
 /**
