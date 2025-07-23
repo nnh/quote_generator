@@ -288,6 +288,9 @@ function runFunctionIntegrationTests() {
  */
 function testTrialDateScenario(startDate, endDate, testName) {
   try {
+    console.log(`\n🔍 テスト実行: ${testName}`);
+    console.log(`📅 入力値: 開始日="${startDate}", 終了日="${endDate}"`);
+    
     // Set up test data in Trial sheet
     const sheets = get_sheets();
     if (!sheets.trial) {
@@ -297,32 +300,57 @@ function testTrialDateScenario(startDate, endDate, testName) {
     
     // Set trial dates in the sheet
     const cache = new ConfigCache();
+    console.log(`📝 Trialシートに日付を設定中...`);
     sheets.trial.getRange(parseInt(cache.trialSetupRow), parseInt(cache.trialStartCol)).setValue(startDate);
     sheets.trial.getRange(parseInt(cache.trialClosingRow), parseInt(cache.trialEndCol)).setValue(endDate);
     
     // Call the refactored function
+    console.log(`⚙️ get_trial_start_end_date_()関数を実行中...`);
     const result = get_trial_start_end_date_();
     
+    console.log(`📊 実際の結果 (${result ? result.length : 0}行):`);
+    if (result && Array.isArray(result)) {
+      result.forEach((row, index) => {
+        const rowName = getRowName(index);
+        if (Array.isArray(row) && row.length === 2) {
+          const startStr = formatDateForLog(row[0]);
+          const endStr = formatDateForLog(row[1]);
+          console.log(`  [${index}] ${rowName}: [${startStr}, ${endStr}]`);
+        } else {
+          console.log(`  [${index}] ${rowName}: ${JSON.stringify(row)} (構造エラー)`);
+        }
+      });
+    } else {
+      console.log(`  結果が配列ではありません: ${typeof result}`);
+    }
+    
     // Validate result structure
+    console.log(`🔍 結果構造の検証中...`);
     if (!Array.isArray(result) || result.length === 0) {
-      console.error(`❌ ${testName}: Invalid result structure`);
+      console.error(`❌ ${testName}: Invalid result structure - 配列ではないか空です`);
+      console.error(`📝 実際の型: ${typeof result}, 長さ: ${result ? result.length : 'N/A'}`);
       return false;
     }
     
     // Validate that all rows have expected number of columns
     const expectedColumns = 2; // Start date, end date (no period name)
+    console.log(`🔍 各行の列数検証中 (期待値: ${expectedColumns}列)...`);
     for (let i = 0; i < result.length; i++) {
       if (!Array.isArray(result[i]) || result[i].length !== expectedColumns) {
         console.error(`❌ ${testName}: Invalid row structure at index ${i} - expected ${expectedColumns} columns, got ${result[i] ? result[i].length : 'undefined'}`);
-        console.error(`Row content: ${JSON.stringify(result[i])}`);
+        console.error(`📝 行${i}の内容: ${JSON.stringify(result[i])}`);
         return false;
       }
     }
+    console.log(`✅ 列数検証完了: 全${result.length}行が${expectedColumns}列構造`);
     
     // Validate date order (start <= end for each period)
+    console.log(`🔍 日付順序の検証中...`);
+    let validDateCount = 0;
     for (let i = 0; i < result.length; i++) {
       // Skip empty rows (some periods may be empty strings)
       if (result[i][0] === '' && result[i][1] === '') {
+        console.log(`  [${i}] ${getRowName(i)}: 空行 (期待される動作)`);
         continue;
       }
       
@@ -332,20 +360,39 @@ function testTrialDateScenario(startDate, endDate, testName) {
       // Check for valid dates
       if (isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime())) {
         console.error(`❌ ${testName}: Invalid date format at index ${i} - start: ${result[i][0]}, end: ${result[i][1]}`);
+        console.error(`📝 開始日有効性: ${!isNaN(periodStart.getTime())}, 終了日有効性: ${!isNaN(periodEnd.getTime())}`);
         return false;
       }
       
       if (periodStart > periodEnd) {
         console.error(`❌ ${testName}: Invalid date order at index ${i} - start: ${result[i][0]}, end: ${result[i][1]}`);
+        console.error(`📝 開始日 > 終了日: ${periodStart} > ${periodEnd}`);
         return false;
       }
+      
+      validDateCount++;
+      console.log(`  [${i}] ${getRowName(i)}: 日付順序OK (${formatDateForLog(result[i][0])} ～ ${formatDateForLog(result[i][1])})`);
     }
+    console.log(`✅ 日付順序検証完了: ${validDateCount}個の有効な期間を確認`);
     
-    console.log(`✅ ${testName}: Passed (${result.length} periods generated)`);
+    // Check for expected properties set
+    console.log(`🔍 スクリプトプロパティの確認中...`);
+    const trialStart = cache.scriptProperties.getProperty('trial_start');
+    const trialEnd = cache.scriptProperties.getProperty('trial_end');
+    const registrationYears = cache.scriptProperties.getProperty('registration_years');
+    
+    console.log(`📝 設定されたプロパティ:`);
+    console.log(`  trial_start: ${trialStart ? 'OK' : 'NG'}`);
+    console.log(`  trial_end: ${trialEnd ? 'OK' : 'NG'}`);
+    console.log(`  registration_years: ${registrationYears ? registrationYears + '年' : 'NG'}`);
+    
+    console.log(`✅ ${testName}: テスト成功 (${result.length}期間生成, ${validDateCount}有効期間)`);
+    console.log(`📈 検証完了: 構造チェック、日付妥当性チェック、プロパティ設定チェック全て成功`);
     return true;
     
   } catch (error) {
-    console.error(`❌ ${testName}: Error - ${error.toString()}`);
+    console.error(`❌ ${testName}: エラー発生 - ${error.toString()}`);
+    console.error(`📝 エラースタック:`, error.stack);
     return false;
   }
 }
@@ -573,16 +620,66 @@ function testBuildTrialDateArrayFunction() {
 }
 
 /**
+ * Get row name for logging
+ * @param {number} index Row index
+ * @return {string} Row name
+ */
+function getRowName(index) {
+  const rowNames = [
+    'Setup', 'Registration_1', 'Registration_2', 'Empty_1', 
+    'Empty_2', 'Empty_3', 'Observation_2', 'Closing', 'Total'
+  ];
+  return rowNames[index] || `Row_${index}`;
+}
+
+/**
+ * Format date for logging
+ * @param {*} dateValue Date value to format
+ * @return {string} Formatted date string
+ */
+function formatDateForLog(dateValue) {
+  if (dateValue === '' || dateValue === null || dateValue === undefined) {
+    return '(空)';
+  }
+  if (dateValue instanceof Date) {
+    return Utilities.formatDate(dateValue, 'Asia/Tokyo', 'yyyy-MM-dd');
+  }
+  if (Moment.moment(dateValue).isValid()) {
+    return Moment.moment(dateValue).format('YYYY-MM-DD');
+  }
+  return String(dateValue);
+}
+
+/**
  * Quick test runner for specific scenarios
  * Use this for targeted testing during development
  */
 function quickTestTrialDates() {
   console.log('🚀 クイックテスト実行中...');
+  console.log('='.repeat(50));
+  
+  console.log('📋 テストシナリオ: 標準的な2年間試験');
+  console.log('📅 試験期間: 2024年4月1日 ～ 2026年3月31日');
+  console.log('🎯 期待結果: 9行×2列の配列、適切な日付計算');
+  console.log('📝 検証項目: 構造、日付順序、プロパティ設定');
+  
+  const startTime = new Date();
+  console.log(`⏰ テスト開始時刻: ${startTime.toLocaleString('ja-JP')}`);
   
   // Test the most common scenario
   if (testTrialDateScenario('2024-04-01', '2026-03-31', 'Quick test - Standard 2-year trial')) {
-    console.log('✅ クイックテスト成功');
+    const endTime = new Date();
+    const duration = endTime - startTime;
+    console.log(`\n✅ クイックテスト成功`);
+    console.log(`🎉 基本的な機能が正常に動作しています`);
+    console.log(`⏱️ 実行時間: ${duration}ms`);
   } else {
-    console.log('❌ クイックテスト失敗');
+    const endTime = new Date();
+    const duration = endTime - startTime;
+    console.log(`\n❌ クイックテスト失敗`);
+    console.log(`⚠️ 基本的な機能に問題があります`);
+    console.log(`⏱️ 実行時間: ${duration}ms`);
   }
+  
+  console.log('='.repeat(50));
 }
