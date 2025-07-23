@@ -1,8 +1,8 @@
 /**
  * Test pattern for get_setup_closing_term_() function
  * 
- * This file contains a single test scenario for the get_setup_closing_term_() function
- * to verify that physician-initiated trials set both setup_term and closing_term to 6 months.
+ * This file contains comprehensive test scenarios for the get_setup_closing_term_() function
+ * to verify that all 5 trial types set correct setup_term and closing_term values.
  */
 
 /**
@@ -146,15 +146,15 @@ function createMockQuotationRequestData_(trialType, researchReportSupport = 'な
   
   // Row 1 (index 0) - Headers row
   const row1 = new Array(43).fill('');
-  // Set header names at appropriate positions
-  row1[1] = QuoteScriptConstants.TRIAL_TYPE; // '試験種別' at column B
-  row1[2] = QuoteScriptConstants.RESEARCH_REPORT_SUPPORT; // '研究結果報告書作成支援' at column C
+  // Set header names at appropriate positions using correct column indices
+  row1[6] = "試験種別"; // Column G (index 6)
+  row1[12] = "研究結果報告書作成支援"; // Column M (index 12)
   mockData.push(row1);
   
   // Row 2 (index 1) - Data row containing values
   const row2 = new Array(43).fill('');
-  row2[1] = trialType; // Trial type at column B (index 1)
-  row2[2] = researchReportSupport; // Research report support at column C (index 2)
+  row2[6] = trialType; // Trial type at column G (index 6)
+  row2[12] = researchReportSupport; // Research report support at column M (index 12)
   mockData.push(row2);
   
   return mockData;
