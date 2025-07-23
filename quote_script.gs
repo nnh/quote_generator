@@ -13,18 +13,26 @@
 function get_setup_closing_term_(temp_str, array_quotation_request){
   // Setup期間は医師主導治験、特定臨床研究が6ヶ月、それ以外が3ヶ月
   // Closing期間は医師主導治験、特定臨床研究、研究結果報告書作成支援ありの試験が6ヶ月、それ以外が3ヶ月
-  const get_s_p = PropertiesService.getScriptProperties();
-  var setup_term = 3;
-  var closing_term = 3;
-  if (temp_str == get_s_p.getProperty('investigator_initiated_trial') || temp_str == get_s_p.getProperty('specified_clinical_trial')){
-    setup_term = 6;
-    closing_term = 6;
+  const cache = new ConfigCache();
+  if (!cache.isValid) {
+    console.error('Failed to initialize ConfigCache in get_setup_closing_term_');
+    return;
   }
-  if (get_quotation_request_value(array_quotation_request, '研究結果報告書作成支援') == 'あり'){
-    closing_term = 6;
+  
+  var setup_term = QuoteScriptConstants.SETUP_TERM_SHORT;
+  var closing_term = QuoteScriptConstants.CLOSING_TERM_SHORT;
+  
+  if (temp_str == cache.investigatorInitiatedTrial || temp_str == cache.specifiedClinicalTrial){
+    setup_term = QuoteScriptConstants.SETUP_TERM_LONG;
+    closing_term = QuoteScriptConstants.CLOSING_TERM_LONG;
   }
-  get_s_p.setProperty('setup_term', setup_term);
-  get_s_p.setProperty('closing_term', closing_term);
+  
+  if (get_quotation_request_value(array_quotation_request, QuoteScriptConstants.RESEARCH_REPORT_SUPPORT) == QuoteScriptConstants.RESPONSE_YES){
+    closing_term = QuoteScriptConstants.CLOSING_TERM_LONG;
+  }
+  
+  cache.scriptProperties.setProperty('setup_term', setup_term);
+  cache.scriptProperties.setProperty('closing_term', closing_term);
 }
 /**
 * 各シートの開始日、終了日を設定する
@@ -35,19 +43,24 @@ function get_setup_closing_term_(temp_str, array_quotation_request){
 *   var array_trial_date_ = get_trial_start_end_date(trial_start_date, trial_end_date);
 */
 function get_trial_start_end_date_(input_trial_start_date, input_trial_end_date){
-  const get_s_p = PropertiesService.getScriptProperties();
+  const cache = new ConfigCache();
+  if (!cache.isValid) {
+    console.error('Failed to initialize ConfigCache in get_trial_start_end_date_');
+    return;
+  }
+  
   // 試験開始日はその月の1日にする
   const trial_start_date = Moment.moment(input_trial_start_date).startOf('month');
-  get_s_p.setProperty('trial_start_date', trial_start_date.format());
+  cache.scriptProperties.setProperty('trial_start_date', trial_start_date.format());
   // 試験終了日はその月の末日にする
   const trial_end_date = Moment.moment(input_trial_end_date).endOf('month');
-  get_s_p.setProperty('trial_end_date', trial_end_date.format());
+  cache.scriptProperties.setProperty('trial_end_date', trial_end_date.format());
   // setup開始日
-  const setup_start_date = trial_start_date.clone().subtract(parseInt(get_s_p.getProperty('setup_term')), 'months');
+  const setup_start_date = trial_start_date.clone().subtract(parseInt(cache.setupTerm), 'months');
   // setupシートの最終日はsetup開始年度の3/31
-  const setup_end_date = Moment.moment([setup_start_date.clone().subtract(3, 'months').year()　+ 1, 2, 31]);
+  const setup_end_date = Moment.moment([setup_start_date.clone().subtract(3, 'months').year() + 1, 2, 31]);
   // closing終了日
-  const closing_end_date = trial_end_date.clone().add(1, 'days').add(parseInt(get_s_p.getProperty('closing_term')), 'months').subtract(1, 'days');
+  const closing_end_date = trial_end_date.clone().add(1, 'days').add(parseInt(cache.closingTerm), 'months').subtract(1, 'days');
   // closingシートの開始日はclosing終了年度の4/1
   const closing_start_date = Moment.moment([closing_end_date.clone().subtract(3, 'months').year(), 3, 1]);
   // setup終了日〜closing開始日までの月数を取得する
@@ -69,7 +82,7 @@ function get_trial_start_end_date_(input_trial_start_date, input_trial_end_date)
                                       : registration_2_end_date != '' ? registration_2_end_date.clone() 
                                       : registration_1_end_date != '' ? registration_1_end_date.clone() 
                                       : trial_end_date.clone();
-  get_s_p.setProperty('registration_years', get_years(temp_registration_start_date, temp_registration_end_date));
+  cache.scriptProperties.setProperty('registration_years', get_years(temp_registration_start_date, temp_registration_end_date));
   const temp_array = [
     [setup_start_date, setup_end_date],
     [registration_1_start_date, registration_1_end_date],
@@ -108,45 +121,50 @@ function set_items_price_(sheet, price, target_row){
 *   set_trial_sheet_(sheet, array_quotation_request);
 */
 function set_trial_sheet_(sheet, array_quotation_request){
-  const get_s_p = PropertiesService.getScriptProperties();
-  const const_quotation_type = '見積種別';
-  const const_trial_type = '試験種別';
-  const const_trial_start = '症例登録開始日';
-  const const_registration_end = '症例登録終了日';
-  const const_trial_end = '試験終了日';
-  const const_crf = 'CRF項目数';
-  const const_acronym = '試験実施番号';
-  const const_facilities = get_s_p.getProperty('facilities_itemname');
-  const const_number_of_cases = get_s_p.getProperty('number_of_cases_itemname');
-  const const_coefficient = get_s_p.getProperty('coefficient');
-  const const_trial_start_col = parseInt(get_s_p.getProperty('trial_start_col'));
-  const const_trial_end_col = parseInt(get_s_p.getProperty('trial_end_col'));
-  const const_trial_setup_row = parseInt(get_s_p.getProperty('trial_setup_row'));
-  const const_trial_closing_row = parseInt(get_s_p.getProperty('trial_closing_row'));
-  const const_trial_years_col = parseInt(get_s_p.getProperty('trial_years_col'));
-  const const_total_month_col = 6;
+  const cache = new ConfigCache();
+  if (!cache.isValid) {
+    console.error('Failed to initialize ConfigCache in set_trial_sheet_');
+    return;
+  }
+  
+  const const_quotation_type = QuoteScriptConstants.QUOTATION_TYPE;
+  const const_trial_type = QuoteScriptConstants.TRIAL_TYPE;
+  const const_trial_start = QuoteScriptConstants.TRIAL_START;
+  const const_registration_end = QuoteScriptConstants.REGISTRATION_END;
+  const const_trial_end = QuoteScriptConstants.TRIAL_END;
+  const const_crf = QuoteScriptConstants.CRF;
+  const const_acronym = QuoteScriptConstants.ACRONYM;
+  const const_facilities = cache.facilitiesItemname;
+  const const_number_of_cases = cache.numberOfCasesItemname;
+  const const_coefficient = cache.coefficient;
+  const const_trial_start_col = parseInt(cache.trialStartCol);
+  const const_trial_end_col = parseInt(cache.trialEndCol);
+  const const_trial_setup_row = parseInt(cache.trialSetupRow);
+  const const_trial_closing_row = parseInt(cache.trialClosingRow);
+  const const_trial_years_col = parseInt(cache.trialYearsCol);
+  const const_total_month_col = QuoteScriptConstants.TOTAL_MONTH_COL;
   const trial_list = [
-    [const_quotation_type, 2],
-    ['見積発行先', 4],
-    ['研究代表者名', 8],
-    ['試験課題名', 9],
-    [const_acronym, 10],
-    [const_trial_type, 27],
-    [const_number_of_cases, get_s_p.getProperty('trial_number_of_cases_row')],
-    [const_facilities, get_s_p.getProperty('trial_const_facilities_row')], 
-    [const_crf, 30],
-    [const_coefficient, 44]
+    [const_quotation_type, QuoteScriptConstants.QUOTATION_TYPE_ROW],
+    ['見積発行先', QuoteScriptConstants.ISSUE_DESTINATION_ROW],
+    ['研究代表者名', QuoteScriptConstants.PRINCIPAL_INVESTIGATOR_ROW],
+    ['試験課題名', QuoteScriptConstants.TRIAL_TITLE_ROW],
+    [const_acronym, QuoteScriptConstants.ACRONYM_ROW],
+    [const_trial_type, QuoteScriptConstants.TRIAL_TYPE_ROW],
+    [const_number_of_cases, cache.trialNumberOfCasesRow],
+    [const_facilities, cache.trialConstFacilitiesRow], 
+    [const_crf, QuoteScriptConstants.CRF_ITEMS_ROW],
+    [const_coefficient, QuoteScriptConstants.COEFFICIENT_ROW]
   ];
-  const cost_of_cooperation = '研究協力費、負担軽減費';
+  const cost_of_cooperation = QuoteScriptConstants.COST_OF_COOPERATION;
   const items_list = [
-    ['保険料', '保険料'],
+    [QuoteScriptConstants.INSURANCE_FEE, QuoteScriptConstants.INSURANCE_FEE],
     [cost_of_cooperation, null]];
   const cost_of_cooperation_item_name = [
-    [get_s_p.getProperty('cost_of_prepare_quotation_request'), get_s_p.getProperty('cost_of_prepare_item')],
-    [get_s_p.getProperty('cost_of_registration_quotation_request'), get_s_p.getProperty('cost_of_registration_item')],
-    [get_s_p.getProperty('cost_of_report_quotation_request'), get_s_p.getProperty('cost_of_report_item')]
+    [cache.costOfPrepareQuotationRequest, cache.costOfPrepareItem],
+    [cache.costOfRegistrationQuotationRequest, cache.costOfRegistrationItem],
+    [cache.costOfReportQuotationRequest, cache.costOfReportItem]
   ];
-  const cdisc_addition = 3;
+  const cdisc_addition = QuoteScriptConstants.CDISC_ADDITION;
   var temp_str, temp_str_2, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total, date_of_issue;
   for (var i = 0; i < trial_list.length; i++){
     temp_str = get_quotation_request_value(array_quotation_request, trial_list[i][0]);
@@ -160,13 +178,13 @@ function set_trial_sheet_(sheet, array_quotation_request){
           }
           break;
         case const_number_of_cases:
-          get_s_p.setProperty('number_of_cases', temp_str);
+          cache.scriptProperties.setProperty('number_of_cases', temp_str);
           break;
         case const_facilities:
-          get_s_p.setProperty('facilities_value', temp_str);
+          cache.scriptProperties.setProperty('facilities_value', temp_str);
           break;
         case const_trial_type: 
-          get_s_p.setProperty('trial_type_value', temp_str);
+          cache.scriptProperties.setProperty('trial_type_value', temp_str);
           // 試験期間を取得する
           const trial_start_date = get_quotation_request_value(array_quotation_request, const_trial_start);
           const registration_end_date = get_quotation_request_value(array_quotation_request, const_registration_end);
@@ -197,7 +215,7 @@ function set_trial_sheet_(sheet, array_quotation_request){
           sheet.trial.getRange(save_row, const_trial_years_col).setFormula('=trunc(' + temp_total.getA1Notation() + '/12) & "年" & if(mod(' + temp_total.getA1Notation() + ',12)<>0,mod(' + temp_total.getA1Notation() + ',12) & "ヶ月","")');
           break;
         case const_coefficient:
-          if (temp_str == get_s_p.getProperty('commercial_company_coefficient')){
+          if (temp_str == cache.commercialCompanyCoefficient){
             temp_str = 1.5;
           } else {
             temp_str = 1;
@@ -239,8 +257,8 @@ function set_trial_sheet_(sheet, array_quotation_request){
         const items_row = get_row_num_matched_value(sheet.items, 2, target[1]);
         if (get_quotation_request_value(array_quotation_request, target[0]) == 'あり'){
           const unit = sheet.items.getRange(items_row, 4).getValue();
-          const price = unit == '症例' ? temp_price / get_s_p.getProperty('number_of_cases') :
-                        unit == '施設' ? temp_price / get_s_p.getProperty('facilities_value') : temp_price; 
+          const price = unit == '症例' ? temp_price / cache.scriptProperties.getProperty('number_of_cases') :
+                        unit == '施設' ? temp_price / cache.scriptProperties.getProperty('facilities_value') : temp_price;
           set_items_price_(sheet.items, price, items_row);
         } else {
           set_items_price_(sheet.items, 0, items_row);
@@ -365,7 +383,11 @@ function quote_script_main(){
 }
 function setImbalanceValues_(array_quotation_request){
   // 年毎に設定する値が不均等である項目への対応
-  const get_s_p = PropertiesService.getScriptProperties();
+  const cache = new ConfigCache();
+  if (!cache.isValid) {
+    console.error('Failed to initialize ConfigCache in setImbalanceValues_');
+    return;
+  }
   const filenameIdx = 0;
   const exclusionIdx = 1;
   const itemnameIdx = 2;
@@ -376,7 +398,7 @@ function setImbalanceValues_(array_quotation_request){
   const patientRegistrationFee = '症例登録毎の支払';
   const targetImbalance = [
       ['監査対象施設数', setupAndClosingExclusion, '施設監査費用', null],
-      [patientRegistrationFee, setupAndClosingExclusion, '症例登録', get_s_p.getProperty('number_of_cases_itemname')]
+      [patientRegistrationFee, setupAndClosingExclusion, '症例登録', cache.numberOfCasesItemname]
     ];
   const DividedItemsCount = new GetArrayDividedItemsCountAdd();
   const target = targetImbalance.map(x => {
@@ -391,9 +413,14 @@ function setImbalanceValues_(array_quotation_request){
     if (targetSheetAndValues){
       targetSheetAndValues.forEach(targetSheetAndValue => {
         const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(targetSheetAndValue[sheetIdx]);
-        const sheetItems = get_fy_items(targetSheet, get_s_p.getProperty('fy_sheet_items_col'));
+        const cache = new ConfigCache();
+        if (!cache.isValid) {
+          console.error('Failed to initialize ConfigCache in targetSheetAndValues forEach');
+          return;
+        }
+        const sheetItems = get_fy_items(targetSheet, cache.fySheetItemsCol);
         const targetRow = sheetItems[targetImbalance[idx][itemnameIdx]];
-        targetSheet.getRange(targetRow, parseInt(get_s_p.getProperty('fy_sheet_count_col'))).setValue(targetSheetAndValue[valueIdx]);
+        targetSheet.getRange(targetRow, parseInt(cache.fySheetCountCol)).setValue(targetSheetAndValue[valueIdx]);
       });
     }
   });
@@ -402,37 +429,48 @@ class SetSheetItemValues{
   constructor(sheetname, array_quotation_request){
     this.sheetname = sheetname;
     this.array_quotation_request = array_quotation_request;
-    const months_col = 5;
-    const sheetname_col = 0;
-    const get_s_p = PropertiesService.getScriptProperties();
+    
+    const cache = new ConfigCache();
+    if (!cache.isValid) {
+      console.error('Failed to initialize ConfigCache in SetSheetItemValues constructor');
+      return;
+    }
+    
+    const months_col = QuoteScriptConstants.MONTHS_COL;
+    const sheetname_col = QuoteScriptConstants.SHEETNAME_COL;
     const trial_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trial');
-    const const_trial_setup_row = parseInt(get_s_p.getProperty('trial_setup_row'));
-    const const_trial_closing_row = parseInt(get_s_p.getProperty('trial_closing_row'));
+    const const_trial_setup_row = parseInt(cache.trialSetupRow);
+    const const_trial_closing_row = parseInt(cache.trialClosingRow);
     const trial_term_values = trial_sheet.getRange(const_trial_setup_row, 1, const_trial_closing_row - const_trial_setup_row + 1, trial_sheet.getDataRange().getLastColumn()).getValues().filter(x => x[sheetname_col] == this.sheetname)[0];
     this.trial_target_terms = trial_term_values[months_col];
-    this.trial_target_start_date = Moment.moment(trial_term_values[parseInt(get_s_p.getProperty('trial_start_col')) - 1]);
-    this.trial_target_end_date = Moment.moment(trial_term_values[parseInt(get_s_p.getProperty('trial_end_col')) - 1]);
-    this.trial_start_date = Moment.moment(get_s_p.getProperty('trial_start_date'));
-    this.trial_end_date = Moment.moment(get_s_p.getProperty('trial_end_date'));
-    const const_count_col = get_s_p.getProperty('fy_sheet_count_col');
+    this.trial_target_start_date = Moment.moment(trial_term_values[parseInt(cache.trialStartCol) - 1]);
+    this.trial_target_end_date = Moment.moment(trial_term_values[parseInt(cache.trialEndCol) - 1]);
+    this.trial_start_date = Moment.moment(cache.scriptProperties.getProperty('trial_start_date'));
+    this.trial_end_date = Moment.moment(cache.scriptProperties.getProperty('trial_end_date'));
+    const const_count_col = cache.fySheetCountCol;
     this.target_col = getColumnString(const_count_col);
     // 企業原資または調整事務局の有無が「あり」または医師主導治験ならば事務局運営を積む
-    this.clinical_trials_office_flg = get_s_p.getProperty('trial_type_value') === get_s_p.getProperty('investigator_initiated_trial') || 
-        get_quotation_request_value(this.array_quotation_request, get_s_p.getProperty('coefficient')) === get_s_p.getProperty('commercial_company_coefficient') ||
-        get_quotation_request_value(this.array_quotation_request, '調整事務局設置の有無') === 'あり';
+    this.clinical_trials_office_flg = cache.trialTypeValue === cache.investigatorInitiatedTrial || 
+        get_quotation_request_value(this.array_quotation_request, cache.coefficient) === cache.commercialCompanyCoefficient ||
+        get_quotation_request_value(this.array_quotation_request, QuoteScriptConstants.COORDINATION_OFFICE_SETUP) === QuoteScriptConstants.RESPONSE_YES;
   }
   get_registration_month_(){
-    const registration_month =  this.trial_target_terms > 12 ? 12
+    const registration_month =  this.trial_target_terms > QuoteScriptConstants.MAX_REGISTRATION_MONTHS ? QuoteScriptConstants.MAX_REGISTRATION_MONTHS
                               : this.trial_start_date <= this.trial_target_start_date && this.trial_target_end_date <= this.trial_end_date ? this.trial_target_terms 
                               : this.trial_target_start_date < this.trial_start_date ? this.trial_target_end_date.clone().add(1, 'days').diff(this.trial_start_date, 'months') 
                               : this.trial_end_date < this.trial_target_end_date ? this.trial_end_date.clone().add(1, 'days').diff(this.trial_target_start_date, 'months') : '';
     return(registration_month);
   }
   set_registration_term_items_(input_values){
-    const get_s_p = PropertiesService.getScriptProperties();
+    const cache = new ConfigCache();
+    if (!cache.isValid) {
+      console.error('Failed to initialize ConfigCache in set_registration_term_items_');
+      return input_values;
+    }
+    
     if (
-      (this.sheetname == get_s_p.getProperty('setup_sheet_name') && this.trial_target_terms < parseInt(get_s_p.getProperty('setup_term'))) || 
-      (this.sheetname == get_s_p.getProperty('closing_sheet_name') && this.trial_target_terms < parseInt(get_s_p.getProperty('closing_term')))
+      (this.sheetname == cache.setupSheetName && this.trial_target_terms < parseInt(cache.setupTerm)) || 
+      (this.sheetname == cache.closingSheetName && this.trial_target_terms < parseInt(cache.closingTerm))
     ){
       return input_values;
     }
@@ -442,23 +480,28 @@ class SetSheetItemValues{
     let registration_clinical_trials_office = 0;
     if (this.clinical_trials_office_flg){
       registration_clinical_trials_office = registration_month;
-      if (this.sheetname === get_s_p.getProperty('registration_1_sheet_name')){
-        setup_clinical_trials_office = get_s_p.getProperty('reg1_setup_clinical_trials_office');
+      if (this.sheetname === cache.registration1SheetName){
+        setup_clinical_trials_office = cache.reg1SetupClinicalTrialsOffice;
       }
     }
-    const central_monitoring = 'ロジカルチェック、マニュアルチェック、クエリ対応';
+    const central_monitoring = QuoteScriptConstants.CENTRAL_MONITORING;
     // 安全性管理、効安、事務局運営
-    const ankan = get_count(get_quotation_request_value(this.array_quotation_request, '安全性管理事務局設置'), '設置・委託する', '安全性管理事務局業務');
-    const kouan = get_count(get_quotation_request_value(this.array_quotation_request, '効安事務局設置'), '設置・委託する', '効果安全性評価委員会事務局業務');
-    const clinical_trials_office = [['事務局運営（試験開始前）', setup_clinical_trials_office], ['事務局運営（試験開始後から試験終了まで）', registration_clinical_trials_office]].filter(x => x[1] > 0);
+    const ankan = get_count(get_quotation_request_value(this.array_quotation_request, QuoteScriptConstants.SAFETY_MANAGEMENT_SETUP), QuoteScriptConstants.RESPONSE_SETUP_DELEGATE, QuoteScriptConstants.SAFETY_MANAGEMENT);
+    const kouan = get_count(get_quotation_request_value(this.array_quotation_request, QuoteScriptConstants.EFFICACY_SAFETY_SETUP), QuoteScriptConstants.RESPONSE_SETUP_DELEGATE, QuoteScriptConstants.EFFICACY_SAFETY_COMMITTEE);
+    const clinical_trials_office = [[QuoteScriptConstants.CLINICAL_TRIALS_OFFICE_SETUP, setup_clinical_trials_office], [QuoteScriptConstants.CLINICAL_TRIALS_OFFICE_REGISTRATION, registration_clinical_trials_office]].filter(x => x[1] > 0);
     const target_items = [central_monitoring, ankan, kouan].filter(x => x != '').map(x => [x, registration_month]);  
     return this.getSetValues(target_items.concat(clinical_trials_office), this.sheetname, input_values);
   }
   getSetValues(target_items, sheetname, input_values){
-    const get_s_p = PropertiesService.getScriptProperties();
+    const cache = new ConfigCache();
+    if (!cache.isValid) {
+      console.error('Failed to initialize ConfigCache in getSetValues');
+      return input_values || [];
+    }
+    
     let array_count = input_values ? input_values : this.getSheetValues(sheetname);
     const target_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
-    const array_item = get_fy_items(target_sheet, get_s_p.getProperty('fy_sheet_items_col'));
+    const array_item = get_fy_items(target_sheet, cache.fySheetItemsCol);
     target_items.forEach(target_item => {
       const target_items_name = target_item[0];
       const month_count = target_item[1];
@@ -483,21 +526,25 @@ class SetSheetItemValues{
     target_range.setValues(target_values);
   }
   set_all_sheet_exclude_setup_(input_values){
-    const get_s_p = PropertiesService.getScriptProperties();
-    if (this.sheetname == get_s_p.getProperty('setup_sheet_name')) {
+    const cache = new ConfigCache();
+    if (!cache.isValid) {
+      console.error('Failed to initialize ConfigCache in set_all_sheet_exclude_setup_');
+      return input_values;
+    }
+    if (this.sheetname == cache.setupSheetName) {
       const dummy = this.set_setup_term_('reg1_setup_database_management');
     }
     if (
-      (this.sheetname == get_s_p.getProperty('setup_sheet_name') && this.trial_target_terms <= parseInt(get_s_p.getProperty('setup_term')))
+      (this.sheetname == cache.setupSheetName && this.trial_target_terms <= parseInt(cache.setupTerm))
     ){
       return input_values;
     }
     let databaseManagementTerm = this.trial_target_terms < 12 ? this.trial_target_terms : 12;
-    if (this.sheetname == get_s_p.getProperty('setup_sheet_name')) {
-      databaseManagementTerm = databaseManagementTerm - parseInt(get_s_p.getProperty('setup_term'));
+    if (this.sheetname == cache.setupSheetName) {
+      databaseManagementTerm = databaseManagementTerm - parseInt(cache.setupTerm);
     }
-    if (this.sheetname === get_s_p.getProperty('registration_1_sheet_name')){
-      databaseManagementTerm = databaseManagementTerm - parseInt(get_s_p.getProperty('reg1_setup_database_management'));
+    if (this.sheetname === cache.registration1SheetName){
+      databaseManagementTerm = databaseManagementTerm - parseInt(cache.reg1SetupDatabaseManagement);
     }
     const set_items_list = [
       ['データベース管理料', databaseManagementTerm]
@@ -511,9 +558,13 @@ class SetSheetItemValues{
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
   set_setup_term_(property_name){
-    const get_s_p = PropertiesService.getScriptProperties();
-    get_s_p.setProperty(property_name, 0);
-    const tempTerm = parseInt(get_s_p.getProperty('setup_term'));
+    const cache = new ConfigCache();
+    if (!cache.isValid) {
+      console.error('Failed to initialize ConfigCache in set_setup_term_');
+      return;
+    }
+    cache.scriptProperties.setProperty(property_name, 0);
+    const tempTerm = parseInt(cache.setupTerm);
     const targetTerm = tempTerm - this.trial_target_terms
     if (targetTerm > 0){
       get_s_p.setProperty(property_name, targetTerm);
@@ -529,8 +580,12 @@ class SetSheetItemValues{
     return this.set_setup_term_('reg1_setup_clinical_trials_office');
   }
   set_setup_items_(input_values){
-    const get_s_p = PropertiesService.getScriptProperties();
-    if (this.sheetname != get_s_p.getProperty('setup_sheet_name')){
+    const cache = new ConfigCache();
+    if (!cache.isValid) {
+      console.error('Failed to initialize ConfigCache in set_setup_items_');
+      return input_values;
+    }
+    if (this.sheetname != cache.setupSheetName){
       return input_values;
     }
     // 医師主導治験のみ算定または名称が異なる項目に対応する
@@ -542,15 +597,15 @@ class SetSheetItemValues{
     const clinical_trials_office = this.set_setup_clinical_trials_office();
     let drug_support = '';
     // trial!C29が空白でない場合は初期アカウント設定数をC29から取得する
-    const dm_irb = '=if(isblank(' + get_s_p.getProperty('trial_sheet_name') +'!C' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + '), ' + 
-                   get_s_p.getProperty('trial_sheet_name') + '!B' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + ',' + 
-                   get_s_p.getProperty('trial_sheet_name') + '!C' + String(parseInt(get_s_p.getProperty('trial_const_facilities_row'))) + ')';
-    if (get_s_p.getProperty('trial_type_value') == get_s_p.getProperty('investigator_initiated_trial')){
+    const dm_irb = '=if(isblank(Trial!C' + String(parseInt(cache.trialConstFacilitiesRow)) + '), ' + 
+                   'Trial!B' + String(parseInt(cache.trialConstFacilitiesRow)) + ',' + 
+                   'Trial!C' + String(parseInt(cache.trialConstFacilitiesRow)) + ')';
+    if (cache.trialTypeValue == cache.investigatorInitiatedTrial){
       sop = 1;
       office_irb_str = 'IRB承認確認、施設管理';
-      office_irb = get_s_p.getProperty('function_facilities');
+      office_irb = cache.scriptProperties.getProperty('function_facilities');
       set_accounts = '初期アカウント設定（施設・ユーザー）';
-      drug_support = get_s_p.getProperty('function_facilities');
+      drug_support = cache.scriptProperties.getProperty('function_facilities');
     }
     const set_items_list = [
       ['プロトコルレビュー・作成支援', 1],
@@ -578,8 +633,12 @@ class SetSheetItemValues{
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
   set_closing_items_(input_values){
-    const get_s_p = PropertiesService.getScriptProperties();
-    if (this.sheetname != get_s_p.getProperty('closing_sheet_name')){
+    const cache = new ConfigCache();
+    if (!cache.isValid) {
+      console.error('Failed to initialize ConfigCache in set_closing_items_');
+      return input_values;
+    }
+    if (this.sheetname != cache.closingSheetName){
       return input_values;
     }
     // csrの作成支援は医師主導治験ならば必須
@@ -627,8 +686,12 @@ class SetSheetItemValues{
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
   set_registration_items_(input_values){
-    const get_s_p = PropertiesService.getScriptProperties();
-    if (this.sheetname == get_s_p.getProperty('setup_sheet_name') || this.sheetname == get_s_p.getProperty('closing_sheet_name')){
+    const cache = new ConfigCache();
+    if (!cache.isValid) {
+      console.error('Failed to initialize ConfigCache in set_registration_items_');
+      return input_values;
+    }
+    if (this.sheetname == cache.setupSheetName || this.sheetname == cache.closingSheetName){
       return input_values;
     }
     let crb_first_year = '';

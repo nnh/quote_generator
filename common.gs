@@ -106,7 +106,6 @@ function get_years(start_date, end_date){
 *   var array_item = get_fy_items(target_sheet, target_col);
 */
 function get_fy_items(sheet, target_col){
-  const get_s_p = PropertiesService.getScriptProperties();
   var temp_array = sheet.getRange(1, parseInt(target_col), sheet.getDataRange().getLastRow(), 1).getValues();
   // 二次元配列から一次元配列に変換
   temp_array = Array.prototype.concat.apply([],temp_array);
@@ -125,29 +124,34 @@ function get_fy_items(sheet, target_col){
 */
 function get_sheets(){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const get_s_p = PropertiesService.getScriptProperties();
-  let sheet = {trial:ss.getSheetByName(get_s_p.getProperty('trial_sheet_name')),
-               quotation_request:ss.getSheetByName(get_s_p.getProperty('quotation_request_sheet_name')),
-               total:ss.getSheetByName(get_s_p.getProperty('total_sheet_name')),
-               total2:ss.getSheetByName(get_s_p.getProperty('total2_sheet_name')),
-               total3:ss.getSheetByName(get_s_p.getProperty('total3_sheet_name')),
-               setup:ss.getSheetByName(get_s_p.getProperty('setup_sheet_name')),
-               registration_1:ss.getSheetByName(get_s_p.getProperty('registration_1_sheet_name')),
-               registration_2:ss.getSheetByName(get_s_p.getProperty('registration_2_sheet_name')),
-               interim_1:ss.getSheetByName(get_s_p.getProperty('interim_1_sheet_name')),
-               observation_1:ss.getSheetByName(get_s_p.getProperty('observation_1_sheet_name')),
-               interim_2:ss.getSheetByName(get_s_p.getProperty('interim_2_sheet_name')),
-               observation_2:ss.getSheetByName(get_s_p.getProperty('observation_2_sheet_name')),
-               closing:ss.getSheetByName(get_s_p.getProperty('closing_sheet_name')),
-               items:ss.getSheetByName(get_s_p.getProperty('items_sheet_name')),
-               quote:ss.getSheetByName(get_s_p.getProperty('quote_sheet_name')),
-               check:ss.getSheetByName(get_s_p.getProperty('value_check_sheet_name'))}
-  const temp_sheet = ss.getSheetByName(get_s_p.getProperty('total_nmc_sheet_name'));
+  const cache = new ConfigCache();
+  if (!cache.isValid) {
+    console.error('Failed to initialize ConfigCache in get_sheets');
+    return {};
+  }
+  
+  let sheet = {trial:ss.getSheetByName(cache.scriptProperties.getProperty('trial_sheet_name')),
+               quotation_request:ss.getSheetByName(cache.scriptProperties.getProperty('quotation_request_sheet_name')),
+               total:ss.getSheetByName(cache.totalSheetName),
+               total2:ss.getSheetByName(cache.total2SheetName),
+               total3:ss.getSheetByName(cache.total3SheetName),
+               setup:ss.getSheetByName(cache.setupSheetName),
+               registration_1:ss.getSheetByName(cache.registration1SheetName),
+               registration_2:ss.getSheetByName(cache.scriptProperties.getProperty('registration_2_sheet_name')),
+               interim_1:ss.getSheetByName(cache.scriptProperties.getProperty('interim_1_sheet_name')),
+               observation_1:ss.getSheetByName(cache.scriptProperties.getProperty('observation_1_sheet_name')),
+               interim_2:ss.getSheetByName(cache.scriptProperties.getProperty('interim_2_sheet_name')),
+               observation_2:ss.getSheetByName(cache.scriptProperties.getProperty('observation_2_sheet_name')),
+               closing:ss.getSheetByName(cache.closingSheetName),
+               items:ss.getSheetByName(cache.scriptProperties.getProperty('items_sheet_name')),
+               quote:ss.getSheetByName(cache.quoteSheetName),
+               check:ss.getSheetByName(cache.scriptProperties.getProperty('value_check_sheet_name'))}
+  const temp_sheet = ss.getSheetByName(cache.totalNmcSheetName);
   if (temp_sheet != null){
-    sheet.total_nmc = ss.getSheetByName(get_s_p.getProperty('total_nmc_sheet_name'));
-    sheet.total2_nmc = ss.getSheetByName(get_s_p.getProperty('total2_nmc_sheet_name'));
-    sheet.total_oscr = ss.getSheetByName(get_s_p.getProperty('total_oscr_sheet_name'));
-    sheet.total2_oscr = ss.getSheetByName(get_s_p.getProperty('total2_oscr_sheet_name'));
+    sheet.total_nmc = ss.getSheetByName(cache.totalNmcSheetName);
+    sheet.total2_nmc = ss.getSheetByName(cache.total2NmcSheetName);
+    sheet.total_oscr = ss.getSheetByName(cache.totalOscrSheetName);
+    sheet.total2_oscr = ss.getSheetByName(cache.total2OscrSheetName);
   }
   return sheet;
 }
@@ -266,10 +270,15 @@ function get_quotation_request_value(array_quotation_request, header_str){
  * @return {Array.<string>} the trial period, heading, and number of years of trial period on the Trial sheet.
  */
 function getTrialTermInfo_(){
-  const get_s_p = PropertiesService.getScriptProperties();
+  const cache = new ConfigCache();
+  if (!cache.isValid) {
+    console.error('Failed to initialize ConfigCache in getTrialTermInfo_');
+    return [];
+  }
+  
   const sheet = get_sheets();
-  const row_count = parseInt(get_s_p.getProperty('trial_closing_row')) - parseInt(get_s_p.getProperty('trial_setup_row')) + 1;
-  const trial_term_info = sheet.trial.getRange(parseInt(get_s_p.getProperty('trial_setup_row')), 1, row_count, 3).getValues();
+  const row_count = parseInt(cache.trialClosingRow) - parseInt(cache.trialSetupRow) + 1;
+  const trial_term_info = sheet.trial.getRange(parseInt(cache.trialSetupRow), 1, row_count, 3).getValues();
   return trial_term_info;
 }
 class GetArrayDividedItemsCount{
