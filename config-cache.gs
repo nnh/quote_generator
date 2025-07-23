@@ -26,6 +26,15 @@ class ConfigCache {
       this.nameNmc = scriptProperties.getProperty('name_nmc');
       this.nameOscr = scriptProperties.getProperty('name_oscr');
       
+      this.quoteSheetName = scriptProperties.getProperty('quote_sheet_name');
+      this.totalSheetName = scriptProperties.getProperty('total_sheet_name');
+      this.quoteNmcSheetName = scriptProperties.getProperty('quote_nmc_sheet_name');
+      this.totalNmcSheetName = scriptProperties.getProperty('total_nmc_sheet_name');
+      this.total2NmcSheetName = scriptProperties.getProperty('total2_nmc_sheet_name');
+      this.quoteOscrSheetName = scriptProperties.getProperty('quote_oscr_sheet_name');
+      this.totalOscrSheetName = scriptProperties.getProperty('total_oscr_sheet_name');
+      this.total2OscrSheetName = scriptProperties.getProperty('total2_oscr_sheet_name');
+      
       this.isValid = true;
     } catch (error) {
       console.error('Error initializing ConfigCache:', error.toString());
@@ -35,6 +44,11 @@ class ConfigCache {
   
   hasRequiredProperties() {
     return this.isValid && this.setupSheetName && this.closingSheetName && 
+           this.total2SheetName && this.total3SheetName;
+  }
+  
+  hasRequiredPdfProperties() {
+    return this.isValid && this.quoteSheetName && this.totalSheetName && 
            this.total2SheetName && this.total3SheetName;
   }
 }
