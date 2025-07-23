@@ -2,51 +2,94 @@
  * Test pattern for get_setup_closing_term_() function
  * 
  * This file contains comprehensive test scenarios for the get_setup_closing_term_() function
- * to verify that all 5 trial types set correct setup_term and closing_term values.
+ * to verify that all 5 trial types set correct setup_term and closing_term values,
+ * with both research report support conditions ('あり' and 'なし').
  */
 
 /**
- * Test function for get_setup_closing_term_() - All trial types
- * Tests all 5 trial types to verify correct setup_term and closing_term values
+ * Test function for get_setup_closing_term_() - All trial types with research report support conditions
+ * Tests all 5 trial types with both 'あり' and 'なし' research report support to verify correct setup_term and closing_term values
  */
 function testGetSetupClosingTermFunction() {
   console.log('🚀 get_setup_closing_term_() 関数テスト開始');
   console.log('==================================================');
-  console.log('📋 テストシナリオ: 全試験種別の期間設定テスト');
-  console.log('🎯 対象: 5つの試験種別すべて');
+  console.log('📋 テストシナリオ: 全試験種別×研究結果報告書作成支援の期間設定テスト');
+  console.log('🎯 対象: 5つの試験種別 × 2つの研究結果報告書作成支援条件（計10パターン）');
   console.log('⏰ テスト開始時刻: ' + new Date().toLocaleString('ja-JP'));
   
-  // Define test scenarios for all 5 trial types
+  // Define test scenarios for all 5 trial types with both research report support conditions
   const testScenarios = [
+    // Research report support = 'なし' scenarios
     {
       trialType: '医師主導治験',
+      researchReportSupport: 'なし',
       expectedSetup: '6',
       expectedClosing: '6',
-      description: '医師主導治験（長期間）'
+      description: '医師主導治験（長期間）- 研究結果報告書作成支援なし'
     },
     {
       trialType: '特定臨床研究',
+      researchReportSupport: 'なし',
       expectedSetup: '6',
       expectedClosing: '6',
-      description: '特定臨床研究（長期間）'
+      description: '特定臨床研究（長期間）- 研究結果報告書作成支援なし'
     },
     {
       trialType: '観察研究・レジストリ',
+      researchReportSupport: 'なし',
       expectedSetup: '3',
       expectedClosing: '3',
-      description: '観察研究・レジストリ（短期間）'
+      description: '観察研究・レジストリ（短期間）- 研究結果報告書作成支援なし'
     },
     {
       trialType: '介入研究（特定臨床研究以外）',
+      researchReportSupport: 'なし',
       expectedSetup: '3',
       expectedClosing: '3',
-      description: '介入研究（特定臨床研究以外）（短期間）'
+      description: '介入研究（特定臨床研究以外）（短期間）- 研究結果報告書作成支援なし'
     },
     {
       trialType: '先進',
+      researchReportSupport: 'なし',
       expectedSetup: '3',
       expectedClosing: '3',
-      description: '先進（短期間）'
+      description: '先進（短期間）- 研究結果報告書作成支援なし'
+    },
+    // Research report support = 'あり' scenarios - closing_term becomes 6 regardless of trial type
+    {
+      trialType: '医師主導治験',
+      researchReportSupport: 'あり',
+      expectedSetup: '6',
+      expectedClosing: '6',
+      description: '医師主導治験（長期間）- 研究結果報告書作成支援あり'
+    },
+    {
+      trialType: '特定臨床研究',
+      researchReportSupport: 'あり',
+      expectedSetup: '6',
+      expectedClosing: '6',
+      description: '特定臨床研究（長期間）- 研究結果報告書作成支援あり'
+    },
+    {
+      trialType: '観察研究・レジストリ',
+      researchReportSupport: 'あり',
+      expectedSetup: '3',
+      expectedClosing: '6',
+      description: '観察研究・レジストリ（短期間）- 研究結果報告書作成支援あり'
+    },
+    {
+      trialType: '介入研究（特定臨床研究以外）',
+      researchReportSupport: 'あり',
+      expectedSetup: '3',
+      expectedClosing: '6',
+      description: '介入研究（特定臨床研究以外）（短期間）- 研究結果報告書作成支援あり'
+    },
+    {
+      trialType: '先進',
+      researchReportSupport: 'あり',
+      expectedSetup: '3',
+      expectedClosing: '6',
+      description: '先進（短期間）- 研究結果報告書作成支援あり'
     }
   ];
   
@@ -96,8 +139,8 @@ function runSingleTrialTypeTest_(scenario) {
     console.log('📝 既存のプロパティをクリア');
     
     // Create mock quotation request data
-    const mockData = createMockQuotationRequestData_(scenario.trialType, 'なし');
-    console.log(`📝 モックデータ作成完了: ${scenario.trialType}`);
+    const mockData = createMockQuotationRequestData_(scenario.trialType, scenario.researchReportSupport);
+    console.log(`📝 モックデータ作成完了: ${scenario.trialType}, 研究結果報告書作成支援: ${scenario.researchReportSupport}`);
     
     // Execute the function
     console.log('🔄 get_setup_closing_term_() 実行中...');
@@ -109,6 +152,7 @@ function runSingleTrialTypeTest_(scenario) {
     
     console.log('📊 実行結果:');
     console.log(`  試験種別: ${scenario.trialType}`);
+    console.log(`  研究結果報告書作成支援: ${scenario.researchReportSupport}`);
     console.log(`  setup_term: ${actualSetup} (期待値: ${scenario.expectedSetup})`);
     console.log(`  closing_term: ${actualClosing} (期待値: ${scenario.expectedClosing})`);
     
