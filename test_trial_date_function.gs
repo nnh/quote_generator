@@ -33,27 +33,27 @@ function testTrialDateFunction() {
     
     // Test Category 1: Normal scenarios
     console.log('\n📋 正常シナリオテスト (Normal scenario tests)');
-    passedTests += runNormalScenarioTests();
+    passedTests += runNormalScenarioTests_();
     totalTests += 6;
     
     // Test Category 2: Boundary conditions
     console.log('\n🔄 境界値テスト (Boundary condition tests)');
-    passedTests += runBoundaryConditionTests();
+    passedTests += runBoundaryConditionTests_();
     totalTests += 8;
     
     // Test Category 3: Edge cases
     console.log('\n⚠️ エッジケーステスト (Edge case tests)');
-    passedTests += runEdgeCaseTests();
+    passedTests += runEdgeCaseTests_();
     totalTests += 6;
     
     // Test Category 4: Setup/Closing term variations
     console.log('\n⏱️ Setup/Closing期間バリエーションテスト (Setup/Closing term variation tests)');
-    passedTests += runSetupClosingTermTests();
+    passedTests += runSetupClosingTermTests_();
     totalTests += 4;
     
     // Test Category 5: Function integration tests
     console.log('\n🔗 関数統合テスト (Function integration tests)');
-    passedTests += runFunctionIntegrationTests();
+    passedTests += runFunctionIntegrationTests_();
     totalTests += 5;
     
     console.log(`\n✅ テスト完了: ${passedTests}/${totalTests} passed`);
@@ -73,7 +73,7 @@ function testTrialDateFunction() {
  * Normal scenario tests - standard trial periods
  * @return {number} Number of passed tests
  */
-function runNormalScenarioTests() {
+function runNormalScenarioTests_() {
   let passed = 0;
   
   // Test 1: Standard 2-year trial (2024-04-01 to 2026-03-31)
@@ -119,7 +119,7 @@ function runNormalScenarioTests() {
  * Boundary condition tests - fiscal year transitions, month-end dates
  * @return {number} Number of passed tests
  */
-function runBoundaryConditionTests() {
+function runBoundaryConditionTests_() {
   let passed = 0;
   
   // Test 1: Fiscal year boundary start (2024-04-01)
@@ -177,7 +177,7 @@ function runBoundaryConditionTests() {
  * Edge case tests - leap years, unusual date combinations
  * @return {number} Number of passed tests
  */
-function runEdgeCaseTests() {
+function runEdgeCaseTests_() {
   let passed = 0;
   
   // Test 1: Leap year February 29th start
@@ -223,7 +223,7 @@ function runEdgeCaseTests() {
  * Setup/Closing term variation tests
  * @return {number} Number of passed tests
  */
-function runSetupClosingTermTests() {
+function runSetupClosingTermTests_() {
   let passed = 0;
   
   // Test with different setup/closing term combinations
@@ -248,7 +248,7 @@ function runSetupClosingTermTests() {
  * Function integration tests - test individual refactored functions
  * @return {number} Number of passed tests
  */
-function runFunctionIntegrationTests() {
+function runFunctionIntegrationTests_() {
   let passed = 0;
   
   console.log('🔍 [期待される動作] normalizeTrialDates_関数テスト');
@@ -286,7 +286,7 @@ function runFunctionIntegrationTests() {
  * @param {string} testName - Name of the test
  * @return {boolean} True if test passed
  */
-function testTrialDateScenario(startDate, endDate, testName) {
+function testTrialDateScenario_(startDate, endDate, testName) {
   try {
     console.log(`\n🔍 テスト実行: ${testName}`);
     console.log(`📅 入力値: 開始日="${startDate}", 終了日="${endDate}"`);
@@ -404,7 +404,7 @@ function testTrialDateScenario(startDate, endDate, testName) {
  * @param {string} testName - Name of the test
  * @return {boolean} True if error was properly handled
  */
-function testTrialDateScenarioExpectError(startDate, endDate, testName) {
+function testTrialDateScenarioExpectError_(startDate, endDate, testName) {
   try {
     const sheets = get_sheets();
     if (!sheets.trial) {
@@ -442,7 +442,7 @@ function testTrialDateScenarioExpectError(startDate, endDate, testName) {
  * @param {string} testName - Name of the test
  * @return {boolean} True if test passed
  */
-function testTrialDateWithTerms(startDate, endDate, setupTerm, closingTerm, testName) {
+function testTrialDateWithTerms_(startDate, endDate, setupTerm, closingTerm, testName) {
   try {
     const cache = new ConfigCache();
     
@@ -471,7 +471,7 @@ function testTrialDateWithTerms(startDate, endDate, setupTerm, closingTerm, test
 /**
  * Test individual refactored functions
  */
-function testNormalizeTrialDatesFunction() {
+function testNormalizeTrialDatesFunction_() {
   try {
     // This function is private, so we test it indirectly through the main function
     const sheets = get_sheets();
@@ -500,7 +500,7 @@ function testNormalizeTrialDatesFunction() {
   }
 }
 
-function testCalculateSetupClosingDatesFunction() {
+function testCalculateSetupClosingDatesFunction_() {
   try {
     // Test indirectly by checking if setup/closing dates are calculated
     const sheets = get_sheets();
@@ -531,7 +531,7 @@ function testCalculateSetupClosingDatesFunction() {
   }
 }
 
-function testDetermineRegistrationStartDateFunction() {
+function testDetermineRegistrationStartDateFunction_() {
   try {
     // Test the simplified conditional logic indirectly
     const sheets = get_sheets();
@@ -561,7 +561,7 @@ function testDetermineRegistrationStartDateFunction() {
   }
 }
 
-function testDetermineRegistrationEndDateFunction() {
+function testDetermineRegistrationEndDateFunction_() {
   try {
     // Test the simplified conditional logic indirectly
     const sheets = get_sheets();
@@ -591,7 +591,7 @@ function testDetermineRegistrationEndDateFunction() {
   }
 }
 
-function testBuildTrialDateArrayFunction() {
+function testBuildTrialDateArrayFunction_() {
   try {
     // Test the final array construction
     const sheets = get_sheets();
@@ -624,7 +624,7 @@ function testBuildTrialDateArrayFunction() {
  * @param {number} index Row index
  * @return {string} Row name
  */
-function getRowName(index) {
+function getRowName_(index) {
   const rowNames = [
     'Setup', 'Registration_1', 'Registration_2', 'Empty_1', 
     'Empty_2', 'Empty_3', 'Observation_2', 'Closing', 'Total'
@@ -637,7 +637,7 @@ function getRowName(index) {
  * @param {*} dateValue Date value to format
  * @return {string} Formatted date string
  */
-function formatDateForLog(dateValue) {
+function formatDateForLog_(dateValue) {
   if (dateValue === '' || dateValue === null || dateValue === undefined) {
     return '(空)';
   }
