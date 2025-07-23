@@ -13,7 +13,7 @@
 /**
  * Quote Script Constants - Google Apps Script compatible object
  */
-var QuoteScriptConstants = {
+const QuoteScriptConstants = {
   // Term durations (months)
   SETUP_TERM_SHORT: 3,
   SETUP_TERM_LONG: 6,
