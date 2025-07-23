@@ -20,33 +20,33 @@ function testGetSetupClosingTermFunction() {
   const testScenarios = [
     {
       trialType: '医師主導治験',
-      expectedSetup: '6',
-      expectedClosing: '6',
-      description: '医師主導治験（長期間）'
+      expectedSetup: '6.0',
+      expectedClosing: '6.0',
+      description: '医師主導治験'
     },
     {
       trialType: '特定臨床研究',
-      expectedSetup: '6',
-      expectedClosing: '6',
-      description: '特定臨床研究（長期間）'
+      expectedSetup: '6.0',
+      expectedClosing: '6.0',
+      description: '特定臨床研究'
     },
     {
       trialType: '観察研究・レジストリ',
-      expectedSetup: '3',
-      expectedClosing: '3',
-      description: '観察研究・レジストリ（短期間）'
+      expectedSetup: '3.0',
+      expectedClosing: '3.0',
+      description: '観察研究・レジストリ'
     },
     {
       trialType: '介入研究（特定臨床研究以外）',
-      expectedSetup: '3',
-      expectedClosing: '3',
-      description: '介入研究（特定臨床研究以外）（短期間）'
+      expectedSetup: '3.0',
+      expectedClosing: '3.0',
+      description: '介入研究（特定臨床研究以外）'
     },
     {
       trialType: '先進',
-      expectedSetup: '3',
-      expectedClosing: '3',
-      description: '先進（短期間）'
+      expectedSetup: '3.0',
+      expectedClosing: '3.0',
+      description: '先進'
     }
   ];
   
