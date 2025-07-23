@@ -78,37 +78,37 @@ function runNormalScenarioTests_() {
   
   // Test 1: Standard 2-year trial (2024-04-01 to 2026-03-31)
   console.log('🔍 [期待される動作] 標準2年間試験の日付計算テスト');
-  if (testTrialDateScenario('2024-04-01', '2026-03-31', 'Standard 2-year trial')) {
+  if (testTrialDateScenario_('2024-04-01', '2026-03-31', 'Standard 2-year trial')) {
     passed++;
   }
   
   // Test 2: Short 1-year trial (2024-04-01 to 2025-03-31)
   console.log('🔍 [期待される動作] 短期1年間試験の日付計算テスト');
-  if (testTrialDateScenario('2024-04-01', '2025-03-31', 'Short 1-year trial')) {
+  if (testTrialDateScenario_('2024-04-01', '2025-03-31', 'Short 1-year trial')) {
     passed++;
   }
   
   // Test 3: Long 3-year trial (2024-04-01 to 2027-03-31)
   console.log('🔍 [期待される動作] 長期3年間試験の日付計算テスト');
-  if (testTrialDateScenario('2024-04-01', '2027-03-31', 'Long 3-year trial')) {
+  if (testTrialDateScenario_('2024-04-01', '2027-03-31', 'Long 3-year trial')) {
     passed++;
   }
   
   // Test 4: Mid-year start (2024-07-01 to 2026-06-30)
   console.log('🔍 [期待される動作] 年度中開始試験の日付計算テスト');
-  if (testTrialDateScenario('2024-07-01', '2026-06-30', 'Mid-year start trial')) {
+  if (testTrialDateScenario_('2024-07-01', '2026-06-30', 'Mid-year start trial')) {
     passed++;
   }
   
   // Test 5: Calendar year trial (2024-01-01 to 2025-12-31)
   console.log('🔍 [期待される動作] 暦年試験の日付計算テスト');
-  if (testTrialDateScenario('2024-01-01', '2025-12-31', 'Calendar year trial')) {
+  if (testTrialDateScenario_('2024-01-01', '2025-12-31', 'Calendar year trial')) {
     passed++;
   }
   
   // Test 6: Cross fiscal year trial (2024-01-01 to 2025-06-30)
   console.log('🔍 [期待される動作] 年度跨ぎ試験の日付計算テスト');
-  if (testTrialDateScenario('2024-01-01', '2025-06-30', 'Cross fiscal year trial')) {
+  if (testTrialDateScenario_('2024-01-01', '2025-06-30', 'Cross fiscal year trial')) {
     passed++;
   }
   
@@ -124,31 +124,31 @@ function runBoundaryConditionTests_() {
   
   // Test 1: Fiscal year boundary start (2024-04-01)
   console.log('🔍 [期待される動作] 年度境界開始日テスト');
-  if (testTrialDateScenario('2024-04-01', '2025-03-31', 'Fiscal year boundary start')) {
+  if (testTrialDateScenario_('2024-04-01', '2025-03-31', 'Fiscal year boundary start')) {
     passed++;
   }
   
   // Test 2: Fiscal year boundary end (2025-03-31)
   console.log('🔍 [期待される動作] 年度境界終了日テスト');
-  if (testTrialDateScenario('2024-04-01', '2025-03-31', 'Fiscal year boundary end')) {
+  if (testTrialDateScenario_('2024-04-01', '2025-03-31', 'Fiscal year boundary end')) {
     passed++;
   }
   
   // Test 3: Month-end dates (2024-01-31 to 2024-12-31)
   console.log('🔍 [期待される動作] 月末日付テスト');
-  if (testTrialDateScenario('2024-01-31', '2024-12-31', 'Month-end dates')) {
+  if (testTrialDateScenario_('2024-01-31', '2024-12-31', 'Month-end dates')) {
     passed++;
   }
   
   // Test 4: February end in non-leap year (2023-02-28)
   console.log('🔍 [期待される動作] 平年2月末日テスト');
-  if (testTrialDateScenario('2023-02-01', '2023-02-28', 'February end non-leap year')) {
+  if (testTrialDateScenario_('2023-02-01', '2023-02-28', 'February end non-leap year')) {
     passed++;
   }
   
   // Test 5: February end in leap year (2024-02-29)
   console.log('🔍 [期待される動作] うるう年2月末日テスト');
-  if (testTrialDateScenario('2024-02-01', '2024-02-29', 'February end leap year')) {
+  if (testTrialDateScenario_('2024-02-01', '2024-02-29', 'February end leap year')) {
     passed++;
   }
   
@@ -206,7 +206,7 @@ function runEdgeCaseTests_() {
   
   // Test 5: Reverse date order (should handle gracefully)
   console.log('🔍 [期待されるエラー] 逆順日付テスト');
-  if (testTrialDateScenarioExpectError('2025-03-31', '2024-04-01', 'Reverse date order')) {
+  if (testTrialDateScenarioExpectError_('2025-03-31', '2024-04-01', 'Reverse date order')) {
     passed++;
   }
   
@@ -236,7 +236,7 @@ function runSetupClosingTermTests_() {
   
   termCombinations.forEach((combo, index) => {
     console.log(`🔍 [期待される動作] ${combo.name}テスト`);
-    if (testTrialDateWithTerms('2024-04-01', '2026-03-31', combo.setup, combo.closing, combo.name)) {
+    if (testTrialDateWithTerms_('2024-04-01', '2026-03-31', combo.setup, combo.closing, combo.name)) {
       passed++;
     }
   });
@@ -252,27 +252,27 @@ function runFunctionIntegrationTests_() {
   let passed = 0;
   
   console.log('🔍 [期待される動作] normalizeTrialDates_関数テスト');
-  if (testNormalizeTrialDatesFunction()) {
+  if (testNormalizeTrialDatesFunction_()) {
     passed++;
   }
   
   console.log('🔍 [期待される動作] calculateSetupClosingDates_関数テスト');
-  if (testCalculateSetupClosingDatesFunction()) {
+  if (testCalculateSetupClosingDatesFunction_()) {
     passed++;
   }
   
   console.log('🔍 [期待される動作] determineRegistrationStartDate_関数テスト');
-  if (testDetermineRegistrationStartDateFunction()) {
+  if (testDetermineRegistrationStartDateFunction_()) {
     passed++;
   }
   
   console.log('🔍 [期待される動作] determineRegistrationEndDate_関数テスト');
-  if (testDetermineRegistrationEndDateFunction()) {
+  if (testDetermineRegistrationEndDateFunction_()) {
     passed++;
   }
   
   console.log('🔍 [期待される動作] buildTrialDateArray_関数テスト');
-  if (testBuildTrialDateArrayFunction()) {
+  if (testBuildTrialDateArrayFunction_()) {
     passed++;
   }
   
@@ -311,10 +311,10 @@ function testTrialDateScenario_(startDate, endDate, testName) {
     console.log(`📊 実際の結果 (${result ? result.length : 0}行):`);
     if (result && Array.isArray(result)) {
       result.forEach((row, index) => {
-        const rowName = getRowName(index);
+        const rowName = getRowName_(index);
         if (Array.isArray(row) && row.length === 2) {
-          const startStr = formatDateForLog(row[0]);
-          const endStr = formatDateForLog(row[1]);
+          const startStr = formatDateForLog_(row[0]);
+          const endStr = formatDateForLog_(row[1]);
           console.log(`  [${index}] ${rowName}: [${startStr}, ${endStr}]`);
         } else {
           console.log(`  [${index}] ${rowName}: ${JSON.stringify(row)} (構造エラー)`);
@@ -350,7 +350,7 @@ function testTrialDateScenario_(startDate, endDate, testName) {
     for (let i = 0; i < result.length; i++) {
       // Skip empty rows (some periods may be empty strings)
       if (result[i][0] === '' && result[i][1] === '') {
-        console.log(`  [${i}] ${getRowName(i)}: 空行 (期待される動作)`);
+        console.log(`  [${i}] ${getRowName_(i)}: 空行 (期待される動作)`);
         continue;
       }
       
@@ -371,7 +371,7 @@ function testTrialDateScenario_(startDate, endDate, testName) {
       }
       
       validDateCount++;
-      console.log(`  [${i}] ${getRowName(i)}: 日付順序OK (${formatDateForLog(result[i][0])} ～ ${formatDateForLog(result[i][1])})`);
+      console.log(`  [${i}] ${getRowName_(i)}: 日付順序OK (${formatDateForLog_(result[i][0])} ～ ${formatDateForLog_(result[i][1])})`);
     }
     console.log(`✅ 日付順序検証完了: ${validDateCount}個の有効な期間を確認`);
     
