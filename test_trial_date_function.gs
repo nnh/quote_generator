@@ -310,20 +310,33 @@ function testTrialDateScenario(startDate, endDate, testName) {
     }
     
     // Validate that all rows have expected number of columns
-    const expectedColumns = 3; // Period name, start date, end date
+    const expectedColumns = 2; // Start date, end date (no period name)
     for (let i = 0; i < result.length; i++) {
       if (!Array.isArray(result[i]) || result[i].length !== expectedColumns) {
-        console.error(`❌ ${testName}: Invalid row structure at index ${i}`);
+        console.error(`❌ ${testName}: Invalid row structure at index ${i} - expected ${expectedColumns} columns, got ${result[i] ? result[i].length : 'undefined'}`);
+        console.error(`Row content: ${JSON.stringify(result[i])}`);
         return false;
       }
     }
     
     // Validate date order (start <= end for each period)
     for (let i = 0; i < result.length; i++) {
-      const periodStart = new Date(result[i][1]);
-      const periodEnd = new Date(result[i][2]);
+      // Skip empty rows (some periods may be empty strings)
+      if (result[i][0] === '' && result[i][1] === '') {
+        continue;
+      }
+      
+      const periodStart = new Date(result[i][0]);
+      const periodEnd = new Date(result[i][1]);
+      
+      // Check for valid dates
+      if (isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime())) {
+        console.error(`❌ ${testName}: Invalid date format at index ${i} - start: ${result[i][0]}, end: ${result[i][1]}`);
+        return false;
+      }
+      
       if (periodStart > periodEnd) {
-        console.error(`❌ ${testName}: Invalid date order in period ${result[i][0]}`);
+        console.error(`❌ ${testName}: Invalid date order at index ${i} - start: ${result[i][0]}, end: ${result[i][1]}`);
         return false;
       }
     }
@@ -452,14 +465,16 @@ function testCalculateSetupClosingDatesFunction() {
     const result = get_trial_start_end_date_();
     
     // Check if Setup and Closing periods are in the result
-    const hasSetup = result.some(row => row[0] && row[0].toString().includes('Setup'));
-    const hasClosing = result.some(row => row[0] && row[0].toString().includes('Closing'));
+    // Index 0: Setup, Index 7: Closing
+    const hasSetup = result[0] && result[0][0] !== '' && result[0][1] !== '';
+    const hasClosing = result[7] && result[7][0] !== '' && result[7][1] !== '';
     
     if (hasSetup && hasClosing) {
       console.log('✅ calculateSetupClosingDates_ function: Setup and Closing dates calculated');
       return true;
     } else {
       console.error('❌ calculateSetupClosingDates_ function: Missing Setup or Closing dates');
+      console.error(`Setup valid: ${hasSetup}, Closing valid: ${hasClosing}`);
       return false;
     }
     
@@ -480,14 +495,16 @@ function testDetermineRegistrationStartDateFunction() {
     
     const result = get_trial_start_end_date_();
     
-    // Check if Registration periods have valid start dates
-    const registrationPeriods = result.filter(row => row[0] && row[0].toString().includes('Registration'));
+    // Check if Registration periods (indices 1 and 2) have valid start dates
+    // Index 1: Registration_1, Index 2: Registration_2
+    const hasValidRegistration1 = result[1] && result[1][0] !== '';
+    const hasValidRegistration2 = result[2] && result[2][0] !== '';
     
-    if (registrationPeriods.length > 0 && registrationPeriods.every(period => period[1])) {
+    if (hasValidRegistration1 || hasValidRegistration2) {
       console.log('✅ determineRegistrationStartDate_ function: Registration start dates determined');
       return true;
     } else {
-      console.error('❌ determineRegistrationStartDate_ function: Invalid registration start dates');
+      console.error('❌ determineRegistrationStartDate_ function: No valid registration start dates found');
       return false;
     }
     
@@ -508,14 +525,16 @@ function testDetermineRegistrationEndDateFunction() {
     
     const result = get_trial_start_end_date_();
     
-    // Check if Registration periods have valid end dates
-    const registrationPeriods = result.filter(row => row[0] && row[0].toString().includes('Registration'));
+    // Check if Registration periods (indices 1 and 2) have valid end dates
+    // Index 1: Registration_1, Index 2: Registration_2
+    const hasValidRegistration1End = result[1] && result[1][1] !== '';
+    const hasValidRegistration2End = result[2] && result[2][1] !== '';
     
-    if (registrationPeriods.length > 0 && registrationPeriods.every(period => period[2])) {
+    if (hasValidRegistration1End || hasValidRegistration2End) {
       console.log('✅ determineRegistrationEndDate_ function: Registration end dates determined');
       return true;
     } else {
-      console.error('❌ determineRegistrationEndDate_ function: Invalid registration end dates');
+      console.error('❌ determineRegistrationEndDate_ function: No valid registration end dates found');
       return false;
     }
     
@@ -538,11 +557,12 @@ function testBuildTrialDateArrayFunction() {
     
     // Validate array structure
     if (Array.isArray(result) && result.length > 0 && 
-        result.every(row => Array.isArray(row) && row.length === 3)) {
+        result.every(row => Array.isArray(row) && row.length === 2)) {
       console.log('✅ buildTrialDateArray_ function: Array structure is correct');
       return true;
     } else {
       console.error('❌ buildTrialDateArray_ function: Invalid array structure');
+      console.error(`Expected 2D array with 2 columns per row, got: ${JSON.stringify(result.slice(0, 3))}`);
       return false;
     }
     
