@@ -6,16 +6,83 @@
  */
 
 /**
- * Test function for get_setup_closing_term_() - Physician-initiated trial scenario
- * Tests that when trial type is "医師主導治験", both setup_term and closing_term are set to 6
+ * Test function for get_setup_closing_term_() - All trial types
+ * Tests all 5 trial types to verify correct setup_term and closing_term values
  */
 function testGetSetupClosingTermFunction() {
   console.log('🚀 get_setup_closing_term_() 関数テスト開始');
   console.log('==================================================');
-  console.log('📋 テストシナリオ: 医師主導治験の期間設定テスト');
-  console.log('🎯 期待結果: setup_term=6, closing_term=6');
+  console.log('📋 テストシナリオ: 全試験種別の期間設定テスト');
+  console.log('🎯 対象: 5つの試験種別すべて');
   console.log('⏰ テスト開始時刻: ' + new Date().toLocaleString('ja-JP'));
   
+  // Define test scenarios for all 5 trial types
+  const testScenarios = [
+    {
+      trialType: '医師主導治験',
+      expectedSetup: '6',
+      expectedClosing: '6',
+      description: '医師主導治験（長期間）'
+    },
+    {
+      trialType: '特定臨床研究',
+      expectedSetup: '6',
+      expectedClosing: '6',
+      description: '特定臨床研究（長期間）'
+    },
+    {
+      trialType: '観察研究・レジストリ',
+      expectedSetup: '3',
+      expectedClosing: '3',
+      description: '観察研究・レジストリ（短期間）'
+    },
+    {
+      trialType: '介入研究（特定臨床研究以外）',
+      expectedSetup: '3',
+      expectedClosing: '3',
+      description: '介入研究（特定臨床研究以外）（短期間）'
+    },
+    {
+      trialType: '先進',
+      expectedSetup: '3',
+      expectedClosing: '3',
+      description: '先進（短期間）'
+    }
+  ];
+  
+  let passedTests = 0;
+  let totalTests = testScenarios.length;
+  
+  for (let i = 0; i < testScenarios.length; i++) {
+    const scenario = testScenarios[i];
+    console.log(`\n--- テスト ${i + 1}/${totalTests}: ${scenario.description} ---`);
+    
+    if (runSingleTrialTypeTest_(scenario)) {
+      passedTests++;
+    }
+  }
+  
+  // Summary
+  console.log('\n==================================================');
+  console.log(`📊 テスト結果サマリー: ${passedTests}/${totalTests} 成功`);
+  
+  if (passedTests === totalTests) {
+    console.log('✅ 全テスト成功: すべての試験種別で正しい期間が設定されました');
+  } else {
+    console.log(`❌ ${totalTests - passedTests}個のテストが失敗しました`);
+  }
+  
+  console.log('⏰ テスト終了時刻: ' + new Date().toLocaleString('ja-JP'));
+  return passedTests === totalTests;
+}
+
+
+/**
+ * Run a single trial type test scenario
+ * @param {Object} scenario - Test scenario with trialType, expectedSetup, expectedClosing, description
+ * @return {boolean} - True if test passed, false otherwise
+ */
+function runSingleTrialTypeTest_(scenario) {
   try {
     // Clear existing properties
     const cache = new ConfigCache();
@@ -29,47 +96,47 @@ function testGetSetupClosingTermFunction() {
     console.log('📝 既存のプロパティをクリア');
     
     // Create mock quotation request data
-    const mockData = createMockQuotationRequestData_('医師主導治験');
-    console.log('📝 モックデータ作成完了');
+    const mockData = createMockQuotationRequestData_(scenario.trialType, 'なし');
+    console.log(`📝 モックデータ作成完了: ${scenario.trialType}`);
     
     // Execute the function
     console.log('🔄 get_setup_closing_term_() 実行中...');
-    get_setup_closing_term_('医師主導治験', mockData);
+    get_setup_closing_term_(scenario.trialType, mockData);
     
     // Verify results
     const actualSetup = cache.scriptProperties.getProperty('setup_term');
     const actualClosing = cache.scriptProperties.getProperty('closing_term');
     
     console.log('📊 実行結果:');
-    console.log(`  setup_term: ${actualSetup}`);
-    console.log(`  closing_term: ${actualClosing}`);
+    console.log(`  試験種別: ${scenario.trialType}`);
+    console.log(`  setup_term: ${actualSetup} (期待値: ${scenario.expectedSetup})`);
+    console.log(`  closing_term: ${actualClosing} (期待値: ${scenario.expectedClosing})`);
     
     // Validate results
-    if (actualSetup === '6' && actualClosing === '6') {
-      console.log('✅ テスト成功: 医師主導治験で両方の期間が6ヶ月に設定されました');
-      console.log('⏰ テスト終了時刻: ' + new Date().toLocaleString('ja-JP'));
+    if (actualSetup === scenario.expectedSetup && actualClosing === scenario.expectedClosing) {
+      console.log(`✅ テスト成功: ${scenario.trialType}`);
       return true;
     } else {
-      console.log('❌ テスト失敗:');
-      console.log(`  期待値: setup_term=6, closing_term=6`);
+      console.log(`❌ テスト失敗: ${scenario.trialType}`);
+      console.log(`  期待値: setup_term=${scenario.expectedSetup}, closing_term=${scenario.expectedClosing}`);
       console.log(`  実際値: setup_term=${actualSetup}, closing_term=${actualClosing}`);
-      console.log('⏰ テスト終了時刻: ' + new Date().toLocaleString('ja-JP'));
       return false;
     }
     
   } catch (error) {
     console.log(`❌ テスト実行中にエラーが発生: ${error.message}`);
-    console.log('⏰ テスト終了時刻: ' + new Date().toLocaleString('ja-JP'));
     return false;
   }
 }
 
-
 /**
  * Create mock quotation request data for testing
  * Creates a 2D array structure matching A1:AQ2 getValues() format (2 rows, 43 columns)
+ * @param {string} trialType - Trial type value
+ * @param {string} researchReportSupport - Research report support value ('あり' or 'なし')
+ * @return {Array} - 2D array matching A1:AQ2 structure
  */
-function createMockQuotationRequestData_(trialType) {
+function createMockQuotationRequestData_(trialType, researchReportSupport = 'なし') {
   if (trialType === null || trialType === undefined) {
     return null;
   }
@@ -77,21 +144,17 @@ function createMockQuotationRequestData_(trialType) {
   // Create 2D array structure matching A1:AQ2 range (2 rows, 43 columns A-AQ)
   const mockData = [];
   
-  // Row 1 (index 0) - Headers or first row data
-  const row1 = new Array(43).fill(''); // 43 columns from A to AQ
+  // Row 1 (index 0) - Headers row
+  const row1 = new Array(43).fill('');
+  // Set header names at appropriate positions
+  row1[1] = QuoteScriptConstants.TRIAL_TYPE; // '試験種別' at column B
+  row1[2] = QuoteScriptConstants.RESEARCH_REPORT_SUPPORT; // '研究結果報告書作成支援' at column C
   mockData.push(row1);
   
-  // Row 2 (index 1) - Data row containing trial type
-  const row2 = new Array(43).fill(''); // 43 columns from A to AQ
-  
-  // Set trial type at column B (index 1) in row 2
-  // This matches the expected structure where trial type is in the second column
-  row2[1] = trialType;
-  
-  // Set research report support to 'なし' at an appropriate column
-  // Assuming it's in a later column, using column C (index 2) for this test
-  row2[2] = 'なし';
-  
+  // Row 2 (index 1) - Data row containing values
+  const row2 = new Array(43).fill('');
+  row2[1] = trialType; // Trial type at column B (index 1)
+  row2[2] = researchReportSupport; // Research report support at column C (index 2)
   mockData.push(row2);
   
   return mockData;
