@@ -139,7 +139,7 @@ function runSingleTrialTypeTest_(scenario) {
     console.log('📝 既存のプロパティをクリア');
     
     // Create mock quotation request data
-    const mockData = createMockQuotationRequestData_(scenario.trialType, scenario.researchReportSupport);
+    const mockData = createMockQuotationRequestDataTestGetSetupClosingTerm_(scenario.trialType, scenario.researchReportSupport);
     console.log(`📝 モックデータ作成完了: ${scenario.trialType}, 研究結果報告書作成支援: ${scenario.researchReportSupport}`);
     
     // Execute the function
@@ -180,7 +180,7 @@ function runSingleTrialTypeTest_(scenario) {
  * @param {string} researchReportSupport - Research report support value ('あり' or 'なし')
  * @return {Array} - 2D array matching A1:AQ2 structure
  */
-function createMockQuotationRequestData_(trialType, researchReportSupport = 'なし') {
+function createMockQuotationRequestDataTestGetSetupClosingTerm_(trialType, researchReportSupport = 'なし') {
   if (trialType === null || trialType === undefined) {
     return null;
   }
