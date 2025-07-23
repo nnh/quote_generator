@@ -23,72 +23,72 @@ function testGetSetupClosingTermFunction() {
     {
       trialType: '医師主導治験',
       researchReportSupport: 'なし',
-      expectedSetup: '6',
-      expectedClosing: '6',
+      expectedSetup: '6.0',
+      expectedClosing: '6.0',
       description: '医師主導治験（長期間）- 研究結果報告書作成支援なし'
     },
     {
       trialType: '特定臨床研究',
       researchReportSupport: 'なし',
-      expectedSetup: '6',
-      expectedClosing: '6',
+      expectedSetup: '6.0',
+      expectedClosing: '6.0',
       description: '特定臨床研究（長期間）- 研究結果報告書作成支援なし'
     },
     {
       trialType: '観察研究・レジストリ',
       researchReportSupport: 'なし',
-      expectedSetup: '3',
-      expectedClosing: '3',
+      expectedSetup: '3.0',
+      expectedClosing: '3.0',
       description: '観察研究・レジストリ（短期間）- 研究結果報告書作成支援なし'
     },
     {
       trialType: '介入研究（特定臨床研究以外）',
       researchReportSupport: 'なし',
-      expectedSetup: '3',
-      expectedClosing: '3',
+      expectedSetup: '3.0',
+      expectedClosing: '3.0',
       description: '介入研究（特定臨床研究以外）（短期間）- 研究結果報告書作成支援なし'
     },
     {
       trialType: '先進',
       researchReportSupport: 'なし',
-      expectedSetup: '3',
-      expectedClosing: '3',
+      expectedSetup: '3.0',
+      expectedClosing: '3.0',
       description: '先進（短期間）- 研究結果報告書作成支援なし'
     },
     // Research report support = 'あり' scenarios - closing_term becomes 6 regardless of trial type
     {
       trialType: '医師主導治験',
       researchReportSupport: 'あり',
-      expectedSetup: '6',
-      expectedClosing: '6',
+      expectedSetup: '6.0',
+      expectedClosing: '6.0',
       description: '医師主導治験（長期間）- 研究結果報告書作成支援あり'
     },
     {
       trialType: '特定臨床研究',
       researchReportSupport: 'あり',
-      expectedSetup: '6',
-      expectedClosing: '6',
+      expectedSetup: '6.0',
+      expectedClosing: '6.0',
       description: '特定臨床研究（長期間）- 研究結果報告書作成支援あり'
     },
     {
       trialType: '観察研究・レジストリ',
       researchReportSupport: 'あり',
-      expectedSetup: '3',
-      expectedClosing: '6',
+      expectedSetup: '3.0',
+      expectedClosing: '6.0',
       description: '観察研究・レジストリ（短期間）- 研究結果報告書作成支援あり'
     },
     {
       trialType: '介入研究（特定臨床研究以外）',
       researchReportSupport: 'あり',
-      expectedSetup: '3',
-      expectedClosing: '6',
+      expectedSetup: '3.0',
+      expectedClosing: '6.0',
       description: '介入研究（特定臨床研究以外）（短期間）- 研究結果報告書作成支援あり'
     },
     {
       trialType: '先進',
       researchReportSupport: 'あり',
-      expectedSetup: '3',
-      expectedClosing: '6',
+      expectedSetup: '3.0',
+      expectedClosing: '6.0',
       description: '先進（短期間）- 研究結果報告書作成支援あり'
     }
   ];
