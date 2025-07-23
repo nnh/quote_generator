@@ -76,16 +76,16 @@ function testTrialDateFunction() {
  * @param {string} startDate - Trial start date (YYYY-MM-DD format)
  * @param {string} endDate - Trial end date (YYYY-MM-DD format)
  * @param {string} testDescription - Description of the test scenario
- * @param {Object} expectedValues - Expected values for validation (optional)
+ * @param {Array} expectedValues - Expected 2D array values for validation (optional)
  * @return {boolean} True if test passed, false otherwise
  */
-function testTrialDateParameterized_(trialType, startDate, endDate, testDescription, expectedValues = {}) {
+function testTrialDateParameterized_(trialType, startDate, endDate, testDescription, expectedValues = null) {
   console.log('🧪 パラメータ化テスト実行開始');
   console.log('='.repeat(60));
   console.log(`📋 テストシナリオ: ${testDescription}`);
   console.log(`🏥 試験種別: ${trialType}`);
   console.log(`📅 試験期間: ${startDate} ～ ${endDate}`);
-  console.log(`🎯 期待値設定: ${Object.keys(expectedValues).length > 0 ? 'あり' : 'なし'}`);
+  console.log(`🎯 期待値設定: ${expectedValues ? 'あり' : 'なし'}`);
   
   const startTime = new Date();
   console.log(`⏰ テスト開始時刻: ${startTime.toLocaleString('ja-JP')}`);
@@ -98,41 +98,29 @@ function testTrialDateParameterized_(trialType, startDate, endDate, testDescript
       return false;
     }
     
-    // Set trial type if provided (this would typically be set by get_setup_closing_term_)
-    if (trialType) {
-      console.log(`📝 試験種別を設定中: ${trialType}`);
-      // Set appropriate setup/closing terms based on trial type
-      setTrialTypeTerms_(cache, trialType);
-    }
-    
-    // Clear existing trial properties
+    // Clear existing properties for clean testing
     clearTrialProperties_(cache);
     console.log('📝 既存のプロパティをクリア完了');
     
-    // Set test parameters in Trial sheet
-    const sheets = get_sheets();
-    if (!sheets.trial) {
-      console.log('❌ Trialシートが見つかりません');
-      return false;
+    // Set up trial type for setup/closing term calculation
+    if (trialType) {
+      console.log(`🔧 試験種別設定: ${trialType}`);
+      // Create mock data for get_setup_closing_term_() if needed
+      const mockData = createMockQuotationRequestDataTestTrialDate_(trialType, 'なし');
+      get_setup_closing_term_(trialType, mockData);
     }
     
-    console.log(`📊 入力パラメータ詳細:`);
-    console.log(`  試験種別: ${trialType}`);
+    console.log(`📊 テスト入力値:`);
     console.log(`  開始日: ${startDate}`);
     console.log(`  終了日: ${endDate}`);
-    console.log(`  テスト説明: ${testDescription}`);
-    
-    // Set trial dates in the sheet
-    sheets.trial.getRange(parseInt(cache.trialSetupRow), parseInt(cache.trialStartCol)).setValue(startDate);
-    sheets.trial.getRange(parseInt(cache.trialClosingRow), parseInt(cache.trialEndCol)).setValue(endDate);
-    console.log('📝 Trialシートに日付を設定完了');
+    console.log(`  説明: ${testDescription}`);
     
     // Execute the function
     console.log('🔄 get_trial_start_end_date_() 実行中...');
-    const result = get_trial_start_end_date_();
+    const result = get_trial_start_end_date_(startDate, endDate);
     
-    // Validate results
-    console.log('📊 実行結果の検証開始:');
+    // Verify results
+    console.log('📊 実行結果の検証:');
     
     if (!result) {
       console.log('❌ テスト失敗: 関数が結果を返しませんでした');
@@ -149,84 +137,95 @@ function testTrialDateParameterized_(trialType, startDate, endDate, testDescript
     console.log(`  配列の行数: ${result.length}`);
     console.log(`  配列の列数: ${result.length > 0 ? result[0].length : 0}`);
     
+    // Expected structure: 9 rows × 2 columns
+    if (result.length !== 9) {
+      console.log(`❌ テスト失敗: 期待される行数は9ですが、実際は${result.length}でした`);
+      return false;
+    }
+    
+    if (result[0].length !== 2) {
+      console.log(`❌ テスト失敗: 期待される列数は2ですが、実際は${result[0].length}でした`);
+      return false;
+    }
+    
+    console.log('✅ 配列構造の検証成功');
+    
     // Display calculated dates with detailed logging
     console.log('📅 計算された日付一覧:');
     const periodNames = [
       'Setup期間',
       'Registration期間1',
-      'Registration期間2', 
-      'Interim期間1',
-      'Interim期間2',
+      'Interim期間1', 
       'Observation期間1',
+      'Interim期間2',
       'Observation期間2',
       'Closing期間',
-      '年度計算'
+      '年度1',
+      '年度2'
     ];
     
     for (let i = 0; i < result.length; i++) {
       const periodName = periodNames[i] || `期間${i + 1}`;
-      if (Array.isArray(result[i]) && result[i].length === 2) {
-        const startStr = formatDateForLog_(result[i][0]);
-        const endStr = formatDateForLog_(result[i][1]);
-        console.log(`  [${i}] ${periodName}: ${startStr} ～ ${endStr}`);
-      } else {
-        console.log(`  [${i}] ${periodName}: 構造エラー - ${JSON.stringify(result[i])}`);
-      }
+      console.log(`  ${periodName}: ${result[i][0]} ～ ${result[i][1]}`);
     }
     
-    // Validate expected values if provided
-    if (expectedValues && Object.keys(expectedValues).length > 0) {
+    // Validate expected values if provided using the exact user-specified logic
+    if (expectedValues) {
       console.log('🔍 期待値との比較検証:');
-      const validationResult = validateExpectedValues_(result, expectedValues, cache);
-      if (!validationResult) {
-        console.log('❌ 期待値検証に失敗しました');
-        return false;
+      
+      for (let i = 0; i < result.length; i++) {
+        for (let j = 0; j <= 1; j++) {
+          const resultDate = Moment.moment(result[i][j]);
+          const expectedDate = Moment.moment(expectedValues[i][j]);
+
+          const bothInvalid = !resultDate.isValid() && !expectedDate.isValid();
+          const isSameDate = resultDate.isSame(expectedDate, 'day');
+
+          if (!isSameDate && !bothInvalid) {
+            console.log('❌ 日付不一致エラー');
+            console.log(`期間: ${periodNames[i]}`);
+            console.log(`対象: ${j === 0 ? '開始日' : '終了日'}`);
+            console.log(`期待値: ${expectedDate.format('YYYY-MM-DD')}`);
+            console.log(`実際値: ${resultDate.format('YYYY-MM-DD')}`);
+            return false;
+          }
+        }
       }
+      
       console.log('✅ 期待値検証成功');
     }
     
-    // Validate basic structure requirements
-    console.log('🔍 基本構造の検証:');
-    const structureValid = validateBasicStructure_(result);
-    if (!structureValid) {
-      console.log('❌ 基本構造検証に失敗しました');
-      return false;
-    }
-    console.log('✅ 基本構造検証成功');
-    
-    // Validate script properties were set
+    // Verify script properties were set
     console.log('🔍 スクリプトプロパティの検証:');
-    const propertiesValid = validateScriptProperties_(cache);
-    if (!propertiesValid) {
-      console.log('❌ スクリプトプロパティ検証に失敗しました');
+    const setupTerm = cache.scriptProperties.getProperty('setup_term');
+    const closingTerm = cache.scriptProperties.getProperty('closing_term');
+    const registrationTerm = cache.scriptProperties.getProperty('registration_term');
+    
+    console.log(`  setup_term: ${setupTerm}`);
+    console.log(`  closing_term: ${closingTerm}`);
+    console.log(`  registration_term: ${registrationTerm}`);
+    
+    if (!setupTerm || !closingTerm || !registrationTerm) {
+      console.log('❌ テスト失敗: 必要なスクリプトプロパティが設定されていません');
       return false;
     }
-    console.log('✅ スクリプトプロパティ検証成功');
+    
+    console.log('✅ スクリプトプロパティの検証成功');
     
     // Test completed successfully
     const endTime = new Date();
     const duration = endTime - startTime;
-    
     console.log('\n' + '='.repeat(60));
-    console.log('✅ パラメータ化テスト成功');
-    console.log(`🎉 ${testDescription} が正常に動作しました`);
-    console.log(`📊 結果サマリー:`);
-    console.log(`  - 試験種別: ${trialType}`);
-    console.log(`  - 期間数: ${result.length}個`);
-    console.log(`  - 構造検証: 成功`);
-    console.log(`  - 期待値検証: ${Object.keys(expectedValues).length > 0 ? '成功' : 'スキップ'}`);
-    console.log(`  - プロパティ設定: 成功`);
+    console.log(`✅ テスト成功: ${testDescription}`);
+    console.log(`🎉 get_trial_start_end_date_() 関数は期待通りに機能しています`);
     console.log(`⏱️ 実行時間: ${duration}ms`);
-    console.log('⏰ テスト終了時刻: ' + endTime.toLocaleString('ja-JP'));
+    console.log(`⏰ テスト終了時刻: ${endTime.toLocaleString('ja-JP')}`);
     
     return true;
     
   } catch (error) {
-    const endTime = new Date();
-    const duration = endTime - startTime;
-    console.log(`❌ パラメータ化テスト実行中にエラーが発生: ${error.message}`);
+    console.log(`❌ テスト実行中にエラーが発生: ${error.message}`);
     console.log(`📍 エラースタック: ${error.stack}`);
-    console.log(`⏱️ 実行時間: ${duration}ms`);
     return false;
   }
 }
@@ -255,15 +254,45 @@ function setTrialTypeTerms_(cache, trialType) {
 }
 
 /**
+ * Create mock quotation request data for testing
+ * @param {string} trialType - Trial type value
+ * @param {string} researchReportSupport - Research report support value
+ * @return {Array} - 2D array matching expected structure
+ */
+function createMockQuotationRequestDataTestTrialDate_(trialType, researchReportSupport = 'なし') {
+  if (trialType === null || trialType === undefined) {
+    return null;
+  }
+  
+  // Create 2D array structure matching A1:AQ2 range (2 rows, 43 columns A-AQ)
+  const mockData = [];
+  
+  // Row 1 (index 0) - Headers row
+  const row1 = new Array(43).fill('');
+  row1[6] = "試験種別"; // Column G (index 6)
+  row1[12] = "研究結果報告書作成支援"; // Column M (index 12)
+  mockData.push(row1);
+  
+  // Row 2 (index 1) - Data row containing values
+  const row2 = new Array(43).fill('');
+  row2[6] = trialType; // Trial type at column G (index 6)
+  row2[12] = researchReportSupport; // Research report support at column M (index 12)
+  mockData.push(row2);
+  
+  return mockData;
+}
+
+/**
  * Clear trial-related script properties for clean testing
  * @param {ConfigCache} cache - ConfigCache instance
  */
 function clearTrialProperties_(cache) {
   const propertiesToClear = [
-    'trial_start',
-    'trial_end',
-    'registration_years',
-    'registration_term'
+    'setup_term',
+    'closing_term', 
+    'registration_term',
+    'trial_start_date',
+    'trial_end_date'
   ];
   
   propertiesToClear.forEach(prop => {
@@ -416,13 +445,17 @@ function quickTestTrialDates() {
   console.log(`⏰ テスト開始時刻: ${startTime.toLocaleString('ja-JP')}`);
   
   // Test the most common scenario using the new parameterized function
-  const expectedValues = {
-    arrayLength: 9,
-    properties: {
-      'setup_term': '6',
-      'closing_term': '6'
-    }
-  };
+  const expectedValues = [
+    ['2023-10-01', '2024-03-31'],
+    ['2024-04-01', '2025-03-31'],
+    ['', ''],
+    ['', ''],
+    ['', ''],
+    ['', ''],
+    ['2025-04-01', '2026-03-31'],
+    ['2024-04-01', '2025-03-31'],
+    ['2025-04-01', '2026-03-31']
+  ];
   
   if (testTrialDateParameterized_('医師主導治験', '2024-04-01', '2026-03-31', 'Quick test - Standard 2-year trial', expectedValues)) {
     const endTime = new Date();
@@ -454,13 +487,17 @@ function sampleParameterizedTests() {
   
   // Test 1: 医師主導治験 with expected values
   console.log('\n--- サンプルテスト 1: 医師主導治験 ---');
-  const expectedValues1 = {
-    arrayLength: 9,
-    properties: {
-      'setup_term': '6',
-      'closing_term': '6'
-    }
-  };
+  const expectedValues1 = [
+    ['2023-10-01', '2024-03-31'],
+    ['2024-04-01', '2025-03-31'],
+    ['', ''],
+    ['', ''],
+    ['', ''],
+    ['', ''],
+    ['2025-04-01', '2026-03-31'],
+    ['2024-04-01', '2025-03-31'],
+    ['2025-04-01', '2026-03-31']
+  ];
   
   if (testTrialDateParameterized_('医師主導治験', '2024-04-01', '2026-03-31', '医師主導治験 2年間試験', expectedValues1)) {
     passedTests++;
@@ -469,13 +506,17 @@ function sampleParameterizedTests() {
   
   // Test 2: 観察研究・レジストリ with different terms
   console.log('\n--- サンプルテスト 2: 観察研究・レジストリ ---');
-  const expectedValues2 = {
-    arrayLength: 9,
-    properties: {
-      'setup_term': '3',
-      'closing_term': '3'
-    }
-  };
+  const expectedValues2 = [
+    ['2023-10-01', '2023-12-31'],
+    ['2024-01-01', '2024-12-31'],
+    ['', ''],
+    ['', ''],
+    ['', ''],
+    ['', ''],
+    ['2025-01-01', '2026-03-31'],
+    ['2024-01-01', '2024-12-31'],
+    ['2025-01-01', '2025-12-31']
+  ];
   
   if (testTrialDateParameterized_('観察研究・レジストリ', '2024-01-01', '2025-12-31', '観察研究 2年間試験', expectedValues2)) {
     passedTests++;
@@ -484,17 +525,17 @@ function sampleParameterizedTests() {
   
   // Test 3: 特定臨床研究 with specific period validation
   console.log('\n--- サンプルテスト 3: 特定臨床研究 ---');
-  const expectedValues3 = {
-    arrayLength: 9,
-    properties: {
-      'setup_term': '6',
-      'closing_term': '6'
-    },
-    periods: {
-      0: { start: '2023-10-01' }, // Setup期間の開始日を検証
-      7: { end: '2025-09-30' }    // Closing期間の終了日を検証
-    }
-  };
+  const expectedValues3 = [
+    ['2023-10-01', '2024-03-31'],
+    ['2024-04-01', '2024-12-31'],
+    ['', ''],
+    ['', ''],
+    ['', ''],
+    ['', ''],
+    ['2025-04-01', '2025-09-30'],
+    ['2024-04-01', '2024-12-31'],
+    ['2025-04-01', '2025-09-30']
+  ];
   
   if (testTrialDateParameterized_('特定臨床研究', '2024-04-01', '2025-03-31', '特定臨床研究 1年間試験', expectedValues3)) {
     passedTests++;
