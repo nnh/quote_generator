@@ -248,6 +248,76 @@ function set_items_price_(sheet, price, target_row){
   }
 }
 /**
+* 試験期間の処理とTrialシートへの書き込みを行う
+* @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @param {string} trial_type 試験種別
+* @param {ConfigCache} cache 設定キャッシュ
+* @return {Object|null} 処理結果オブジェクト（save_rowを含む）またはnull（エラー時）
+* @example 
+*   const result = processAndWriteTrialPeriod_(sheet, array_quotation_request, '医師主導治験', cache);
+*/
+function processAndWriteTrialPeriod_(sheet, array_quotation_request, trial_type, cache) {
+  const const_trial_start = QuoteScriptConstants.TRIAL_START;
+  const const_registration_end = QuoteScriptConstants.REGISTRATION_END;
+  const const_trial_end = QuoteScriptConstants.TRIAL_END;
+  const const_trial_start_col = parseInt(cache.trialStartCol);
+  const const_trial_end_col = parseInt(cache.trialEndCol);
+  const const_trial_setup_row = parseInt(cache.trialSetupRow);
+  const const_trial_years_col = parseInt(cache.trialYearsCol);
+  const const_total_month_col = QuoteScriptConstants.TOTAL_MONTH_COL;
+  
+  const trial_start_date = get_quotation_request_value(array_quotation_request, const_trial_start);
+  const registration_end_date = get_quotation_request_value(array_quotation_request, const_registration_end);
+  const trial_end_date = get_quotation_request_value(array_quotation_request, const_trial_end);
+  
+  if (trial_start_date == null || registration_end_date == null || trial_end_date == null) {
+    return null;
+  }
+  
+  get_setup_closing_term_(trial_type, array_quotation_request);
+  const array_trial_date = get_trial_start_end_date_(trial_start_date, trial_end_date);
+  
+  sheet.trial.getRange(const_trial_setup_row, const_trial_start_col, array_trial_date.length, 2).clear();
+  
+  let save_row = const_trial_setup_row;
+  let temp_start, temp_end, temp_start_addr, temp_end_addr;
+  
+  for (var j = 0; j < array_trial_date.length; j++) {
+    temp_start = sheet.trial.getRange(const_trial_setup_row + j, const_trial_start_col);
+    temp_end = sheet.trial.getRange(const_trial_setup_row + j, const_trial_end_col);
+    
+    if (array_trial_date[j][0] != '') {
+      temp_start.setValue(array_trial_date[j][0].format('YYYY/MM/DD'));
+    }
+    if (array_trial_date[j][1] != '') {
+      temp_end.setValue(array_trial_date[j][1].format('YYYY/MM/DD'));
+    }
+    
+    temp_start_addr = temp_start.getA1Notation();
+    temp_end_addr = temp_end.getA1Notation();
+    
+    sheet.trial.getRange(const_trial_setup_row + j, const_trial_years_col).setFormula(
+      '=if(and($' + temp_start_addr + '<>"",$' + temp_end_addr + '<>""),datedif($' + temp_start_addr + ',$' + temp_end_addr + ',"y")+1,"")'
+    );
+    
+    save_row = const_trial_setup_row + j;
+  }
+  
+  const temp_total = sheet.trial.getRange(save_row, const_total_month_col);
+  sheet.trial.getRange(save_row, const_total_month_col).setFormula(
+    '=datedif(' + sheet.trial.getRange(save_row, const_trial_start_col).getA1Notation() + 
+    ',(' + sheet.trial.getRange(save_row, const_trial_end_col).getA1Notation() + '+1),"m")'
+  );
+  sheet.trial.getRange(save_row, const_trial_years_col).setFormula(
+    '=trunc(' + temp_total.getA1Notation() + '/12) & "年" & if(mod(' + temp_total.getA1Notation() + 
+    ',12)<>0,mod(' + temp_total.getA1Notation() + ',12) & "ヶ月","")'
+  );
+  
+  return { save_row: save_row };
+}
+
+/**
 * quotation_requestシートの内容からtrialシート, itemsシートを設定する
 * @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
 * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
@@ -320,34 +390,11 @@ function set_trial_sheet_(sheet, array_quotation_request){
           break;
         case const_trial_type: 
           cache.scriptProperties.setProperty('trial_type_value', temp_str);
-          // 試験期間を取得する
-          const trial_start_date = get_quotation_request_value(array_quotation_request, const_trial_start);
-          const registration_end_date = get_quotation_request_value(array_quotation_request, const_registration_end);
-          const trial_end_date = get_quotation_request_value(array_quotation_request, const_trial_end);
-          if (trial_start_date == null || registration_end_date == null || trial_end_date == null){
+          const processResult = processAndWriteTrialPeriod_(sheet, array_quotation_request, temp_str, cache);
+          if (!processResult) {
             return;
           }
-          get_setup_closing_term_(temp_str, array_quotation_request);
-          const array_trial_date = get_trial_start_end_date_(trial_start_date, trial_end_date);
-          sheet.trial.getRange(const_trial_setup_row, const_trial_start_col, array_trial_date.length, 2).clear();
-          for (var j = 0; j < array_trial_date.length; j++){
-            temp_start = sheet.trial.getRange(const_trial_setup_row + j, const_trial_start_col);
-            temp_end = sheet.trial.getRange(const_trial_setup_row + j, const_trial_end_col);
-            if (array_trial_date[j][0] != ''){
-              temp_start.setValue(array_trial_date[j][0].format('YYYY/MM/DD'));
-            }
-            if (array_trial_date[j][1] != ''){
-              temp_end.setValue(array_trial_date[j][1].format('YYYY/MM/DD'));
-            }
-            temp_start_addr = temp_start.getA1Notation();
-            temp_end_addr = temp_end.getA1Notation();              
-            sheet.trial.getRange(const_trial_setup_row + j, const_trial_years_col).setFormula('=if(and($' + temp_start_addr + '<>"",$' + temp_end_addr + '<>""),datedif($' + temp_start_addr + ',$' + temp_end_addr + ',"y")+1,"")');
-            save_row = const_trial_setup_row + j;
-          }
-          // totalはx年xヶ月と月数を出力
-          temp_total = sheet.trial.getRange(save_row, const_total_month_col);
-          sheet.trial.getRange(save_row, const_total_month_col).setFormula('=datedif(' + sheet.trial.getRange(save_row, const_trial_start_col).getA1Notation() + ',(' + sheet.trial.getRange(save_row, const_trial_end_col).getA1Notation() + '+1),"m")');
-          sheet.trial.getRange(save_row, const_trial_years_col).setFormula('=trunc(' + temp_total.getA1Notation() + '/12) & "年" & if(mod(' + temp_total.getA1Notation() + ',12)<>0,mod(' + temp_total.getA1Notation() + ',12) & "ヶ月","")');
+          save_row = processResult.save_row;
           break;
         case const_coefficient:
           if (temp_str == cache.commercialCompanyCoefficient){
