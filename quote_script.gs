@@ -99,11 +99,7 @@ function set_trial_sheet_(sheet, array_quotation_request){
           save_row = processResult.save_row;
           break;
         case const_coefficient:
-          if (temp_str == cache.commercialCompanyCoefficient){
-            temp_str = QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
-          } else {
-            temp_str = QuoteScriptConstants.DEFAULT_COEFFICIENT;
-          }
+          temp_str = calculateCoefficientFromFundingSource_(array_quotation_request, cache);
           break;
         case const_crf:
           temp_str_2 = get_quotation_request_value(array_quotation_request, 'CDISC対応');
@@ -212,6 +208,36 @@ class Set_trial_comments {
     const del_comment = before_delete_comments.filter(x => x != this.delete_target && x != '');
     return del_comment;
   }
+}
+/**
+* 原資に基づいて係数を計算する
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @param {ConfigCache} cache 設定キャッシュ
+* @return {number} 係数（営利企業原資の場合1.5、それ以外は1）
+*/
+function calculateCoefficientFromFundingSource_(array_quotation_request, cache) {
+  const temp_str = get_quotation_request_value(array_quotation_request, cache.coefficient);
+  if (temp_str == cache.commercialCompanyCoefficient) {
+    return QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
+  } else {
+    return QuoteScriptConstants.DEFAULT_COEFFICIENT;
+  }
+}
+/**
+* 医師主導治験の最終解析帳票数を調整する
+* @param {number} final_analysis_table_count 最終解析帳票数
+* @param {string} trial_type_value 試験種別
+* @param {ConfigCache} cache 設定キャッシュ
+* @return {number} 調整後の最終解析帳票数
+*/
+function adjustFinalAnalysisTableCount_(final_analysis_table_count, trial_type_value, cache) {
+  if (trial_type_value == cache.investigatorInitiatedTrial) {
+    if ((final_analysis_table_count > 0) && (final_analysis_table_count < QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT)) {
+      set_trial_comment_(`統計解析に必要な帳票数を${QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT}表と想定しております。`);
+      return QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT;
+    }
+  }
+  return final_analysis_table_count;
 }
 /**
 * trialシートのコメントを追加する。
@@ -550,11 +576,8 @@ class SetSheetItemValues{
         clinical_conference = 1;
         closing_meeting = 1;
       }
-      // 医師主導治験で統計解析に必要な帳票数が50未満であれば50をセットしtrialシートのコメントに追加
-      if ((final_analysis_table_count > 0) && (final_analysis_table_count < QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT)) {
-        final_analysis_table_count = QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT;
-        set_trial_comment_(`統計解析に必要な帳票数を${QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT}表と想定しております。`);
-      }
+      // 医師主導治験で統計解析に必要な帳票数を調整
+      final_analysis_table_count = adjustFinalAnalysisTableCount_(final_analysis_table_count, cache.trialTypeValue, cache);
     }
     const clinical_trials_office = this.clinical_trials_office_flg ? 1 : '';
     const set_items_list = [
