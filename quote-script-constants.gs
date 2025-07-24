@@ -64,5 +64,12 @@ const QuoteScriptConstants = {
   RESEARCH_REPORT_SUPPORT: '研究結果報告書作成支援',
   
   // CDISC addition value
-  CDISC_ADDITION: 3
+  CDISC_ADDITION: 3,
+  
+  // Coefficient values
+  COMMERCIAL_COEFFICIENT: 1.5,
+  DEFAULT_COEFFICIENT: 1,
+  
+  // Analysis table constants
+  MIN_ANALYSIS_TABLE_COUNT: 50
 };
