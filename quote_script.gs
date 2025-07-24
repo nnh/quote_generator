@@ -2,100 +2,7 @@
 * Momentライブラリの追加が必要
 * ライブラリキー：MHMchiX6c1bwSqGM1PZiW_PxhMjh3Sh48
 */
-/**
-* 試験種別からSetup、Closing期間の判定を行いスクリプトプロパティに格納する
-* @param {string} temp_str 試験種別 
-* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
-* @return none
-* @example 
-*   get_setup_closing_term_(temp_str, array_quotation_request);
-*/
-function get_setup_closing_term_(temp_str, array_quotation_request){
-  // Setup期間は医師主導治験、特定臨床研究が6ヶ月、それ以外が3ヶ月
-  // Closing期間は医師主導治験、特定臨床研究、研究結果報告書作成支援ありの試験が6ヶ月、それ以外が3ヶ月
-  const cache = new ConfigCache();
-  if (!cache.isValid) {
-    console.error('Failed to initialize ConfigCache in get_setup_closing_term_');
-    return;
-  }
-  
-  var setup_term = QuoteScriptConstants.SETUP_TERM_SHORT;
-  var closing_term = QuoteScriptConstants.CLOSING_TERM_SHORT;
-  
-  if (temp_str == cache.investigatorInitiatedTrial || temp_str == cache.specifiedClinicalTrial){
-    setup_term = QuoteScriptConstants.SETUP_TERM_LONG;
-    closing_term = QuoteScriptConstants.CLOSING_TERM_LONG;
-  }
-  
-  if (get_quotation_request_value(array_quotation_request, QuoteScriptConstants.RESEARCH_REPORT_SUPPORT) == QuoteScriptConstants.RESPONSE_YES){
-    closing_term = QuoteScriptConstants.CLOSING_TERM_LONG;
-  }
-  
-  cache.scriptProperties.setProperty('setup_term', setup_term);
-  cache.scriptProperties.setProperty('closing_term', closing_term);
-}
-/**
-* 各シートの開始日、終了日を設定する
-* @param {number} input_trial_start_date　試験開始日のセルの値
-* @param {number} input_trial_end_date　試験終了日のセルの値
-* @return 二次元配列（各シートの開始日、終了日）
-* @example 
-*   var array_trial_date_ = get_trial_start_end_date(trial_start_date, trial_end_date);
-*/
-function get_trial_start_end_date_(input_trial_start_date, input_trial_end_date){
-  const cache = new ConfigCache();
-  if (!cache.isValid) {
-    console.error('Failed to initialize ConfigCache in get_trial_start_end_date_');
-    return;
-  }
-  
-  // 試験開始日はその月の1日にする
-  const trial_start_date = Moment.moment(input_trial_start_date).startOf('month');
-  cache.scriptProperties.setProperty('trial_start_date', trial_start_date.format());
-  // 試験終了日はその月の末日にする
-  const trial_end_date = Moment.moment(input_trial_end_date).endOf('month');
-  cache.scriptProperties.setProperty('trial_end_date', trial_end_date.format());
-  // setup開始日
-  const setup_start_date = trial_start_date.clone().subtract(parseInt(cache.setupTerm), 'months');
-  // setupシートの最終日はsetup開始年度の3/31
-  const setup_end_date = Moment.moment([setup_start_date.clone().subtract(3, 'months').year() + 1, 2, 31]);
-  // closing終了日
-  const closing_end_date = trial_end_date.clone().add(1, 'days').add(parseInt(cache.closingTerm), 'months').subtract(1, 'days');
-  // closingシートの開始日はclosing終了年度の4/1
-  const closing_start_date = Moment.moment([closing_end_date.clone().subtract(3, 'months').year(), 3, 1]);
-  // setup終了日〜closing開始日までの月数を取得する
-  const diff_from_setup_end_to_closing_start = closing_start_date.diff(setup_end_date, 'months');
-  // registration_1：setup終了日の翌日から１年間セットする
-  const registration_1_start_date = diff_from_setup_end_to_closing_start > 0 ? setup_end_date.clone().add(1, 'days') : '';
-  const registration_1_end_date = registration_1_start_date != '' ? registration_1_start_date.clone().add(1, 'years').subtract(1, 'days') : '';
-  const diff_from_reg1_end_to_closing_start = registration_1_end_date != '' ? closing_start_date.diff(registration_1_end_date, 'months') : 0;
-  // observation_2：closing開始日の前日から遡って１年間セットする
-  const observation_2_end_date = diff_from_reg1_end_to_closing_start > 0 ? closing_start_date.clone().subtract(1, 'days') : '';
-  const observation_2_start_date = observation_2_end_date != '' ? closing_start_date.clone().subtract(1, 'years') : '';
-  const diff_from_reg1_end_to_obs2_start = observation_2_start_date != '' ? observation_2_start_date.diff(registration_1_end_date, 'months') : 0;
-  // registration_2：残りの期間をセットする
-  const registration_2_end_date = diff_from_reg1_end_to_obs2_start > 0 ? observation_2_start_date.clone().subtract(1, 'days') : '';
-  const registration_2_start_date = registration_2_end_date != '' ? registration_1_end_date.clone().add(1, 'days') : '';
-  // registrationの年数を取得
-  const temp_registration_start_date = registration_1_start_date != '' ? registration_1_start_date.clone() : trial_start_date.clone(); 
-  const temp_registration_end_date = observation_2_end_date != '' ? observation_2_end_date.clone()
-                                      : registration_2_end_date != '' ? registration_2_end_date.clone() 
-                                      : registration_1_end_date != '' ? registration_1_end_date.clone() 
-                                      : trial_end_date.clone();
-  cache.scriptProperties.setProperty('registration_years', get_years(temp_registration_start_date, temp_registration_end_date));
-  const temp_array = [
-    [setup_start_date, setup_end_date],
-    [registration_1_start_date, registration_1_end_date],
-    [registration_2_start_date, registration_2_end_date],
-    ['', ''],
-    ['', ''],
-    ['', ''],
-    [observation_2_start_date, observation_2_end_date],
-    [closing_start_date, closing_end_date],
-    [setup_start_date, closing_end_date]
-  ];
-  return(temp_array);
-}
+
 /**
 * itemsシートに単価を設定する
 */
@@ -185,34 +92,11 @@ function set_trial_sheet_(sheet, array_quotation_request){
           break;
         case const_trial_type: 
           cache.scriptProperties.setProperty('trial_type_value', temp_str);
-          // 試験期間を取得する
-          const trial_start_date = get_quotation_request_value(array_quotation_request, const_trial_start);
-          const registration_end_date = get_quotation_request_value(array_quotation_request, const_registration_end);
-          const trial_end_date = get_quotation_request_value(array_quotation_request, const_trial_end);
-          if (trial_start_date == null || registration_end_date == null || trial_end_date == null){
+          const processResult = processAndWriteTrialPeriod_(sheet, array_quotation_request, temp_str, cache);
+          if (!processResult) {
             return;
           }
-          get_setup_closing_term_(temp_str, array_quotation_request);
-          const array_trial_date = get_trial_start_end_date_(trial_start_date, trial_end_date);
-          sheet.trial.getRange(const_trial_setup_row, const_trial_start_col, array_trial_date.length, 2).clear();
-          for (var j = 0; j < array_trial_date.length; j++){
-            temp_start = sheet.trial.getRange(const_trial_setup_row + j, const_trial_start_col);
-            temp_end = sheet.trial.getRange(const_trial_setup_row + j, const_trial_end_col);
-            if (array_trial_date[j][0] != ''){
-              temp_start.setValue(array_trial_date[j][0].format('YYYY/MM/DD'));
-            }
-            if (array_trial_date[j][1] != ''){
-              temp_end.setValue(array_trial_date[j][1].format('YYYY/MM/DD'));
-            }
-            temp_start_addr = temp_start.getA1Notation();
-            temp_end_addr = temp_end.getA1Notation();              
-            sheet.trial.getRange(const_trial_setup_row + j, const_trial_years_col).setFormula('=if(and($' + temp_start_addr + '<>"",$' + temp_end_addr + '<>""),datedif($' + temp_start_addr + ',$' + temp_end_addr + ',"y")+1,"")');
-            save_row = const_trial_setup_row + j;
-          }
-          // totalはx年xヶ月と月数を出力
-          temp_total = sheet.trial.getRange(save_row, const_total_month_col);
-          sheet.trial.getRange(save_row, const_total_month_col).setFormula('=datedif(' + sheet.trial.getRange(save_row, const_trial_start_col).getA1Notation() + ',(' + sheet.trial.getRange(save_row, const_trial_end_col).getA1Notation() + '+1),"m")');
-          sheet.trial.getRange(save_row, const_trial_years_col).setFormula('=trunc(' + temp_total.getA1Notation() + '/12) & "年" & if(mod(' + temp_total.getA1Notation() + ',12)<>0,mod(' + temp_total.getA1Notation() + ',12) & "ヶ月","")');
+          save_row = processResult.save_row;
           break;
         case const_coefficient:
           if (temp_str == cache.commercialCompanyCoefficient){
