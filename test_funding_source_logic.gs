@@ -113,7 +113,7 @@ function runFundingSourceTest_(scenario) {
 }
 
 /**
- * Test coefficient calculation logic
+ * Test coefficient calculation logic using the extracted function
  * @param {Array} mockData - Mock quotation request data
  * @param {Object} scenario - Test scenario
  * @return {boolean} - True if test passed, false otherwise
@@ -126,17 +126,8 @@ function testCoefficientCalculation_(mockData, scenario) {
       return false;
     }
     
-    // Get the funding source value from mock data
-    const fundingSourceValue = get_quotation_request_value(mockData, cache.coefficientQuotationRequest);
-    console.log(`  取得した原資値: ${fundingSourceValue}`);
-    
-    // Calculate coefficient based on the logic in quote_script.gs
-    let actualCoefficient;
-    if (fundingSourceValue == cache.commercialCompanyCoefficient) {
-      actualCoefficient = QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
-    } else {
-      actualCoefficient = QuoteScriptConstants.DEFAULT_COEFFICIENT;
-    }
+    // Test the extracted coefficient calculation function
+    const actualCoefficient = calculateCoefficientFromFundingSource_(mockData, cache);
     
     console.log(`  計算された係数: ${actualCoefficient}`);
     console.log(`  期待される係数: ${scenario.expectedCoefficient}`);
