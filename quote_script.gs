@@ -210,18 +210,32 @@ class Set_trial_comments {
   }
 }
 /**
-* 原資に基づいて係数を計算する
+* 原資、調整事務局設置、試験種別に基づいて係数を計算する
 * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
 * @param {ConfigCache} cache 設定キャッシュ
-* @return {number} 係数（営利企業原資の場合1.5、それ以外は1）
+* @return {number} 係数（条件に応じて1.5または1）
 */
 function calculateCoefficientFromFundingSource_(array_quotation_request, cache) {
-  const temp_str = get_quotation_request_value(array_quotation_request, cache.coefficient);
-  if (temp_str == cache.commercialCompanyCoefficient) {
+  // G2セル（試験種別）をチェック - 医師主導治験の場合は1.5
+  const trialType = get_quotation_request_value(array_quotation_request, cache.trialType);
+  if (trialType == cache.investigatorInitiatedTrial) {
     return QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
-  } else {
-    return QuoteScriptConstants.DEFAULT_COEFFICIENT;
   }
+  
+  // AQ2セル（調整事務局設置）をチェック - 「あり」の場合は1.5
+  const coordinationOfficeSetup = get_quotation_request_value(array_quotation_request, cache.coordinationOfficeSetup);
+  if (coordinationOfficeSetup == QuoteScriptConstants.RESPONSE_YES) {
+    return QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
+  }
+  
+  // AN2セル（原資）をチェック - 営利企業原資の場合は1.5
+  const fundingSource = get_quotation_request_value(array_quotation_request, cache.coefficient);
+  if (fundingSource == cache.commercialCompanyCoefficient) {
+    return QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
+  }
+  
+  // いずれの条件にも該当しない場合は1.0
+  return QuoteScriptConstants.DEFAULT_COEFFICIENT;
 }
 /**
 * 医師主導治験の最終解析帳票数を調整する

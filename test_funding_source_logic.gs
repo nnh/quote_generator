@@ -1,35 +1,81 @@
 /**
- * Test patterns for funding source (原資) logic
+ * Test patterns for coefficient calculation logic
  * 
- * This file contains test scenarios to verify the funding source logic
- * that affects coefficient calculations and clinical trials office flags.
- * Column AN contains either "営利企業原資（製薬企業等）" or "公的資金（税金由来）".
+ * This file contains test scenarios to verify the coefficient calculation logic
+ * based on funding source (AN2), coordination office setup (AQ2), and trial type (G2).
+ * 
+ * Coefficient calculation rules:
+ * - G2 (試験種別) = "医師主導治験" → 1.5 (highest priority)
+ * - AQ2 (調整事務局設置) = "あり" → 1.5 (medium priority)
+ * - AN2 (原資) = "営利企業原資（製薬企業等）" → 1.5 (lowest priority)
+ * - Otherwise → 1.0
  */
 
 /**
- * Test function for funding source logic
- * Tests coefficient calculations and clinical trials office flags based on funding source
+ * Test function for comprehensive coefficient calculation logic
+ * Tests coefficient calculations based on trial type, coordination office setup, and funding source
  */
 function testFundingSourceLogic() {
-  console.log('🚀 原資ロジックテスト開始');
+  console.log('🚀 係数計算ロジックテスト開始');
   console.log('==================================================');
-  console.log('📋 テストシナリオ: 原資による係数計算と事務局運営フラグ検証');
-  console.log('🎯 対象: 営利企業原資 vs 公的資金の動作確認');
+  console.log('📋 テストシナリオ: 試験種別・調整事務局・原資による係数計算検証');
+  console.log('🎯 対象: G2(試験種別) > AQ2(調整事務局) > AN2(原資) の優先順位確認');
   console.log('⏰ テスト開始時刻: ' + new Date().toLocaleString('ja-JP'));
   
-  // Define test scenarios for both funding sources
+  // Define comprehensive test scenarios covering all coefficient calculation rules
   const testScenarios = [
+    // Priority 1: Trial type = "医師主導治験" (should always result in 1.5)
     {
-      fundingSource: '営利企業原資（製薬企業等）',
-      expectedCoefficient: QuoteScriptConstants.COMMERCIAL_COEFFICIENT, // 1.5
-      expectedClinicalTrialsOfficeFlag: true,
-      description: '営利企業原資 → 係数1.5、事務局運営フラグON'
+      trialType: '医師主導治験',
+      coordinationOfficeSetup: '設置しない',
+      fundingSource: '公的資金（税金由来）',
+      expectedCoefficient: QuoteScriptConstants.COMMERCIAL_COEFFICIENT,
+      description: '医師主導治験 + 調整事務局なし + 公的資金 → 係数1.5 (試験種別優先)'
     },
     {
+      trialType: '医師主導治験',
+      coordinationOfficeSetup: 'あり',
+      fundingSource: '営利企業原資（製薬企業等）',
+      expectedCoefficient: QuoteScriptConstants.COMMERCIAL_COEFFICIENT,
+      description: '医師主導治験 + 調整事務局あり + 営利企業原資 → 係数1.5 (試験種別優先)'
+    },
+    // Priority 2: Coordination office setup = "あり" (when trial type is not 医師主導治験)
+    {
+      trialType: '特定臨床研究',
+      coordinationOfficeSetup: 'あり',
       fundingSource: '公的資金（税金由来）',
-      expectedCoefficient: QuoteScriptConstants.DEFAULT_COEFFICIENT, // 1
-      expectedClinicalTrialsOfficeFlag: false,
-      description: '公的資金 → 係数1.0、事務局運営フラグOFF'
+      expectedCoefficient: QuoteScriptConstants.COMMERCIAL_COEFFICIENT,
+      description: '特定臨床研究 + 調整事務局あり + 公的資金 → 係数1.5 (調整事務局優先)'
+    },
+    {
+      trialType: '観察研究・レジストリ',
+      coordinationOfficeSetup: 'あり',
+      fundingSource: '営利企業原資（製薬企業等）',
+      expectedCoefficient: QuoteScriptConstants.COMMERCIAL_COEFFICIENT,
+      description: '観察研究 + 調整事務局あり + 営利企業原資 → 係数1.5 (調整事務局優先)'
+    },
+    // Priority 3: Funding source = "営利企業原資（製薬企業等）" (when above conditions are not met)
+    {
+      trialType: '特定臨床研究',
+      coordinationOfficeSetup: '設置しない',
+      fundingSource: '営利企業原資（製薬企業等）',
+      expectedCoefficient: QuoteScriptConstants.COMMERCIAL_COEFFICIENT,
+      description: '特定臨床研究 + 調整事務局なし + 営利企業原資 → 係数1.5 (原資優先)'
+    },
+    // Default case: All conditions result in 1.0
+    {
+      trialType: '特定臨床研究',
+      coordinationOfficeSetup: '設置しない',
+      fundingSource: '公的資金（税金由来）',
+      expectedCoefficient: QuoteScriptConstants.DEFAULT_COEFFICIENT,
+      description: '特定臨床研究 + 調整事務局なし + 公的資金 → 係数1.0 (デフォルト)'
+    },
+    {
+      trialType: '観察研究・レジストリ',
+      coordinationOfficeSetup: '設置しない',
+      fundingSource: '公的資金（税金由来）',
+      expectedCoefficient: QuoteScriptConstants.DEFAULT_COEFFICIENT,
+      description: '観察研究 + 調整事務局なし + 公的資金 → 係数1.0 (デフォルト)'
     }
   ];
   
@@ -60,8 +106,8 @@ function testFundingSourceLogic() {
 }
 
 /**
- * Run a single funding source test scenario
- * @param {Object} scenario - Test scenario with funding source and expectations
+ * Run a single coefficient calculation test scenario
+ * @param {Object} scenario - Test scenario with all conditions and expectations
  * @return {boolean} - True if test passed, false otherwise
  */
 function runFundingSourceTest_(scenario) {
@@ -74,34 +120,29 @@ function runFundingSourceTest_(scenario) {
     }
     
     console.log(`📝 テスト条件:`);
+    console.log(`  試験種別: ${scenario.trialType}`);
+    console.log(`  調整事務局設置: ${scenario.coordinationOfficeSetup}`);
     console.log(`  原資: ${scenario.fundingSource}`);
     console.log(`  期待係数: ${scenario.expectedCoefficient}`);
-    console.log(`  期待事務局フラグ: ${scenario.expectedClinicalTrialsOfficeFlag}`);
     
-    // Create mock quotation request data with funding source
-    const mockData = createMockQuotationRequestForFunding_(scenario.fundingSource);
+    // Create mock quotation request data with all conditions
+    const mockData = createMockQuotationRequestForCoefficient_(
+      scenario.trialType, 
+      scenario.coordinationOfficeSetup, 
+      scenario.fundingSource
+    );
     console.log('📝 モックデータ作成完了');
     
     // Test coefficient calculation logic
     console.log('🔄 係数計算ロジックテスト実行中...');
     const coefficientResult = testCoefficientCalculation_(mockData, scenario);
     
-    // Test clinical trials office flag logic
-    console.log('🔄 事務局運営フラグロジックテスト実行中...');
-    const clinicalTrialsOfficeResult = testClinicalTrialsOfficeFlag_(mockData, scenario);
-    
-    // Verify both results
-    if (coefficientResult && clinicalTrialsOfficeResult) {
+    // Verify result
+    if (coefficientResult) {
       console.log(`✅ テスト成功: ${scenario.description}`);
       return true;
     } else {
       console.log(`❌ テスト失敗: ${scenario.description}`);
-      if (!coefficientResult) {
-        console.log('  係数計算テストが失敗');
-      }
-      if (!clinicalTrialsOfficeResult) {
-        console.log('  事務局運営フラグテストが失敗');
-      }
       return false;
     }
     
@@ -180,25 +221,40 @@ function testClinicalTrialsOfficeFlag_(mockData, scenario) {
 }
 
 /**
- * Create mock quotation request data for funding source testing
- * @param {string} fundingSource - Funding source value
+ * Create mock quotation request data for comprehensive coefficient testing
+ * @param {string} trialType - Trial type value (G2)
+ * @param {string} coordinationOfficeSetup - Coordination office setup value (AQ2)
+ * @param {string} fundingSource - Funding source value (AN2)
  * @return {Array} - 2D array matching quotation request structure
  */
-function createMockQuotationRequestForFunding_(fundingSource) {
+function createMockQuotationRequestForCoefficient_(trialType, coordinationOfficeSetup, fundingSource) {
   // Create 2D array structure matching quotation request range
   const mockData = [];
   
   // Row 1 (index 0) - Headers row
   const row1 = new Array(50).fill('');
-  row1[39] = "原資"; // Column AN (index 39, since AN is the 40th column)
+  row1[6] = "試験種別"; // Column G (index 6)
+  row1[39] = "原資"; // Column AN (index 39)
+  row1[42] = "調整事務局設置の有無"; // Column AQ (index 42)
   mockData.push(row1);
   
   // Row 2 (index 1) - Data row
   const row2 = new Array(50).fill('');
+  row2[6] = trialType; // Trial type value
   row2[39] = fundingSource; // Funding source value
+  row2[42] = coordinationOfficeSetup; // Coordination office setup value
   mockData.push(row2);
   
   return mockData;
+}
+
+/**
+ * Create mock quotation request data for funding source testing (legacy function for compatibility)
+ * @param {string} fundingSource - Funding source value
+ * @return {Array} - 2D array matching quotation request structure
+ */
+function createMockQuotationRequestForFunding_(fundingSource) {
+  return createMockQuotationRequestForCoefficient_('特定臨床研究', '設置しない', fundingSource);
 }
 
 /**
