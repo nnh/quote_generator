@@ -217,20 +217,20 @@ class Set_trial_comments {
 */
 function calculateCoefficientFromFundingSource_(array_quotation_request, cache) {
   // G2セル（試験種別）をチェック - 医師主導治験の場合は1.5
-  const trialType = get_quotation_request_value(array_quotation_request, cache.trialType);
-  if (trialType == cache.investigatorInitiatedTrial) {
+  const trialType = get_quotation_request_value(array_quotation_request, "試験種別");
+  if (trialType === cache.investigatorInitiatedTrial) {
     return QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
   }
   
   // AQ2セル（調整事務局設置）をチェック - 「あり」の場合は1.5
-  const coordinationOfficeSetup = get_quotation_request_value(array_quotation_request, cache.coordinationOfficeSetup);
-  if (coordinationOfficeSetup == QuoteScriptConstants.RESPONSE_YES) {
+  const coordinationOfficeSetup = get_quotation_request_value(array_quotation_request, "調整事務局設置の有無");
+  if (coordinationOfficeSetup === QuoteScriptConstants.RESPONSE_YES) {
     return QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
   }
   
   // AN2セル（原資）をチェック - 営利企業原資の場合は1.5
   const fundingSource = get_quotation_request_value(array_quotation_request, cache.coefficient);
-  if (fundingSource == cache.commercialCompanyCoefficient) {
+  if (fundingSource === cache.commercialCompanyCoefficient) {
     return QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
   }
   
