@@ -72,8 +72,8 @@ function set_trial_sheet_(sheet, array_quotation_request){
     [cache.costOfReportQuotationRequest, cache.costOfReportItem]
   ];
   const cdisc_addition = QuoteScriptConstants.CDISC_ADDITION;
-  var temp_str, temp_str_2, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total, date_of_issue;
-  for (var i = 0; i < trial_list.length; i++){
+  let temp_str, temp_str_2, temp_start, temp_end, temp_start_addr, temp_end_addr, save_row, temp_total, date_of_issue;
+  for (let i = 0; i < trial_list.length; i++){
     temp_str = get_quotation_request_value(array_quotation_request, trial_list[i][0]);
     if (temp_str != null){
       switch(trial_list[i][0]){
@@ -99,11 +99,7 @@ function set_trial_sheet_(sheet, array_quotation_request){
           save_row = processResult.save_row;
           break;
         case const_coefficient:
-          if (temp_str == cache.commercialCompanyCoefficient){
-            temp_str = 1.5;
-          } else {
-            temp_str = 1;
-          }
+          temp_str = calculateCoefficientFromFundingSource_(array_quotation_request, cache);
           break;
         case const_crf:
           temp_str_2 = get_quotation_request_value(array_quotation_request, 'CDISC対応');
@@ -160,14 +156,14 @@ function set_trial_sheet_(sheet, array_quotation_request){
 * 条件が真ならば引数return_valueを返す。偽なら空白を返す。
 */
 function get_count(subject_of_condition, object_of_condition, return_value){
-  var temp = '';
+  let temp = '';
   if (subject_of_condition == object_of_condition){
     temp = return_value;
   }
   return(temp);
 }
 function get_count_more_than(subject_of_condition, object_of_condition, return_value){
-  var temp = '';
+  let temp = '';
   if (subject_of_condition > object_of_condition){
     temp = return_value;
   }
@@ -179,7 +175,12 @@ function get_count_more_than(subject_of_condition, object_of_condition, return_v
 class Set_trial_comments {
   constructor() {
     this.sheet = get_sheets();
-    this.const_range = PropertiesService.getScriptProperties().getProperty('trial_comment_range');
+    const cache = new ConfigCache();
+    if (!cache.isValid) {
+      console.error('Failed to initialize ConfigCache in Set_trial_comments constructor');
+      return;
+    }
+    this.const_range = cache.scriptProperties.getProperty('trial_comment_range');
   }
   clear_comments(){
     this.sheet.trial.getRange(this.const_range).clearContent();
@@ -207,6 +208,50 @@ class Set_trial_comments {
     const del_comment = before_delete_comments.filter(x => x != this.delete_target && x != '');
     return del_comment;
   }
+}
+/**
+* 原資、調整事務局設置、試験種別に基づいて係数を計算する
+* @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+* @param {ConfigCache} cache 設定キャッシュ
+* @return {number} 係数（条件に応じて1.5または1）
+*/
+function calculateCoefficientFromFundingSource_(array_quotation_request, cache) {
+  // G2セル（試験種別）をチェック - 医師主導治験の場合は1.5
+  const trialType = get_quotation_request_value(array_quotation_request, "試験種別");
+  if (trialType === cache.investigatorInitiatedTrial) {
+    return QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
+  }
+  
+  // AQ2セル（調整事務局設置）をチェック - 「あり」の場合は1.5
+  const coordinationOfficeSetup = get_quotation_request_value(array_quotation_request, "調整事務局設置の有無");
+  if (coordinationOfficeSetup === QuoteScriptConstants.RESPONSE_YES) {
+    return QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
+  }
+  
+  // AN2セル（原資）をチェック - 営利企業原資の場合は1.5
+  const fundingSource = get_quotation_request_value(array_quotation_request, cache.coefficient);
+  if (fundingSource === cache.commercialCompanyCoefficient) {
+    return QuoteScriptConstants.COMMERCIAL_COEFFICIENT;
+  }
+  
+  // いずれの条件にも該当しない場合は1.0
+  return QuoteScriptConstants.DEFAULT_COEFFICIENT;
+}
+/**
+* 医師主導治験の最終解析帳票数を調整する
+* @param {number} final_analysis_table_count 最終解析帳票数
+* @param {string} trial_type_value 試験種別
+* @param {ConfigCache} cache 設定キャッシュ
+* @return {number} 調整後の最終解析帳票数
+*/
+function adjustFinalAnalysisTableCount_(final_analysis_table_count, trial_type_value, cache) {
+  if (trial_type_value == cache.investigatorInitiatedTrial) {
+    if ((final_analysis_table_count > 0) && (final_analysis_table_count < QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT)) {
+      set_trial_comment_(`統計解析に必要な帳票数を${QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT}表と想定しております。`);
+      return QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT;
+    }
+  }
+  return final_analysis_table_count;
 }
 /**
 * trialシートのコメントを追加する。
@@ -545,11 +590,8 @@ class SetSheetItemValues{
         clinical_conference = 1;
         closing_meeting = 1;
       }
-      // 医師主導治験で統計解析に必要な帳票数が50未満であれば50をセットしtrialシートのコメントに追加
-      if ((final_analysis_table_count > 0) && (final_analysis_table_count < 50)) {
-        final_analysis_table_count = 50;
-        set_trial_comment_('統計解析に必要な帳票数を50表と想定しております。');
-      }
+      // 医師主導治験で統計解析に必要な帳票数を調整
+      final_analysis_table_count = adjustFinalAnalysisTableCount_(final_analysis_table_count, cache.trialTypeValue, cache);
     }
     const clinical_trials_office = this.clinical_trials_office_flg ? 1 : '';
     const set_items_list = [
