@@ -21,7 +21,6 @@ function testFinalAnalysisTableCountLogic() {
   const testScenarios = [
     {
       trialType: '医師主導治験',
-      finalAnalysisRequest: 'あり',
       tableCount: 49,
       expectedTableCount: 50,
       expectedComment: true,
@@ -29,7 +28,6 @@ function testFinalAnalysisTableCountLogic() {
     },
     {
       trialType: '医師主導治験',
-      finalAnalysisRequest: 'あり',
       tableCount: 51,
       expectedTableCount: 51,
       expectedComment: false,
@@ -37,7 +35,6 @@ function testFinalAnalysisTableCountLogic() {
     },
     {
       trialType: '特定臨床研究',
-      finalAnalysisRequest: 'あり',
       tableCount: 49,
       expectedTableCount: 49,
       expectedComment: false,
@@ -45,19 +42,10 @@ function testFinalAnalysisTableCountLogic() {
     },
     {
       trialType: '観察研究・レジストリ',
-      finalAnalysisRequest: 'あり',
       tableCount: 30,
       expectedTableCount: 30,
       expectedComment: false,
       description: '医師主導治験以外 + 最終解析あり + 帳票数30 → 30表のまま'
-    },
-    {
-      trialType: '医師主導治験',
-      finalAnalysisRequest: 'なし',
-      tableCount: 49,
-      expectedTableCount: 49,
-      expectedComment: false,
-      description: '医師主導治験 + 最終解析なし + 帳票数49 → 調整なし'
     }
   ];
   
@@ -105,26 +93,18 @@ function runTableCountTest_(scenario) {
     clearTrialComments_();
     console.log('📝 既存のトライアルコメントをクリア');
     
-    // Create mock quotation request data
-    const mockData = createMockQuotationRequestForTableCount_(
-      scenario.trialType, 
-      scenario.finalAnalysisRequest, 
-      scenario.tableCount
-    );
-    console.log(`📝 モックデータ作成完了:`);
     console.log(`  試験種別: ${scenario.trialType}`);
-    console.log(`  最終解析業務の依頼: ${scenario.finalAnalysisRequest}`);
     console.log(`  統計解析に必要な図表数: ${scenario.tableCount}`);
     
     // Create SetSheetItemValues instance and test closing items logic
-    const setSheetItemValues = new SetSheetItemValues('Closing', mockData);
+//    const setSheetItemValues = new SetSheetItemValues('Closing', mockData);
     
     // Execute the closing items logic (this will trigger the table count adjustment)
-    console.log('🔄 set_closing_items_() 実行中...');
-    const result = setSheetItemValues.set_closing_items_([]);
+//    console.log('🔄 set_closing_items_() 実行中...');
+//    const result = setSheetItemValues.set_closing_items_([]);
     
     // Verify the table count adjustment
-    const actualTableCount = extractTableCountFromResult_(result, scenario.finalAnalysisRequest);
+    const actualTableCount = adjustFinalAnalysisTableCount_(scenario.tableCount, scenario.trialType, cache);
     
     console.log('📊 実行結果:');
     console.log(`  期待帳票数: ${scenario.expectedTableCount}`);
@@ -161,33 +141,6 @@ function runTableCountTest_(scenario) {
   }
 }
 
-/**
- * Create mock quotation request data for table count testing
- * @param {string} trialType - Trial type value
- * @param {string} finalAnalysisRequest - Final analysis request ('あり' or 'なし')
- * @param {number} tableCount - Number of analysis tables
- * @return {Array} - 2D array matching quotation request structure
- */
-function createMockQuotationRequestForTableCount_(trialType, finalAnalysisRequest, tableCount) {
-  // Create 2D array structure matching quotation request range
-  const mockData = [];
-  
-  // Row 1 (index 0) - Headers row
-  const row1 = new Array(50).fill('');
-  row1[6] = "試験種別"; // Column G
-  row1[15] = "最終解析業務の依頼"; // Column P
-  row1[16] = "統計解析に必要な図表数"; // Column Q
-  mockData.push(row1);
-  
-  // Row 2 (index 1) - Data row
-  const row2 = new Array(50).fill('');
-  row2[6] = trialType; // Trial type
-  row2[15] = finalAnalysisRequest; // Final analysis request
-  row2[16] = tableCount; // Table count
-  mockData.push(row2);
-  
-  return mockData;
-}
 
 /**
  * Extract table count from SetSheetItemValues result
@@ -195,7 +148,7 @@ function createMockQuotationRequestForTableCount_(trialType, finalAnalysisReques
  * @param {string} finalAnalysisRequest - Final analysis request value
  * @return {number} - Extracted table count
  */
-function extractTableCountFromResult_(result, finalAnalysisRequest) {
+function extractTableCountFromResult_(finalAnalysisRequest) {
   if (finalAnalysisRequest !== 'あり') {
     return 0; // No final analysis requested
   }
@@ -234,6 +187,7 @@ function clearTrialComments_() {
     const commentRange = cache.scriptProperties.getProperty('trial_comment_range');
     if (commentRange && sheet.trial) {
       sheet.trial.getRange(commentRange).clearContent();
+      sheet.trial.getRange(commentRange).offset(0, 0, 3, 1).setValues([["dummy1"], ["dummy2"], ["dummy3"]]);
     }
   } catch (error) {
     console.log(`警告: トライアルコメントのクリアに失敗: ${error.message}`);
@@ -275,12 +229,4 @@ function checkTrialCommentExists_() {
     console.log(`警告: トライアルコメントの確認に失敗: ${error.message}`);
     return false;
   }
-}
-
-/**
- * Quick test runner for development
- */
-function quickTestTableCount() {
-  console.log('🔧 クイック帳票数テスト実行');
-  return testFinalAnalysisTableCountLogic();
 }

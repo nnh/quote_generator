@@ -245,7 +245,7 @@ function calculateCoefficientFromFundingSource_(array_quotation_request, cache) 
 * @return {number} 調整後の最終解析帳票数
 */
 function adjustFinalAnalysisTableCount_(final_analysis_table_count, trial_type_value, cache) {
-  if (trial_type_value == cache.investigatorInitiatedTrial) {
+  if (trial_type_value === cache.investigatorInitiatedTrial) {
     if ((final_analysis_table_count > 0) && (final_analysis_table_count < QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT)) {
       set_trial_comment_(`統計解析に必要な帳票数を${QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT}表と想定しております。`);
       return QuoteScriptConstants.MIN_ANALYSIS_TABLE_COUNT;
