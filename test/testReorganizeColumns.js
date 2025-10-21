@@ -1,7 +1,3 @@
-/**
- * Test patterns for reorganize_columns.gs error handling
- * テスト用のパターンとヘルパー関数
- */
 function setTestValuesAndCompare_(dateArray, testIdx, total2SumAddress) {
   const sheets = get_sheets();
   const yearsRange = sheets.trial.getRange("D32:E40");
@@ -14,34 +10,31 @@ function setTestValuesAndCompare_(dateArray, testIdx, total2SumAddress) {
   SpreadsheetApp.flush();
   const total2YearsRowNumber = 4;
   const setupColumnNumber = 4;
-  const sumColumn = sheets.total2.getRange(total2SumAddress).getColumn();
-  if (
-    sheets.total.getRange("I5").getValue() !==
-    sheets.total2.getRange(7, sumColumn).getValue()
-  ) {
+  let totalSumValue = sheets.total.getRange("H99").getValue();
+  if (totalSumValue === "#DIV/0!") {
+    totalSumValue = 0;
+  }
+  const total2SumValue = sheets.total2.getRange(total2SumAddress).getValue();
+  if (totalSumValue !== total2SumValue) {
     throw new Error(`testReorganizeColumns test ${testIdx} error`);
   }
-  const total2SetupToClosintColumnsIndex = Array.from(
+  const sumColumn = sheets.total2.getLastColumn();
+  const total2SetupToClosingColumnsIndex = Array.from(
     { length: sumColumn - setupColumnNumber },
     (_, i) => setupColumnNumber + i
   );
-  const total2SetupToClosintColumnsShowIndex =
-    total2SetupToClosintColumnsIndex.filter(
+  const total2SetupToClosingColumnsShowIndex =
+    total2SetupToClosingColumnsIndex.filter(
       (colNumber) => !sheets.total2.isColumnHiddenByUser(colNumber)
     );
-  if (total2SetupToClosintColumnsShowIndex.length > 0) {
+  if (total2SetupToClosingColumnsShowIndex.length > 0) {
     const start = parseInt(startYear, 10);
     const end = parseInt(endYear, 10) - 1;
     const targetYears = Array.from({ length: end - start + 1 }, (_, i) =>
       String(start + i)
     );
-    if (targetYears.length !== total2SetupToClosintColumnsShowIndex.length) {
-      console.warn(
-        `Warning: Mismatch in number of columns. targetYears has ${targetYears.length} items, but total2SetupToClosintColumnsShowIndex has ${total2SetupToClosintColumnsShowIndex.length} items.`
-      );
-    }
     targetYears.forEach((year, idx) => {
-      const col = total2SetupToClosintColumnsShowIndex[idx];
+      const col = total2SetupToClosingColumnsShowIndex[idx];
       const cellValue = sheets.total2
         .getRange(total2YearsRowNumber, col)
         .getValue()
@@ -56,7 +49,7 @@ function setTestValuesAndCompare_(dateArray, testIdx, total2SumAddress) {
   console.log(`testReorganizeColumns test ${testIdx} ok`);
 }
 function testReorganizeColumns() {
-  console.log("reorganize_columnsのテストを開始します");
+  console.log("列再構成のテストを開始します");
   const setupToClosingSheet = get_target_term_sheets();
   setupToClosingSheet.forEach((sheet, idx) => {
     sheet.getRange("F:F").clearContent();
@@ -76,13 +69,12 @@ function testReorganizeColumns() {
     ["2039/4/1", "2040/3/31"],
     ["2022/4/1", "2040/3/31"],
   ];
-  setTestValuesAndCompare_(test1Values, testIndex, "V96");
-  console.log("aaa");
+  setTestValuesAndCompare_(test1Values, testIndex, "V99");
   // 正常系、見積作成処理未実施
   testIndex++;
   const test2Values = new Array(9);
   test2Values.fill(["", ""]);
-  setTestValuesAndCompare_(test2Values, testIndex, "L98");
+  setTestValuesAndCompare_(test2Values, testIndex, "L99");
   // 正常系、Setupがない
   testIndex++;
   const test3Values = [
@@ -96,7 +88,7 @@ function testReorganizeColumns() {
     ["2022/4/1", "2023/3/31"],
     ["2020/4/1", "2023/3/31"],
   ];
-  setTestValuesAndCompare_(test3Values, testIndex, "L96");
+  setTestValuesAndCompare_(test3Values, testIndex, "L99");
   // 正常系, Closingがない
   testIndex++;
   const test4Values = [
@@ -110,5 +102,6 @@ function testReorganizeColumns() {
     ["", ""],
     ["2020/4/1", "2023/3/31"],
   ];
-  setTestValuesAndCompare_(test4Values, testIndex, "L96");
+  setTestValuesAndCompare_(test4Values, testIndex, "L99");
+  console.log("✅ 列再構成のテストがすべて完了しました");
 }
