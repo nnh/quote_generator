@@ -1,0 +1,15 @@
+const INVESTIGATOR_SETUP_MONTHS = 6;
+const INVESTIGATOR_CLOSING_MONTHS = 6;
+const OTHER_SETUP_MONTHS = 3;
+const OTHER_CLOSING_MONTHS = 3;
+const ADDITIONAL_CLOSING_MONTHS = 3;
+const MONTHS_PER_YEAR = 12;
+const PROTOCOL_REVIEW_VALUE = 1;
+const MEETING_COUNT = 4;
+const MIN_ANALYSIS_TABLES = 50;
+const MAX_INSURANCE_MULTIPLIER = 999;
+
+const CONDITION_ARI = "あり";
+const TRIAL_TYPE_INVESTIGATOR = "investigator_initiated_trial";
+const TRIAL_TYPE_SPECIFIED = "specified_clinical_trial";
+const SETUP_DELEGATE = "設置・委託する";
