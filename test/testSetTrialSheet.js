@@ -1,4 +1,5 @@
 function testSetTrialSheet() {
+  console.log("trialシートの値設定テストを開始します");
   initial_process();
   const sheet = get_sheets();
   testSetTrialSheetCommon_(sheet);

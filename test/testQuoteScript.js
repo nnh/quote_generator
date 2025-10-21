@@ -1,4 +1,5 @@
 function testQuoteScript() {
+  console.log("quote_script_mainのテストを開始します");
   initial_process();
   const sheet = get_sheets();
   testQuoteScript_(sheet);
