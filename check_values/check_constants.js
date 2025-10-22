@@ -9,7 +9,7 @@ const MEETING_COUNT = 4;
 const MIN_ANALYSIS_TABLES = 50;
 const MAX_INSURANCE_MULTIPLIER = 999;
 
-const CONDITION_ARI = 'あり';
-const TRIAL_TYPE_INVESTIGATOR = 'investigator_initiated_trial';
-const TRIAL_TYPE_SPECIFIED = 'specified_clinical_trial';
-const SETUP_DELEGATE = '設置・委託する';
+const CONDITION_ARI = "あり";
+const TRIAL_TYPE_INVESTIGATOR = "investigator_initiated_trial";
+const TRIAL_TYPE_SPECIFIED = "specified_clinical_trial";
+const SETUP_DELEGATE = "設置・委託する";

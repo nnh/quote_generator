@@ -5,35 +5,44 @@
  * @param {*} value_ok - The expected value to validate against
  * @return {Array} Array with [status, message] where status is 'OK' or 'NG:...'
  */
-function check_itemName_and_value(target, item_name, value_ok){
+function check_itemName_and_value(target, item_name, value_ok) {
   if (!target || !target.sheet || !target.array_item || !target.col) {
-    return ['NG：対象オブジェクトが不正です', 'target object is invalid or missing required properties'];
+    return [
+      "NG：対象オブジェクトが不正です",
+      "target object is invalid or missing required properties",
+    ];
   }
-  
+
   if (!item_name) {
-    return ['NG：項目名が指定されていません', 'item_name is required'];
+    return ["NG：項目名が指定されていません", "item_name is required"];
   }
-  
+
   const displayItemName = target.footer ? item_name + target.footer : item_name;
-  
+
   const resultMessage = `シート名:${target.sheet.getName()},項目名:${displayItemName},想定値:${value_ok}`;
-  
+
   const itemRowNumber = target.array_item[item_name];
   if (!itemRowNumber || itemRowNumber <= 0) {
-    return ['NG：該当する項目名なし', resultMessage];
+    return ["NG：該当する項目名なし", resultMessage];
   }
-  
+
   let actualValue;
   try {
     actualValue = target.sheet.getRange(itemRowNumber, target.col).getValue();
   } catch (error) {
-    return ['NG：セル値の取得に失敗しました', `${resultMessage}, エラー:${error.message}`];
+    return [
+      "NG：セル値の取得に失敗しました",
+      `${resultMessage}, エラー:${error.message}`,
+    ];
   }
-  
+
   if (actualValue != value_ok) {
-    return ['NG：値が想定と異なる', `${resultMessage}, 実際の値:${actualValue}`];
+    return [
+      "NG：値が想定と異なる",
+      `${resultMessage}, 実際の値:${actualValue}`,
+    ];
   } else {
-    return ['OK', `${resultMessage}, 実際の値:${actualValue}`];
+    return ["OK", `${resultMessage}, 実際の値:${actualValue}`];
   }
 }
 /**
@@ -41,35 +50,51 @@ function check_itemName_and_value(target, item_name, value_ok){
  * @param {Object} target - Target object containing sheet, item_cols, total_row_itemname, header_row, total_col_itemname
  * @return {*} The value from the specified cell
  */
-function get_total_amount(target){
-  if (!target || !target.sheet || !target.item_cols || !target.total_row_itemname || !target.header_row || !target.total_col_itemname) {
-    throw new Error('Invalid target object: missing required properties');
+function get_total_amount(target) {
+  if (
+    !target ||
+    !target.sheet ||
+    !target.item_cols ||
+    !target.total_row_itemname ||
+    !target.header_row ||
+    !target.total_col_itemname
+  ) {
+    throw new Error("Invalid target object: missing required properties");
   }
-  
+
   let items, header;
   try {
     items = target.sheet.getRange(target.item_cols).getValues().flat();
-    header = target.sheet.getRange(target.header_row, 1, 1, target.sheet.getLastColumn()).getValues().flat();
+    header = target.sheet
+      .getRange(target.header_row, 1, 1, target.sheet.getLastColumn())
+      .getValues()
+      .flat();
   } catch (error) {
     throw new Error(`Failed to get sheet data: ${error.message}`);
   }
-  
+
   const targetRowIndex = items.indexOf(target.total_row_itemname);
   if (targetRowIndex === -1) {
-    throw new Error(`Item name '${target.total_row_itemname}' not found in items`);
+    throw new Error(
+      `Item name '${target.total_row_itemname}' not found in items`
+    );
   }
   const targetRow = targetRowIndex + 1;
-  
+
   const targetColIndex = header.indexOf(target.total_col_itemname);
   if (targetColIndex === -1) {
-    throw new Error(`Column name '${target.total_col_itemname}' not found in header`);
+    throw new Error(
+      `Column name '${target.total_col_itemname}' not found in header`
+    );
   }
   const targetCol = targetColIndex + 1;
-  
+
   try {
     return target.sheet.getRange(targetRow, targetCol).getValue();
   } catch (error) {
-    throw new Error(`Failed to get cell value at row ${targetRow}, col ${targetCol}: ${error.message}`);
+    throw new Error(
+      `Failed to get cell value at row ${targetRow}, col ${targetCol}: ${error.message}`
+    );
   }
 }
 /**
@@ -77,28 +102,32 @@ function get_total_amount(target){
  * @param {Array<string>} targetSheetsName - Array of sheet names to check, or null to use default
  * @return {Array<boolean>} Array of boolean results - true if OK, false otherwise
  */
-function checkDiscountByYearSheet_(targetSheetsName = null){
+function checkDiscountByYearSheet_(targetSheetsName = null) {
   const testValues = new SetTestValues();
   const targetSheets = targetSheetsName || testValues.getTrialYearsItemsName();
-  
+
   if (!Array.isArray(targetSheets)) {
-    throw new Error('Target sheets must be an array');
+    throw new Error("Target sheets must be an array");
   }
-  
+
   const results = targetSheets.map((sheetName, idx) => {
     try {
       const discountRate = testValues.getDiscountRateValue(idx);
       return checkAmountByYearSheet_(sheetName, discountRate);
     } catch (error) {
-      console.error(`Error checking sheet ${sheetName} at index ${idx}: ${error.message}`);
+      console.error(
+        `Error checking sheet ${sheetName} at index ${idx}: ${error.message}`
+      );
       return false;
     }
   });
-  
-  if (!results.every(result => result)){
-    console.log(`checkDiscountByYearSheet NG\nSheets: ${targetSheets}\nResults: ${results}`);
+
+  if (!results.every((result) => result)) {
+    console.log(
+      `checkDiscountByYearSheet NG\nSheets: ${targetSheets}\nResults: ${results}`
+    );
   }
-  
+
   return results;
 }
 /**
@@ -107,17 +136,17 @@ function checkDiscountByYearSheet_(targetSheetsName = null){
  * @param {string} message - Message to output if not all values are true
  * @return {boolean} True if all values are true, false otherwise
  */
-function isAllTrue_(target, message){
+function isAllTrue_(target, message) {
   if (!Array.isArray(target)) {
-    throw new Error('Target must be an array');
+    throw new Error("Target must be an array");
   }
-  
-  if (typeof message !== 'string') {
-    throw new Error('Message must be a string');
+
+  if (typeof message !== "string") {
+    throw new Error("Message must be a string");
   }
-  
-  const allTrue = target.every(value => value === true);
-  if (!allTrue){
+
+  const allTrue = target.every((value) => value === true);
+  if (!allTrue) {
     console.log(message);
   }
   return allTrue;
@@ -128,54 +157,58 @@ function isAllTrue_(target, message){
  * @param {number} discountRate - Discount rate for Trial sheets
  * @return {boolean} True if amounts are correct, false otherwise
  */
-function checkAmountByYearSheet_(sheetName, discountRate){
-  if (!sheetName || typeof sheetName !== 'string') {
-    throw new Error('Sheet name must be a non-empty string');
+function checkAmountByYearSheet_(sheetName, discountRate) {
+  if (!sheetName || typeof sheetName !== "string") {
+    throw new Error("Sheet name must be a non-empty string");
   }
-  
-  if (typeof discountRate !== 'number') {
-    throw new Error('Discount rate must be a number');
+
+  if (typeof discountRate !== "number") {
+    throw new Error("Discount rate must be a number");
   }
-  
+
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const targetSheet = spreadsheet.getSheetByName(sheetName);
   if (!targetSheet) {
     throw new Error(`Sheet '${sheetName}' not found`);
   }
-  
+
   const rowColHelper = new GetTargetRowCol();
-  
+
   let sumRow, sumCol, sumValue, discountValue;
   try {
-    sumRow = rowColHelper.getTargetRow(targetSheet, 2, '合計');
-    sumCol = rowColHelper.getTargetCol(targetSheet, 4, '金額');
+    sumRow = rowColHelper.getTargetRow(targetSheet, 2, "合計");
+    sumCol = rowColHelper.getTargetCol(targetSheet, 4, "金額");
     sumValue = targetSheet.getRange(sumRow, sumCol).getValue();
     discountValue = targetSheet.getRange(sumRow + 1, sumCol).getValue();
   } catch (error) {
-    throw new Error(`Failed to get values from sheet '${sheetName}': ${error.message}`);
+    throw new Error(
+      `Failed to get values from sheet '${sheetName}': ${error.message}`
+    );
   }
-  
+
   const expectedDiscountValue = Math.trunc(sumValue * (1 - discountRate));
   const actualDiscountValue = Math.trunc(discountValue);
-  
-  const hasValidSetup = spreadsheet.getSheetByName(sheetName).getRange('B2').getValue() !== '';
-  const discountCheck = (discountRate >= 0 || !hasValidSetup) ? 
-    expectedDiscountValue === actualDiscountValue : 
-    discountValue === '';
-    
+
+  const hasValidSetup =
+    spreadsheet.getSheetByName(sheetName).getRange("B2").getValue() !== "";
+  const discountCheck =
+    discountRate >= 0 || !hasValidSetup
+      ? expectedDiscountValue === actualDiscountValue
+      : discountValue === "";
+
   return discountCheck;
 }
 /**
  * Check that totals and discounted totals are consistent across Quote, Total, Total2, and Total3 sheets
  * @return {Array<boolean>} Array with [amountCheck, discountCheck] - true if consistent, false otherwise
  */
-function checkQuoteSum_(){
+function checkQuoteSum_() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const rowColHelper = new GetTargetRowCol();
-  
-  const sheetNames = ['Quote', 'Total', 'Total2', 'Total3'];
+
+  const sheetNames = ["Quote", "Total", "Total2", "Total3"];
   const sheets = {};
-  
+
   // Validate all required sheets exist
   for (const sheetName of sheetNames) {
     const sheet = spreadsheet.getSheetByName(sheetName);
@@ -184,56 +217,58 @@ function checkQuoteSum_(){
     }
     sheets[sheetName] = sheet;
   }
-  
+
   let totalRows, totalCols;
   try {
     // Get row positions for totals
     totalRows = {
-      quote: rowColHelper.getTargetRow(sheets.Quote, 3, '小計'),
-      total: rowColHelper.getTargetRow(sheets.Total, 2, '合計'),
-      total2: rowColHelper.getTargetRow(sheets.Total2, 2, '合計'),
-      total3: rowColHelper.getTargetRow(sheets.Total3, 2, '合計')
+      quote: rowColHelper.getTargetRow(sheets.Quote, 3, "小計"),
+      total: rowColHelper.getTargetRow(sheets.Total, 2, "合計"),
+      total2: rowColHelper.getTargetRow(sheets.Total2, 2, "合計"),
+      total3: rowColHelper.getTargetRow(sheets.Total3, 2, "合計"),
     };
-    
+
     // Get column positions for amounts
     totalCols = {
-      quote: rowColHelper.getTargetCol(sheets.Quote, 11, '金額'),
-      total: rowColHelper.getTargetCol(sheets.Total, 4, '金額'),
-      total2: rowColHelper.getTargetCol(sheets.Total2, 4, '合計'),
-      total3: rowColHelper.getTargetCol(sheets.Total3, 3, '合計')
+      quote: rowColHelper.getTargetCol(sheets.Quote, 11, "金額"),
+      total: rowColHelper.getTargetCol(sheets.Total, 4, "金額"),
+      total2: rowColHelper.getTargetCol(sheets.Total2, 4, "合計"),
+      total3: rowColHelper.getTargetCol(sheets.Total3, 3, "合計"),
     };
   } catch (error) {
     throw new Error(`Failed to locate total rows/columns: ${error.message}`);
   }
-  
+
   // Get amount values and normalize empty cells to 0
   const amountValues = [
     sheets.Quote.getRange(totalRows.quote, totalCols.quote).getValue(),
     sheets.Total.getRange(totalRows.total, totalCols.total).getValue(),
     sheets.Total2.getRange(totalRows.total2, totalCols.total2).getValue(),
-    sheets.Total3.getRange(totalRows.total3, totalCols.total3).getValue()
-  ].map(value => value === '' ? 0 : Math.round(value));
-  
+    sheets.Total3.getRange(totalRows.total3, totalCols.total3).getValue(),
+  ].map((value) => (value === "" ? 0 : Math.round(value)));
+
   // Get discount values and normalize empty cells to 0
   const discountValues = [
     sheets.Quote.getRange(totalRows.quote + 2, totalCols.quote).getValue(),
     sheets.Total.getRange(totalRows.total + 1, totalCols.total).getValue(),
     sheets.Total2.getRange(totalRows.total2 + 1, totalCols.total2).getValue(),
-    sheets.Total3.getRange(totalRows.total3 + 1, totalCols.total3).getValue()
-  ].map(value => value === '' ? 0 : Math.round(value));
-  
+    sheets.Total3.getRange(totalRows.total3 + 1, totalCols.total3).getValue(),
+  ].map((value) => (value === "" ? 0 : Math.round(value)));
+
   // Check if all amounts are equal to the first amount
-  const amountCheck = amountValues.every(value => value === amountValues[0]);
-  
+  const amountCheck = amountValues.every((value) => value === amountValues[0]);
+
   // Check if all discount values are equal to the first discount value
-  const discountCheck = discountValues.every(value => value === discountValues[0]);
-  
+  const discountCheck = discountValues.every(
+    (value) => value === discountValues[0]
+  );
+
   return [amountCheck, discountCheck];
 }
 /**
  * Utility class to get column and row numbers by searching for target strings
  */
-class GetTargetRowCol{
+class GetTargetRowCol {
   /**
    * Get the row index (0-based) for a target string in a specific column
    * @param {Sheet} targetSheet - The sheet to search in
@@ -241,31 +276,35 @@ class GetTargetRowCol{
    * @param {string} targetStr - The string to search for
    * @return {number} The row index (0-based) where the string was found
    */
-  getTargetRowIndex(targetSheet, targetColIndex, targetStr){
+  getTargetRowIndex(targetSheet, targetColIndex, targetStr) {
     if (!targetSheet) {
-      throw new Error('Target sheet is required');
+      throw new Error("Target sheet is required");
     }
-    
-    if (typeof targetColIndex !== 'number' || targetColIndex < 0) {
-      throw new Error('Target column index must be a non-negative number');
+
+    if (typeof targetColIndex !== "number" || targetColIndex < 0) {
+      throw new Error("Target column index must be a non-negative number");
     }
-    
+
     if (!targetStr) {
-      throw new Error('Target string is required');
+      throw new Error("Target string is required");
     }
-    
+
     const sheetValues = targetSheet.getDataRange().getValues();
     const matchingRowIndices = sheetValues
-      .map((row, rowIndex) => row[targetColIndex] === targetStr ? rowIndex : null)
-      .filter(index => index !== null);
-    
+      .map((row, rowIndex) =>
+        row[targetColIndex] === targetStr ? rowIndex : null
+      )
+      .filter((index) => index !== null);
+
     if (matchingRowIndices.length === 0) {
-      throw new Error(`Target string '${targetStr}' not found in column ${targetColIndex + 1}`);
+      throw new Error(
+        `Target string '${targetStr}' not found in column ${targetColIndex + 1}`
+      );
     }
-    
+
     return matchingRowIndices[0];
   }
-  
+
   /**
    * Get the row number (1-based) for a target string in a specific column
    * @param {Sheet} targetSheet - The sheet to search in
@@ -273,11 +312,15 @@ class GetTargetRowCol{
    * @param {string} targetStr - The string to search for
    * @return {number} The row number (1-based) where the string was found
    */
-  getTargetRow(targetSheet, targetColNumber, targetStr){
-    const rowIndex = this.getTargetRowIndex(targetSheet, targetColNumber - 1, targetStr);
+  getTargetRow(targetSheet, targetColNumber, targetStr) {
+    const rowIndex = this.getTargetRowIndex(
+      targetSheet,
+      targetColNumber - 1,
+      targetStr
+    );
     return rowIndex + 1;
   }
-  
+
   /**
    * Get the column index (0-based) for a target string in a specific row
    * @param {Sheet} targetSheet - The sheet to search in
@@ -285,32 +328,34 @@ class GetTargetRowCol{
    * @param {string} targetStr - The string to search for
    * @return {number} The column index (0-based) where the string was found
    */
-  getTargetColIndex(targetSheet, targetRowIndex, targetStr){
+  getTargetColIndex(targetSheet, targetRowIndex, targetStr) {
     if (!targetSheet) {
-      throw new Error('Target sheet is required');
+      throw new Error("Target sheet is required");
     }
-    
-    if (typeof targetRowIndex !== 'number' || targetRowIndex < 0) {
-      throw new Error('Target row index must be a non-negative number');
+
+    if (typeof targetRowIndex !== "number" || targetRowIndex < 0) {
+      throw new Error("Target row index must be a non-negative number");
     }
-    
+
     if (!targetStr) {
-      throw new Error('Target string is required');
+      throw new Error("Target string is required");
     }
-    
+
     const sheetValues = targetSheet.getDataRange().getValues();
     if (targetRowIndex >= sheetValues.length) {
       throw new Error(`Row index ${targetRowIndex} is out of range`);
     }
-    
+
     const targetColIndex = sheetValues[targetRowIndex].indexOf(targetStr);
     if (targetColIndex === -1) {
-      throw new Error(`Target string '${targetStr}' not found in row ${targetRowIndex + 1}`);
+      throw new Error(
+        `Target string '${targetStr}' not found in row ${targetRowIndex + 1}`
+      );
     }
-    
+
     return targetColIndex;
   }
-  
+
   /**
    * Get the column number (1-based) for a target string in a specific row
    * @param {Sheet} targetSheet - The sheet to search in
@@ -318,8 +363,12 @@ class GetTargetRowCol{
    * @param {string} targetStr - The string to search for
    * @return {number} The column number (1-based) where the string was found
    */
-  getTargetCol(targetSheet, targetRowNumber, targetStr){
-    const colIndex = this.getTargetColIndex(targetSheet, targetRowNumber - 1, targetStr);
+  getTargetCol(targetSheet, targetRowNumber, targetStr) {
+    const colIndex = this.getTargetColIndex(
+      targetSheet,
+      targetRowNumber - 1,
+      targetStr
+    );
     return colIndex + 1;
   }
 }
