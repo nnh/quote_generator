@@ -1,8 +1,3 @@
-function testWriteTrialDatesFromQuotation() {
-  initial_process();
-  testTrialDateFunction_();
-  testGetSetupClosingTermFunction_();
-}
 /**
  * Test pattern for get_setup_closing_term_() function
  *

@@ -1,10 +1,7 @@
-function testSetTrialSheet() {
+function testSetTrialSheetCommon_() {
   console.log("trialシートの値設定テストを開始します");
   initial_process();
   const sheet = get_sheets();
-  testSetTrialSheetCommon_(sheet);
-}
-function testSetTrialSheetCommon_(sheet) {
   // 見積種別が本見積か参考見積か
   const quotetypeArray = ["正式見積", "参考見積"];
   // 原資が公的資金（税金由来）か営利企業原資（製薬企業等）か
@@ -26,6 +23,9 @@ function testSetTrialSheetCommon_(sheet) {
     setQuotationRequestTestData_(sheet, valueArr);
     execTestSetTrialSheet_(sheet);
     getTestTrialSheetValues_(sheet, testMapArray[i]);
+    console.log(
+      `✅ trialシートの値が正しいことを確認しました：パターン${i + 1} / 2`
+    );
   }
 }
 function getTestTrialSheetValues_(sheet, testMap) {
@@ -126,7 +126,6 @@ function getTestTrialSheetValues_(sheet, testMap) {
   } else {
     sheet.trial.getRange("B44").clearContent();
   }
-  console.log("✅ trialシートの値が正しいことを確認しました");
 }
 
 function execTestSetTrialSheet_(sheet) {

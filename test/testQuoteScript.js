@@ -1,9 +1,3 @@
-function testQuoteScript() {
-  console.log("quote_script_mainのテストを開始します");
-  initial_process();
-  const sheet = get_sheets();
-  testQuoteScript_(sheet);
-}
 function testQuoteScript_(sheet) {
   // 1.医師主導治験
   // PMDA相談資料作成支援がありかなしか

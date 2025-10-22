@@ -48,7 +48,7 @@ function setTestValuesAndCompare_(dateArray, testIdx, total2SumAddress) {
   }
   console.log(`testReorganizeColumns test ${testIdx} ok`);
 }
-function testReorganizeColumns() {
+function testReorganizeColumns_() {
   console.log("列再構成のテストを開始します");
   const setupToClosingSheet = get_target_term_sheets();
   setupToClosingSheet.forEach((sheet, idx) => {

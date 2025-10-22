@@ -1,25 +1,8 @@
-function testCheckItemPrices() {
-  console.log("itemsシートの単価チェックを開始します");
-  const sheet = get_sheets();
-  sheet.quotation_request.getRange("A2").setValue("test");
-  sheet.trial.getRange("B44").setValue(1);
-  testCheckItemPrices_(sheet, rowNumberItemNamePriceArray_cofficients10);
-  console.log("✅ 試験項目の価格が正しいことを確認しました：係数1.0の場合");
-  sheet.trial.getRange("B44").setValue(1.5);
-  testCheckItemPrices_(sheet, rowNumberItemNamePriceArray_cofficients15);
-  console.log("✅ 試験項目の価格が正しいことを確認しました：係数1.5の場合");
-  console.log(
-    "他のテストを実施する前に、ファイルの変更履歴からファイルを一つ前のバージョンに戻してください"
-  );
-}
-function testSetItemSheet() {
+function testSetItemSheet_() {
   console.log("itemsシートの項目名チェックを開始します");
   const sheet = get_sheets();
   sheet.quotation_request.getRange("A2").setValue("test");
   sheet.trial.getRange("B44").setValue(1);
-  testSetItemSheet_(sheet);
-}
-function testSetItemSheet_(sheet) {
   const testScenarios = [
     {
       trialType: "医師主導治験",
