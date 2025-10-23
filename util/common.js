@@ -308,26 +308,6 @@ function get_quotation_request_value(array_quotation_request, header_str) {
     return null;
   }
 }
-/**
- * Retrieve the trial period, heading, and number of years of trial period on the Trial sheet.
- * @param none.
- * @return {Array.<string>} the trial period, heading, and number of years of trial period on the Trial sheet.
- */
-function getTrialTermInfo_() {
-  const cache = new ConfigCache();
-  if (!cache.isValid) {
-    console.error("Failed to initialize ConfigCache in getTrialTermInfo_");
-    return [];
-  }
-
-  const sheet = get_sheets();
-  const row_count =
-    parseInt(cache.trialClosingRow) - parseInt(cache.trialSetupRow) + 1;
-  const trial_term_info = sheet.trial
-    .getRange(parseInt(cache.trialSetupRow), 1, row_count, 3)
-    .getValues();
-  return trial_term_info;
-}
 class GetArrayDividedItemsCount {
   constructor() {
     this.sheetNameIdx = 0;
