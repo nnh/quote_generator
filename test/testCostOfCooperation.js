@@ -1,19 +1,31 @@
 class GetCostOfCooperationTest {
   constructor() {
     this.newMap = getQuotationRequestTemplateMap_();
-    this.newMap.set("研究協力費、負担軽減費配分管理", "あり");
-    this.newMap.set("試験開始準備費用", "あり");
-    this.newMap.set("症例登録毎の支払", "あり");
-    this.newMap.set("症例最終報告書提出毎の支払", "あり");
     this.sheet = get_sheets();
   }
   execTest1() {
     // パターン1: 研究協力費、負担軽減費配分管理あり、研究協力費、負担軽減費300000円
+    this.newMap.set("研究協力費、負担軽減費配分管理", "あり");
+    this.newMap.set("試験開始準備費用", "あり");
+    this.newMap.set("症例登録毎の支払", "あり");
+    this.newMap.set("症例最終報告書提出毎の支払", "あり");
     this.newMap.set("研究協力費、負担軽減費", 300000);
     this.newMap.set("目標症例数", "10");
     this.newMap.set("実施施設数", "2");
-    const testValueArray1 = [50000, 10000, 10000];
-    this.testCostOfCooperation_(this.newMap, testValueArray1, 1);
+    const testValueArray = [50000, 10000, 10000];
+    this.testCostOfCooperation_(this.newMap, testValueArray, 1);
+  }
+  execTest2() {
+    // パターン2: 研究協力費、負担軽減費配分管理あり、"試験開始準備費用"のみあり
+    this.newMap.set("研究協力費、負担軽減費配分管理", "あり");
+    this.newMap.set("試験開始準備費用", "あり");
+    this.newMap.set("症例登録毎の支払", "なし");
+    this.newMap.set("症例最終報告書提出毎の支払", "なし");
+    this.newMap.set("研究協力費、負担軽減費", 300000);
+    this.newMap.set("目標症例数", "10");
+    this.newMap.set("実施施設数", "2");
+    const testValueArray = [150000, 0, 0];
+    this.testCostOfCooperation_(this.newMap, testValueArray, 2);
   }
   testCostOfCooperation_(newMap, testValueArray, testCaseNo) {
     const sheet = this.sheet;
@@ -38,6 +50,7 @@ class GetCostOfCooperationTest {
     console.log(
       `✅ 試験協力費の値が正しいことを確認しました。itemsシートの該当セルを初期化します。: パターン${testCaseNo} / x`
     );
+    //sheet.items.getRange(itemRangeAddress).clearContent();
   }
 }
 function testCostOfCooperation() {
@@ -45,5 +58,6 @@ function testCostOfCooperation() {
   initial_process();
   const test = new GetCostOfCooperationTest();
   test.execTest1();
+  test.execTest2();
   console.log("試験協力費のテストが完了しました");
 }
