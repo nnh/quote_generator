@@ -51,28 +51,38 @@ function quote_script_main() {
   const targetSheetList = getTrialTermInfo_()
     .map((x, idx) => x.concat(idx))
     .filter((x) => x[countIdx] != "");
-  targetSheetList.forEach((x) => {
-    const set_sheet_item_values = new SetSheetItemValues(
-      x[sheetnameIdx],
+  targetSheetList.forEach((targetSheet) => {
+    const set_sheet_item_values = get_set_sheet_item_values_(
+      targetSheet[sheetnameIdx],
       array_quotation_request
     );
-    const temp = null;
-    const temp_setup = set_sheet_item_values.set_setup_items_(temp);
-    const temp_reg =
-      set_sheet_item_values.set_registration_term_items_(temp_setup);
-    const temp_reg_2 = set_sheet_item_values.set_registration_items_(temp_reg);
-    const temp_close = set_sheet_item_values.set_closing_items_(temp_reg_2);
-    const temp_exclude_setup =
-      set_sheet_item_values.set_all_sheet_exclude_setup_(temp_close);
-    const temp_all =
-      set_sheet_item_values.set_all_sheet_common_items_(temp_exclude_setup);
-    set_sheet_item_values.setSheetValues(x[sheetnameIdx], temp_all);
+    const temp_all = apply_all_sheet_item_settings_(set_sheet_item_values);
+    set_sheet_item_values.setSheetValues(targetSheet[sheetnameIdx], temp_all);
   });
   setImbalanceValues_(array_quotation_request);
+  quote_toggle_trial_phase_sheets_();
+}
+function quote_toggle_trial_phase_sheets_() {
   const setupToClosing = get_target_term_sheets();
   setupToClosing.forEach((x) =>
     x.getRange("B2").getValue() == "" ? x.hideSheet() : x.showSheet()
   );
+}
+function get_set_sheet_item_values_(sheetname, array_quotation_request) {
+  return new SetSheetItemValues(sheetname, array_quotation_request);
+}
+function apply_all_sheet_item_settings_(set_sheet_item_values) {
+  const temp = null;
+  const temp_setup = set_sheet_item_values.set_setup_items_(temp);
+  const temp_reg =
+    set_sheet_item_values.set_registration_term_items_(temp_setup);
+  const temp_reg_2 = set_sheet_item_values.set_registration_items_(temp_reg);
+  const temp_close = set_sheet_item_values.set_closing_items_(temp_reg_2);
+  const temp_exclude_setup =
+    set_sheet_item_values.set_all_sheet_exclude_setup_(temp_close);
+  const temp_all =
+    set_sheet_item_values.set_all_sheet_common_items_(temp_exclude_setup);
+  return temp_all;
 }
 function setImbalanceValues_(array_quotation_request) {
   // 年毎に設定する値が不均等である項目への対応

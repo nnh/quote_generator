@@ -1,3 +1,26 @@
+function execTestCostOfCooperation_() {
+  console.log("試験協力費のテストを開始します");
+  initial_process();
+  const test = new GetCostOfCooperationTest();
+  let idx = 1;
+  test.execTest1(idx);
+  idx++;
+  test.execTest2(idx);
+  idx++;
+  test.execTest3(idx);
+  idx++;
+  test.execTest4(idx);
+  idx++;
+  test.execTest5(idx);
+  idx++;
+  test.execTest6(idx);
+  idx++;
+  test.execTest7(idx);
+  idx++;
+  test.execTest8(idx);
+  console.log("試験協力費のテストが完了しました");
+}
+
 class GetCostOfCooperationTest {
   constructor() {
     this.newMap = getQuotationRequestTemplateMap_();

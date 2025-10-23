@@ -28,26 +28,7 @@ function testReorganizeColumns() {
 }
 // 試験協力費の按分計算が正しいことを確認するテスト
 function testCostOfCooperation() {
-  console.log("試験協力費のテストを開始します");
-  initial_process();
-  const test = new GetCostOfCooperationTest();
-  let idx = 1;
-  test.execTest1(idx);
-  idx++;
-  test.execTest2(idx);
-  idx++;
-  test.execTest3(idx);
-  idx++;
-  test.execTest4(idx);
-  idx++;
-  test.execTest5(idx);
-  idx++;
-  test.execTest6(idx);
-  idx++;
-  test.execTest7(idx);
-  idx++;
-  test.execTest8(idx);
-  console.log("試験協力費のテストが完了しました");
+  execTestCostOfCooperation_();
 }
 
 // 試験種別毎に変動するitemsシートの項目名が正しいことを確認するテスト
@@ -78,4 +59,8 @@ function testWriteTrialDatesFromQuotation() {
   initial_process();
   testTrialDateFunction_();
   testGetSetupClosingTermFunction_();
+}
+// シートの表示・非表示切替が正しいことを確認するテスト
+function testSheetShowHidden() {
+  testSheetShowHidden_();
 }
