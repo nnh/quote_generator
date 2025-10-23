@@ -31,6 +31,7 @@ function testSetTrialSheetCommon_() {
   }
 }
 function getTestTrialSheetValues_(sheet, testMap) {
+  const commentValues = sheet.trial.getRange("B12:B26").getValues().flat();
   const quoteTypeValue =
     testMap.get("見積種別") === "正式見積" ? "御見積書" : "御参考見積書";
   if (sheet.trial.getRange("B2").getValue() !== quoteTypeValue) {
@@ -115,6 +116,15 @@ function getTestTrialSheetValues_(sheet, testMap) {
   } else {
     sheet.trial.getRange("B30").clearContent();
   }
+  // CDISCあり・なしでコメントが変わることを確認
+  const cdiscComment =
+    testMap.get("CDISC対応") === "あり"
+      ? `CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり${crfCount}項目と想定しております。`
+      : `CRFのべ項目数を一症例あたり${crfCount}項目と想定しております。`;
+  if (!commentValues.includes(cdiscComment)) {
+    throw new Error(`CDISC対応のコメントが異なります。期待値:${cdiscComment}`);
+  }
+  // 原資
   const fundsourceValue =
     testMap.get("原資") === "公的資金（税金由来）" ? 1 : 1.5;
   if (
