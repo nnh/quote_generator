@@ -24,7 +24,9 @@ function testSetTrialSheetCommon_() {
     execTestSetTrialSheet_(sheet);
     getTestTrialSheetValues_(sheet, testMapArray[i]);
     console.log(
-      `✅ trialシートの値が正しいことを確認しました：パターン${i + 1} / 2`
+      `✅ trialシートの値が正しいことを確認しました。Trialシートを初期化します。：パターン${
+        i + 1
+      } / 2`
     );
   }
 }
@@ -137,4 +139,5 @@ function execTestSetTrialSheet_(sheet) {
     .getValues();
   filtervisible();
   set_trial_sheet_(sheet, array_quotation_request);
+  SpreadsheetApp.flush();
 }

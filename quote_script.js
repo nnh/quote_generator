@@ -19,6 +19,96 @@ function set_items_price_(sheet, price, target_row) {
     sheet.getRange(target_row, target_col).offset(0, 2).setValue("");
   }
 }
+function set_trial_sheet_set_value_trial_type_(
+  trial_value,
+  target_value,
+  sheet,
+  array_quotation_request,
+  cache
+) {
+  cache.scriptProperties.setProperty("trial_type_value", target_value);
+  const processResult = processAndWriteTrialPeriod_(
+    sheet,
+    array_quotation_request,
+    target_value,
+    cache
+  );
+  if (!processResult) {
+    return "";
+  }
+  return trial_value;
+}
+function set_trial_sheet_set_value_cdisc_(
+  target_value,
+  array_quotation_request
+) {
+  const cdisc_addition = QuoteScriptConstants.CDISC_ADDITION;
+  const cdisc = get_quotation_request_value(
+    array_quotation_request,
+    "CDISC対応"
+  );
+  if (cdisc == "あり") {
+    delete_trial_comment_(
+      '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"'
+    );
+    const res = "=" + target_value + " * " + cdisc_addition;
+    set_trial_comment_(
+      '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"'
+    );
+    return res;
+  } else {
+    return target_value;
+  }
+}
+/**
+ * 必要に応じて個別処理を行い、trialシートに設定する値を返します。
+ * 引数 `trial_value` によって設定対象が決まり、
+ * `target_value` の内容に応じてシート名変更やコメント更新、スクリプトプロパティの保存などを行います。
+ *
+ * 主な処理内容：
+ * - 見積種別（正式／参考）に応じて「御見積書」または「御参考見積書」を返す
+ * - 症例数や施設数、試験区分などをスクリプトプロパティに保存
+ * - 原資区分に応じて係数（1 または 1.5）を設定
+ * - 試験略称名を用いてスプレッドシートの名称を変更する
+ *
+ * @param {*} trial_value - 項目名
+ * @param {*} target_value - 設定値
+ * @param {ConfigCache} cache - 設定キャッシュオブジェクト
+ * @returns {*} 処理後の設定値を返す。特定条件下で null を返す場合もある
+ *
+ */
+function set_trial_sheet_set_value_(trial_value, target_value, cache) {
+  if (trial_value === QuoteScriptConstants.QUOTATION_TYPE) {
+    if (target_value == "正式見積") {
+      return "御見積書";
+    } else {
+      return "御参考見積書";
+    }
+  }
+  if (trial_value === cache.numberOfCasesItemname) {
+    cache.scriptProperties.setProperty("number_of_cases", target_value);
+  }
+  if (trial_value === cache.facilitiesItemname) {
+    cache.scriptProperties.setProperty("facilities_value", target_value);
+  }
+  if (trial_value === cache.coefficient) {
+    if (target_value == cache.commercialCompanyCoefficient) {
+      return 1.5;
+    } else {
+      return 1;
+    }
+  }
+  if (trial_value === QuoteScriptConstants.ACRONYM) {
+    SpreadsheetApp.getActiveSpreadsheet().rename(
+      `Quote ${target_value} ${Utilities.formatDate(
+        new Date(),
+        "JST",
+        "yyyyMMdd"
+      )}`
+    );
+  }
+  return target_value;
+}
 /**
  * quotation_requestシートの内容からtrialシート, itemsシートを設定する
  * @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
@@ -34,33 +124,21 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     return;
   }
 
-  const const_quotation_type = QuoteScriptConstants.QUOTATION_TYPE;
-  const const_trial_type = QuoteScriptConstants.TRIAL_TYPE;
-  const const_trial_start = QuoteScriptConstants.TRIAL_START;
-  const const_registration_end = QuoteScriptConstants.REGISTRATION_END;
-  const const_trial_end = QuoteScriptConstants.TRIAL_END;
-  const const_crf = QuoteScriptConstants.CRF;
-  const const_acronym = QuoteScriptConstants.ACRONYM;
   const const_facilities = cache.facilitiesItemname;
-  const const_number_of_cases = cache.numberOfCasesItemname;
-  const const_coefficient = cache.coefficient;
-  const const_trial_start_col = parseInt(cache.trialStartCol);
-  const const_trial_end_col = parseInt(cache.trialEndCol);
-  const const_trial_setup_row = parseInt(cache.trialSetupRow);
-  const const_trial_closing_row = parseInt(cache.trialClosingRow);
-  const const_trial_years_col = parseInt(cache.trialYearsCol);
-  const const_total_month_col = QuoteScriptConstants.TOTAL_MONTH_COL;
   const trial_list = [
-    [const_quotation_type, QuoteScriptConstants.QUOTATION_TYPE_ROW],
+    [
+      QuoteScriptConstants.QUOTATION_TYPE,
+      QuoteScriptConstants.QUOTATION_TYPE_ROW,
+    ],
     ["見積発行先", QuoteScriptConstants.ISSUE_DESTINATION_ROW],
     ["研究代表者名", QuoteScriptConstants.PRINCIPAL_INVESTIGATOR_ROW],
     ["試験課題名", QuoteScriptConstants.TRIAL_TITLE_ROW],
-    [const_acronym, QuoteScriptConstants.ACRONYM_ROW],
-    [const_trial_type, QuoteScriptConstants.TRIAL_TYPE_ROW],
-    [const_number_of_cases, cache.trialNumberOfCasesRow],
+    [QuoteScriptConstants.ACRONYM, QuoteScriptConstants.ACRONYM_ROW],
+    [QuoteScriptConstants.TRIAL_TYPE, QuoteScriptConstants.TRIAL_TYPE_ROW],
+    [cache.numberOfCasesItemname, cache.trialNumberOfCasesRow],
     [const_facilities, cache.trialConstFacilitiesRow],
-    [const_crf, QuoteScriptConstants.CRF_ITEMS_ROW],
-    [const_coefficient, QuoteScriptConstants.COEFFICIENT_ROW],
+    [QuoteScriptConstants.CRF, QuoteScriptConstants.CRF_ITEMS_ROW],
+    [cache.coefficient, QuoteScriptConstants.COEFFICIENT_ROW],
   ];
   const cost_of_cooperation = QuoteScriptConstants.COST_OF_COOPERATION;
   const items_list = [
@@ -72,85 +150,40 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     [cache.costOfRegistrationQuotationRequest, cache.costOfRegistrationItem],
     [cache.costOfReportQuotationRequest, cache.costOfReportItem],
   ];
-  const cdisc_addition = QuoteScriptConstants.CDISC_ADDITION;
-  let temp_str;
-  let temp_str_2;
-  let save_row;
-  let date_of_issue;
   for (let i = 0; i < trial_list.length; i++) {
-    temp_str = get_quotation_request_value(
+    const target_value = trial_list[i][0];
+    const target_row = trial_list[i][1];
+    const temp_str = get_quotation_request_value(
       array_quotation_request,
-      trial_list[i][0]
+      target_value
     );
-    if (temp_str != null) {
-      switch (trial_list[i][0]) {
-        case const_quotation_type:
-          if (temp_str == "正式見積") {
-            temp_str = "御見積書";
-          } else {
-            temp_str = "御参考見積書";
-          }
-          break;
-        case const_number_of_cases:
-          cache.scriptProperties.setProperty("number_of_cases", temp_str);
-          break;
-        case const_facilities:
-          cache.scriptProperties.setProperty("facilities_value", temp_str);
-          break;
-        case const_trial_type:
-          cache.scriptProperties.setProperty("trial_type_value", temp_str);
-          const processResult = processAndWriteTrialPeriod_(
-            sheet,
-            array_quotation_request,
-            temp_str,
-            cache
-          );
-          if (!processResult) {
-            return;
-          }
-          save_row = processResult.save_row;
-          break;
-        case const_coefficient:
-          if (temp_str == cache.commercialCompanyCoefficient) {
-            temp_str = 1.5;
-          } else {
-            temp_str = 1;
-          }
-          break;
-        case const_crf:
-          temp_str_2 = get_quotation_request_value(
-            array_quotation_request,
-            "CDISC対応"
-          );
-          if (temp_str_2 == "あり") {
-            delete_trial_comment_(
-              '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"'
-            );
-            temp_str = "=" + temp_str + " * " + cdisc_addition;
-            set_trial_comment_(
-              '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"'
-            );
-          } else {
-            temp_str = temp_str;
-          }
-          break;
-        case const_acronym:
-          SpreadsheetApp.getActiveSpreadsheet().rename(
-            `Quote ${temp_str} ${Utilities.formatDate(
-              new Date(),
-              "JST",
-              "yyyyMMdd"
-            )}`
-          );
-          break;
-        default:
-          break;
-      }
-      sheet.trial.getRange(parseInt(trial_list[i][1]), 2).setValue(temp_str);
+    let setText = null;
+    if (temp_str === null || temp_str === undefined) {
+      continue;
     }
+    if (target_value === QuoteScriptConstants.TRIAL_TYPE) {
+      setText = set_trial_sheet_set_value_trial_type_(
+        temp_str,
+        target_value,
+        sheet,
+        array_quotation_request,
+        cache
+      );
+    } else if (target_value === QuoteScriptConstants.CRF) {
+      setText = set_trial_sheet_set_value_cdisc_(
+        temp_str,
+        array_quotation_request
+      );
+    } else {
+      setText = set_trial_sheet_set_value_(target_value, temp_str, cache);
+    }
+    if (setText === null) {
+      continue;
+    }
+    sheet.trial.getRange(parseInt(target_row), 2).setValue(setText);
   }
   // 発行年月日
-  date_of_issue = get_row_num_matched_value(sheet.trial, 1, "発行年月日");
+  let date_of_issue = get_row_num_matched_value(sheet.trial, 1, "発行年月日");
   if (date_of_issue > 0) {
     sheet.trial
       .getRange(date_of_issue, 2)
@@ -199,94 +232,7 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     }
   });
 }
-/**
- * 条件が真ならば引数return_valueを返す。偽なら空白を返す。
- */
-function get_count(subject_of_condition, object_of_condition, return_value) {
-  return subject_of_condition == object_of_condition ? return_value : "";
-}
-function get_count_more_than(
-  subject_of_condition,
-  object_of_condition,
-  return_value
-) {
-  return subject_of_condition > object_of_condition ? return_value : "";
-}
-/**
- * trialシートのコメントを追加・削除する。
- */
-class Set_trial_comments {
-  constructor() {
-    this.sheet = get_sheets();
-    this.const_range = PropertiesService.getScriptProperties().getProperty(
-      "trial_comment_range"
-    );
-  }
-  clear_comments() {
-    this.sheet.trial.getRange(this.const_range).clearContent();
-  }
-  set_range_values(array_comment) {
-    const start_row = this.sheet.trial
-      .getRange(this.const_range)
-      .getCell(1, 1)
-      .getRow();
-    const start_col = this.sheet.trial
-      .getRange(this.const_range)
-      .getCell(1, 1)
-      .getColumn();
-    const comment_length = array_comment.length;
-    this.clear_comments();
-    if (comment_length <= 0) {
-      return;
-    }
-    this.sheet.trial
-      .getRange(start_row, start_col, comment_length, 1)
-      .setValues(array_comment);
-  }
-  set set_delete_comment(target) {
-    this.delete_target = target;
-  }
-  delete_comment() {
-    const comment_formulas = this.sheet.trial
-      .getRange(this.const_range)
-      .getFormulas();
-    const comment_values = this.sheet.trial
-      .getRange(this.const_range)
-      .getValues();
-    let before_delete_comments = [];
-    for (let i = 0; i < comment_formulas.length; i++) {
-      before_delete_comments[i] =
-        comment_formulas[i] != "" ? comment_formulas[i] : comment_values[i];
-    }
-    const del_comment = before_delete_comments.filter(
-      (x) => x != this.delete_target && x != ""
-    );
-    return del_comment;
-  }
-}
-/**
- * trialシートのコメントを追加する。
- * @param {string} str_comment コメント文字列
- * @return none
- */
-function set_trial_comment_(str_comment) {
-  const setComment = new Set_trial_comments();
-  setComment.set_delete_comment = str_comment;
-  const comments = setComment.delete_comment();
-  comments.push([str_comment]);
-  setComment.set_range_values(comments);
-}
-/**
- * trialシートのコメントを削除する。
- * @param {string} str_comment コメント文字列
- * @return none
- */
-function delete_trial_comment_(str_comment) {
-  const setComment = new Set_trial_comments();
-  setComment.set_delete_comment = str_comment;
-  const comments = setComment.delete_comment();
-  setComment.set_range_values(comments);
-}
+
 /**
  * 見積項目設定
  */
