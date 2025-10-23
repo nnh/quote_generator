@@ -1,4 +1,96 @@
 /**
+ * 見積書シート（trial sheet）に対し、試験関連項目リストをもとに値を一括設定する関数。
+ *
+ * この関数は、見積依頼情報 (`array_quotation_request`) をもとに、
+ * 試験区分・見積種別・試験課題名・CRF項目数などの主要項目を
+ * 指定行に書き込みます。
+ * 各項目の設定内容に応じて、関連関数（`set_trial_sheet_set_value_()`、
+ * `set_trial_sheet_set_value_cdisc_()`、`set_trial_sheet_set_value_trial_type_()`）を呼び出し、
+ * 値の整形・副作用処理（プロパティ保存、コメント更新、シート名変更など）を実行します。
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet - 見積書情報を設定する対象シート。
+ *   `sheet.trial` 経由でセルへのアクセスを行う。
+ * @param {GoogleAppsScript.Cache.Cache} cache - スクリプトキャッシュオブジェクト。
+ *   各種項目名・行番号・スクリプトプロパティの参照に使用。
+ * @param {Array} array_quotation_request - 見積依頼情報を格納した配列。
+ *   各項目の値取得に `get_quotation_request_value()` が利用される。
+ * @returns {void} なし（シートのセル値更新およびスクリプトプロパティ更新などの副作用を伴う）。
+ *
+ * @example
+ * // 見積書シートに試験情報を一括反映
+ * quote_script_set_trial_by_trial_list_(sheet, cache, quotationRequestArray);
+ * // => 各種試験項目が対応行に書き込まれる
+ *
+ * @remarks
+ * 内部処理の流れ：
+ * 1. 試験関連項目と対応行番号を `trial_list` に定義。
+ * 2. 各項目について `get_quotation_request_value()` で値を取得。
+ * 3. 項目種別に応じて以下の処理を実行：
+ *    - `QuoteScriptConstants.TRIAL_TYPE` → 試験区分設定 (`set_trial_sheet_set_value_trial_type_()`)
+ *    - `QuoteScriptConstants.CRF` → CDISC対応処理 (`set_trial_sheet_set_value_cdisc_()`)
+ *    - 上記以外 → 一般項目設定 (`set_trial_sheet_set_value_()`)
+ * 4. 取得した値をシートの該当セルに書き込み。
+ *
+ * 主な副作用：
+ * - スクリプトプロパティ（症例数・施設数など）の保存
+ * - CDISCコメントの追加／削除
+ * - スプレッドシート名の変更（略称設定時）
+ */
+function quote_script_set_trial_by_trial_list_(
+  sheet,
+  cache,
+  array_quotation_request
+) {
+  const const_facilities = cache.facilitiesItemname;
+  const trial_list = [
+    [
+      QuoteScriptConstants.QUOTATION_TYPE,
+      QuoteScriptConstants.QUOTATION_TYPE_ROW,
+    ],
+    ["見積発行先", QuoteScriptConstants.ISSUE_DESTINATION_ROW],
+    ["研究代表者名", QuoteScriptConstants.PRINCIPAL_INVESTIGATOR_ROW],
+    ["試験課題名", QuoteScriptConstants.TRIAL_TITLE_ROW],
+    [QuoteScriptConstants.ACRONYM, QuoteScriptConstants.ACRONYM_ROW],
+    [QuoteScriptConstants.TRIAL_TYPE, QuoteScriptConstants.TRIAL_TYPE_ROW],
+    [cache.numberOfCasesItemname, cache.trialNumberOfCasesRow],
+    [const_facilities, cache.trialConstFacilitiesRow],
+    [QuoteScriptConstants.CRF, QuoteScriptConstants.CRF_ITEMS_ROW],
+    [cache.coefficient, QuoteScriptConstants.COEFFICIENT_ROW],
+  ];
+  for (let i = 0; i < trial_list.length; i++) {
+    const target_value = trial_list[i][0];
+    const target_row = trial_list[i][1];
+    const temp_str = get_quotation_request_value(
+      array_quotation_request,
+      target_value
+    );
+    let setText = null;
+    if (temp_str === null || temp_str === undefined) {
+      continue;
+    }
+    if (target_value === QuoteScriptConstants.TRIAL_TYPE) {
+      setText = set_trial_sheet_set_value_trial_type_(
+        temp_str,
+        target_value,
+        sheet,
+        array_quotation_request,
+        cache
+      );
+    } else if (target_value === QuoteScriptConstants.CRF) {
+      setText = set_trial_sheet_set_value_cdisc_(
+        temp_str,
+        array_quotation_request
+      );
+    } else {
+      setText = set_trial_sheet_set_value_(target_value, temp_str, cache);
+    }
+    if (setText === null) {
+      continue;
+    }
+    sheet.trial.getRange(parseInt(target_row), 2).setValue(setText);
+  }
+}
+/**
  * CDISC対応の有無に基づき、CRF項目数（のべ項目数）の計算式および
  * 試験シート上のコメントを動的に設定する関数。
  *
@@ -177,4 +269,24 @@ function set_trial_sheet_set_value_(trial_value, target_value, cache) {
     );
   }
   return target_value;
+}
+/**
+ * 発行年月日を設定する関数。
+ *
+ * シート上で「発行年月日」に対応する行を特定し、
+ * その隣のセルに現在の日付（YYYY/MM/DD形式）を設定します。
+ * @param {*} スプレッドシート内のシートオブジェクトリスト
+ * @returns none.
+ */
+function set_issue_date_(sheet) {
+  const date_of_issue = get_row_num_matched_value(sheet.trial, 1, "発行年月日");
+  if (!date_of_issue) {
+    return;
+  }
+  if (date_of_issue <= 0) {
+    return;
+  }
+  sheet.trial
+    .getRange(date_of_issue, 2)
+    .setValue(Moment.moment().format("YYYY/MM/DD"));
 }

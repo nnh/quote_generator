@@ -19,38 +19,19 @@ function set_items_price_(sheet, price, target_row) {
     sheet.getRange(target_row, target_col).offset(0, 2).setValue("");
   }
 }
-
-/**
- * quotation_requestシートの内容からtrialシート, itemsシートを設定する
- * @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
- * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
- * @return none
- * @example
- *   set_trial_sheet_(sheet, array_quotation_request);
- */
-function set_trial_sheet_(sheet, array_quotation_request) {
-  const cache = new ConfigCache();
-  if (!cache.isValid) {
-    console.error("Failed to initialize ConfigCache in set_trial_sheet_");
-    return;
-  }
-
-  const const_facilities = cache.facilitiesItemname;
-  const trial_list = [
-    [
-      QuoteScriptConstants.QUOTATION_TYPE,
-      QuoteScriptConstants.QUOTATION_TYPE_ROW,
-    ],
-    ["見積発行先", QuoteScriptConstants.ISSUE_DESTINATION_ROW],
-    ["研究代表者名", QuoteScriptConstants.PRINCIPAL_INVESTIGATOR_ROW],
-    ["試験課題名", QuoteScriptConstants.TRIAL_TITLE_ROW],
-    [QuoteScriptConstants.ACRONYM, QuoteScriptConstants.ACRONYM_ROW],
-    [QuoteScriptConstants.TRIAL_TYPE, QuoteScriptConstants.TRIAL_TYPE_ROW],
-    [cache.numberOfCasesItemname, cache.trialNumberOfCasesRow],
-    [const_facilities, cache.trialConstFacilitiesRow],
-    [QuoteScriptConstants.CRF, QuoteScriptConstants.CRF_ITEMS_ROW],
-    [cache.coefficient, QuoteScriptConstants.COEFFICIENT_ROW],
-  ];
+function quote_script_set_trial_by_insurance_fee_(
+  sheet,
+  items_header,
+  totalPrice
+) {
+  const items_row = get_row_num_matched_value(sheet.items, 2, items_header);
+  set_items_price_(sheet.items, totalPrice, items_row);
+}
+function quote_script_set_items_by_items_list_(
+  sheet,
+  cache,
+  array_quotation_request
+) {
   const cost_of_cooperation = QuoteScriptConstants.COST_OF_COOPERATION;
   const items_list = [
     [QuoteScriptConstants.INSURANCE_FEE, QuoteScriptConstants.INSURANCE_FEE],
@@ -61,46 +42,6 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     [cache.costOfRegistrationQuotationRequest, cache.costOfRegistrationItem],
     [cache.costOfReportQuotationRequest, cache.costOfReportItem],
   ];
-  for (let i = 0; i < trial_list.length; i++) {
-    const target_value = trial_list[i][0];
-    const target_row = trial_list[i][1];
-    const temp_str = get_quotation_request_value(
-      array_quotation_request,
-      target_value
-    );
-    let setText = null;
-    if (temp_str === null || temp_str === undefined) {
-      continue;
-    }
-    if (target_value === QuoteScriptConstants.TRIAL_TYPE) {
-      setText = set_trial_sheet_set_value_trial_type_(
-        temp_str,
-        target_value,
-        sheet,
-        array_quotation_request,
-        cache
-      );
-    } else if (target_value === QuoteScriptConstants.CRF) {
-      setText = set_trial_sheet_set_value_cdisc_(
-        temp_str,
-        array_quotation_request
-      );
-    } else {
-      setText = set_trial_sheet_set_value_(target_value, temp_str, cache);
-    }
-    if (setText === null) {
-      continue;
-    }
-    sheet.trial.getRange(parseInt(target_row), 2).setValue(setText);
-  }
-  // 発行年月日
-  let date_of_issue = get_row_num_matched_value(sheet.trial, 1, "発行年月日");
-  if (date_of_issue > 0) {
-    sheet.trial
-      .getRange(date_of_issue, 2)
-      .setValue(Moment.moment().format("YYYY/MM/DD"));
-  }
-  // 単価の設定
   items_list.forEach((x) => {
     const quotation_request_header = x[0];
     const totalPrice = get_quotation_request_value(
@@ -135,15 +76,34 @@ function set_trial_sheet_(sheet, array_quotation_request) {
           set_items_price_(sheet.items, 0, items_row);
         }
       });
-    } else {
-      // 保険料
-      const items_header = x[1];
-      const items_row = get_row_num_matched_value(sheet.items, 2, items_header);
-      set_items_price_(sheet.items, totalPrice, items_row);
+    }
+    // 保険料
+    if (quotation_request_header == QuoteScriptConstants.INSURANCE_FEE) {
+      quote_script_set_trial_by_insurance_fee_(sheet, x[1], totalPrice);
     }
   });
 }
-
+/**
+ * quotation_requestシートの内容からtrialシート, itemsシートを設定する
+ * @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
+ * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+ * @return none
+ * @example
+ *   set_trial_sheet_(sheet, array_quotation_request);
+ */
+function set_trial_sheet_(sheet, array_quotation_request) {
+  const cache = new ConfigCache();
+  if (!cache.isValid) {
+    console.error("Failed to initialize ConfigCache in set_trial_sheet_");
+    return;
+  }
+  // trialシートの設定
+  quote_script_set_trial_by_trial_list_(sheet, cache, array_quotation_request);
+  // trialシートに発行年月日を設定する
+  set_issue_date_(sheet);
+  // itemsシートの設定
+  quote_script_set_items_by_items_list_(sheet, cache, array_quotation_request);
+}
 /**
  * 見積項目設定
  */

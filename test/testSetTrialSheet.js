@@ -11,12 +11,15 @@ function testSetTrialSheetCommon_() {
   ];
   // CDISC対応がありかなしか
   const cdiscSupportArray = ["あり", "なし"];
+  // 保険料
+  const insuranceFeeArray = [1000000, 0];
   const testMapArray = [];
   for (let i = 0; i < 2; i++) {
     const newMap = getQuotationRequestTemplateMap_();
     newMap.set("見積種別", quotetypeArray[i]);
     newMap.set("原資", fundsourceArray[i]);
     newMap.set("CDISC対応", cdiscSupportArray[i]);
+    newMap.set("保険料", insuranceFeeArray[i]);
     testMapArray.push(newMap);
     const arr = mapTo2DArrayQuotationRequest_(newMap);
     const valueArr = [[...arr[1]]];
@@ -137,6 +140,16 @@ function getTestTrialSheetValues_(sheet, testMap) {
     );
   } else {
     sheet.trial.getRange("B44").clearContent();
+  }
+  // 保険料
+  if (sheet.items.getRange("C78").getValue() !== testMap.get("保険料")) {
+    throw new Error(
+      `保険料の値が異なります。期待値:${testMap.get(
+        "保険料"
+      )} 実際の値:${sheet.items.getRange("C78").getValue()}`
+    );
+  } else {
+    sheet.items.getRange("S78:U78").clearContent();
   }
 }
 
