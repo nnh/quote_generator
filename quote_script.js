@@ -47,16 +47,18 @@ function set_trial_sheet_set_value_cdisc_(
     array_quotation_request,
     "CDISC対応"
   );
+  const cdisc_nashi =
+    '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"';
+  const cdisc_ari =
+    '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"';
   if (cdisc == "あり") {
-    delete_trial_comment_(
-      '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"'
-    );
+    delete_trial_comment_(cdisc_nashi);
     const res = "=" + target_value + " * " + cdisc_addition;
-    set_trial_comment_(
-      '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"'
-    );
+    set_trial_comment_(cdisc_ari);
     return res;
   } else {
+    delete_trial_comment_(cdisc_ari);
+    set_trial_comment_(cdisc_nashi);
     return target_value;
   }
 }
