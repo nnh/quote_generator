@@ -31,3 +31,31 @@ function getTrialTermInfo_() {
     .getValues();
   return trial_term_info;
 }
+/**
+ * 試験フェーズ（Setup〜Closing）のシートを表示／非表示に切り替える関数。
+ *
+ * この関数は、`get_target_term_sheets()` によって取得した
+ * 試験フェーズに対応するスプレッドシート群を走査し、
+ * 各シートのセル「B2」に値が存在するかどうかを確認します。
+ *
+ * - 「B2」が空欄の場合：そのシートを非表示にします。
+ * - 「B2」に値がある場合：そのシートを表示します。
+ *
+ * この処理により、対象外のフェーズシートを自動的に非表示化できます。
+ *
+ * @function quote_toggle_trial_phase_sheets_
+ * @returns {void} 返り値はありません。シートの表示状態を直接変更します。
+ *
+ * @example
+ * // 試験フェーズシート（Setup～Closing）の表示状態を自動調整
+ * quote_toggle_trial_phase_sheets_();
+ *
+ * @see get_target_term_sheets
+ *   試験フェーズに対応するシート一覧を返す補助関数。
+ */
+function quote_toggle_trial_phase_sheets_() {
+  const setupToClosing = get_target_term_sheets();
+  setupToClosing.forEach((x) =>
+    x.getRange("B2").getValue() == "" ? x.hideSheet() : x.showSheet()
+  );
+}

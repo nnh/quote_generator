@@ -46,11 +46,15 @@ function quote_script_main() {
   }
   const sheetnameIdx = 0;
   const countIdx = 2;
+  // フィルタを一旦解除
   filtervisible();
+  // trialシート、itemsシートの設定
   set_trial_sheet_(sheet, array_quotation_request);
+  // 対象シートの取得
   const targetSheetList = getTrialTermInfo_()
     .map((x, idx) => x.concat(idx))
     .filter((x) => x[countIdx] != "");
+  // 各シートの項目設定
   targetSheetList.forEach((targetSheet) => {
     const set_sheet_item_values = get_set_sheet_item_values_(
       targetSheet[sheetnameIdx],
@@ -59,15 +63,12 @@ function quote_script_main() {
     const temp_all = apply_all_sheet_item_settings_(set_sheet_item_values);
     set_sheet_item_values.setSheetValues(targetSheet[sheetnameIdx], temp_all);
   });
+  // 年毎に設定する値が不均等である項目への対応
   setImbalanceValues_(array_quotation_request);
+  // 対象外シートを非表示にする
   quote_toggle_trial_phase_sheets_();
 }
-function quote_toggle_trial_phase_sheets_() {
-  const setupToClosing = get_target_term_sheets();
-  setupToClosing.forEach((x) =>
-    x.getRange("B2").getValue() == "" ? x.hideSheet() : x.showSheet()
-  );
-}
+
 function get_set_sheet_item_values_(sheetname, array_quotation_request) {
   return new SetSheetItemValues(sheetname, array_quotation_request);
 }
