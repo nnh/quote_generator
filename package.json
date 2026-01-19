@@ -4,7 +4,7 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "build": "mkdir -p dist && cp src/*.js utils/*.js tests/*.js dist/ && cp appsscript.json dist/",
+    "build": "mkdir -p dist && cp src/*.js utils/*.js validators/*.js tests/*.js dist/ && cp appsscript.json dist/",
     "push": "npm run build && clasp push",
     "watch": "clasp push --watch"
   },
