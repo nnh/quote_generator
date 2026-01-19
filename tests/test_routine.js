@@ -91,7 +91,11 @@ class RoutineTest {
             "中間解析に必要な図表数",
           )
         : interimValue;
-    targetSheet.getRange("F48").setValue(interimValue);
+    // tableCountが "空文字" または "数値ではない" 場合は終了
+    if (tableCount === "" || Number.isNaN(Number(tableCount))) {
+      return;
+    }
+    targetSheet.getRange("F46").setValue(interimValue);
     targetSheet.getRange("F54").setValue(interimValue);
     targetSheet.getRange("F55").setValue(tableCount);
     targetSheet.getRange("F56").setValue(interimValue);

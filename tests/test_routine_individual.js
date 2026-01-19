@@ -24,7 +24,7 @@ function test20220119_3_1() {
 }
 function test20220119_3_2() {
   const test = new RoutineTest();
-  test.execTestMain(3, 53000000);
+  test.execTestMain(3, 36000000);
 }
 // 中間解析、CDISC対応あり
 // 最終解析、調整事務局なし
@@ -34,7 +34,7 @@ function test20220119_4_1() {
 }
 function test20220119_4_2() {
   const test = new RoutineTest();
-  test.execTestMain(4, 100000000);
+  test.execTestMain(4, 80000000);
 }
 // 介入研究（特定臨床研究以外）
 function test20220119_5_1() {
