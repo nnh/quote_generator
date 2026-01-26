@@ -1,0 +1,41 @@
+/**
+ * Show/hide filters.
+ */
+class FilterVisibleHidden {
+  constructor(excludeSheets = ["Price", "PriceLogicCompany", "PriceLogic"]) {
+    this.ss = SpreadsheetApp.getActiveSpreadsheet();
+    this.sheets = this.ss
+      .getSheets()
+      .filter((sheet) => !excludeSheets.includes(sheet.getName()));
+  }
+  getFilters() {
+    return this.sheets.reduce((acc, sheet) => {
+      const filter = sheet.getFilter();
+      if (filter) acc.push(filter);
+      return acc;
+    }, []);
+  }
+  removeFilterCriteria(filter) {
+    const column = filter.getRange().getColumn();
+    filter.removeColumnFilterCriteria(column);
+  }
+  createFilterCriteria(hiddenValues = ["0"]) {
+    return SpreadsheetApp.newFilterCriteria().setHiddenValues(hiddenValues);
+  }
+  setFilterCriteria(filter, criteria) {
+    const column = filter.getRange().getColumn();
+    filter.setColumnFilterCriteria(column, criteria);
+  }
+  applyFilter(criteria = null) {
+    this.getFilters().forEach((filter) => {
+      this.removeFilterCriteria(filter);
+      if (criteria) this.setFilterCriteria(filter, criteria);
+    });
+  }
+  filterVisible() {
+    this.applyFilter();
+  }
+  filterHidden() {
+    this.applyFilter(this.createFilterCriteria());
+  }
+}

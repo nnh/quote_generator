@@ -1,24 +1,15 @@
 function check_itemName_and_value(target, item_name, value_ok) {
-  if (target.footer != null) {
-    var temp_item_name = item_name + target.footer;
-  } else {
-    var temp_item_name = item_name;
-  }
-  const res_message =
-    "シート名:" +
-    target.sheet.getName() +
-    ",項目名:" +
-    temp_item_name +
-    ",想定値:" +
-    value_ok;
+  const temp_item_name =
+    target.footer !== null ? item_name + target.footer : item_name;
+  const res_message = `シート名:${target.sheet.getName()},項目名:${temp_item_name},想定値:${value_ok}`;
   if (!(target.array_item[item_name] > 0)) {
     return ["NG：該当する項目名なし", res_message];
   }
-  var check_value = target.sheet
+  const check_value = target.sheet
     .getRange(target.array_item[item_name], target.col)
     .getValue();
-  if (check_value != value_ok) {
-    return ["NG：値が想定と異なる", res_message];
+  if (check_value !== value_ok) {
+    return ["NG：値が想定と異なる", `${res_message},実際の値:${check_value}`];
   }
   return ["OK", res_message];
 }
@@ -224,9 +215,9 @@ function checkAmountByYearSheet_(sheetName, discountRate) {
     SpreadsheetApp.getActiveSpreadsheet()
       .getSheetByName(sheetName)
       .getRange("B2")
-      .getValue() == ""
-      ? test1 == test2
-      : discountValue == "";
+      .getValue() === ""
+      ? test1 === test2
+      : discountValue === "";
   return discountCheck;
 }
 /**
@@ -294,7 +285,7 @@ function checkQuoteSum_() {
       .getSheetByName("Total3")
       .getRange(total3GoukeiRow, total3GoukeiCol)
       .getValue(),
-  ].map((x) => (x == "" ? 0 : Math.round(x)));
+  ].map((x) => (x === "" ? 0 : Math.round(x)));
   const checkDiscount = [
     ss
       .getSheetByName("Quote")
@@ -312,10 +303,10 @@ function checkQuoteSum_() {
       .getSheetByName("Total3")
       .getRange(total3GoukeiRow + 1, total3GoukeiCol)
       .getValue(),
-  ].map((x) => (x == "" ? 0 : Math.round(x)));
+  ].map((x) => (x === "" ? 0 : Math.round(x)));
   return [
-    checkAmount.every((x) => (x, _, arr) => x == arr[0]),
-    checkDiscount.every((x, _, arr) => x == arr[0]),
+    checkAmount.every((x, _, arr) => x === arr[0]),
+    checkDiscount.every((x, _, arr) => x === arr[0]),
   ];
 }
 /**
@@ -337,7 +328,7 @@ function getQuotationRequestValues_() {
     .getDataRange()
     .getValues();
   // Output only those records for which "Existence of Coordination Office" has been entered.
-  return requestValues.filter((x, idx) => idx > 25 || idx == 0);
+  return requestValues.filter((x, idx) => idx > 25 || idx === 0);
 }
 /**
  * Output the values retrieved from the "Quotation Request" spreadsheet to the "Quotation Request" sheet.
@@ -351,7 +342,7 @@ function setQuotationRequestValuesForTest(target_idx = -1) {
   sheetQuotationRequest.clearContents();
   const target =
     target_idx > -1
-      ? requestValues.filter((x, idx) => idx == target_idx || idx == 0)
+      ? requestValues.filter((x, idx) => idx === target_idx || idx === 0)
       : requestValues;
   sheetQuotationRequest
     .getRange(1, 1, target.length, target[0].length)
@@ -364,7 +355,7 @@ class GetTargetRowCol {
   getTargetRowIndex(targetSheet, targetIdx, targetStr) {
     const targetValues = targetSheet.getDataRange().getValues();
     const targetRowIndex = targetValues
-      .map((x, idx) => (x[targetIdx] == targetStr ? idx : null))
+      .map((x, idx) => (x[targetIdx] === targetStr ? idx : null))
       .filter((x) => x);
     return targetRowIndex[0];
   }
@@ -389,4 +380,19 @@ class GetTargetRowCol {
     );
     return res + 1;
   }
+}
+/**
+ * 特定の項目が期待値と一致するか判定し、対応する値を返す
+ * @param {any} actualValue 実際の値
+ * @param {any} expectedValue 期待する値 (例: "あり")
+ * @param {any} returnValue 一致した時に返す値 (例: 1)
+ * @param {any} defaultValue 一致しない時に返す値 (デフォルトは空文字)
+ */
+function getValueIfMatch_(
+  actualValue,
+  expectedValue,
+  returnValue,
+  defaultValue = "",
+) {
+  return actualValue === expectedValue ? returnValue : defaultValue;
 }
