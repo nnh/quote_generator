@@ -76,13 +76,18 @@ function check_output_values() {
   total_checkitems.push(officeOperationItems.get("officeOperationBeforeStart"));
   total_checkitems.push(officeOperationItems.get("officeOperationAtEnd"));
   // キックオフミーティング
-  total_checkitems.push(
-    checkQuotationKickoffMeetingItems_(
-      get_s_p,
-      array_quotation_request,
-      total_months,
+  total_checkitems.push({
+    itemname: "キックオフミーティング準備・実行",
+    value: getValueIfMatch_(
+      get_quotation_request_value(
+        array_quotation_request,
+        "キックオフミーティング",
+      ),
+      "あり",
+      1,
+      0,
     ),
-  );
+  });
 
   total_checkitems.push({
     itemname: "症例検討会準備・実行",
