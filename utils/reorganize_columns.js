@@ -95,7 +95,7 @@ class Add_del_columns {
       });
   }
   /**
-   * Setup~Closingの間で見出しが空白の行は削除する。
+   * Setup~Closingの間で見出しが空白の列を削除する。
    */
   remove_cols_without_header() {
     while (true) {
@@ -112,9 +112,9 @@ class Add_del_columns {
 
   /**
    * 列の追加を行う。
-   * @param {[string, string, number]} 追加対象列情報  [シート名, 見出し（未使用）, 必要列数]
+   * @param {[string, number]} 追加対象列情報  [シート名, 必要列数]
    */
-  add_cols([target_head, dummy, target_columns_count]) {
+  add_cols([target_head, target_columns_count]) {
     // Setup、Closingの見出しがなければ処理しない
     let header_t = this.get_setup_closing_range();
     if (!header_t) return;
@@ -161,6 +161,7 @@ function show_hidden_cols(target_sheet) {
   // 「Setup」列を取得
   const add_del = new Add_del_columns(target_sheet);
   const header_t = add_del.get_setup_closing_range();
+  if (!header_t) return;
   const setup_col =
     header_t.indexOf(get_s_p.getProperty("setup_sheet_name")) + 1;
   // 「Setup」〜「合計」直前までの合計行を一括取得
@@ -208,13 +209,13 @@ function get_years_target_col(sheet, target_str) {
       ? 3
       : null;
 
-  if (!target_row) return;
+  if (!target_row) return null;
 
   const lastCol = sheet.getLastColumn();
   const rowValues = sheet.getRange(target_row, 1, 1, lastCol).getValues()[0];
 
   const idx = rowValues.indexOf(target_str);
-  if (idx < 0) return; // 見つからなければ undefined
+  if (idx < 0) return null;
 
   return idx + 1; // 列番号（1始まり）
 }
@@ -235,7 +236,7 @@ function get_goukei_row(sheet) {
       ? 2
       : null;
 
-  if (!target_col) return;
+  if (!target_col) return null;
 
   const lastRow = sheet.getLastRow();
   const values = sheet.getRange(1, target_col, lastRow, 1).getValues();
@@ -248,7 +249,7 @@ function get_goukei_row(sheet) {
   }
 
   // 見つからなかった場合
-  return;
+  return null;
 }
 
 /**
@@ -273,8 +274,8 @@ function total2_3_add_del_cols() {
   if (add_columns.length > 0) {
     target_sheets.forEach((sheet) => {
       const add_del = new Add_del_columns(sheet);
-      add_columns.forEach(([sheetName, header, count]) => {
-        add_del.add_cols([sheetName, header, count], sheet);
+      add_columns.forEach(([sheetName, _, count]) => {
+        add_del.add_cols([sheetName, count], sheet);
       });
     });
   }
