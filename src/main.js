@@ -33,3 +33,30 @@ function onOpen() {
   ss.addMenu("出力結果チェック", arr5);
   ss.addMenu("Price再構成", arr6);
 }
+function filtervisible() {
+  new FilterVisibleHidden().filterVisible();
+}
+function filterhidden() {
+  new FilterVisibleHidden().filterHidden();
+}
+/**
+ * シート編集可能者全員の権限を設定し、見積設定に必要なスクリプトプロパティを設定する
+ * @param none
+ * @return none
+ */
+function setProtectionEditusers() {
+  setEditUsers_();
+  register_script_property();
+}
+/**
+ * Set script properties and sheet protection permissions. Wait 10 seconds after setting the script properties.
+ */
+function initial_process() {
+  const get_s_p = PropertiesService.getScriptProperties();
+  if (get_s_p.getProperty("quote_sheet_name") === null) {
+    register_script_property();
+    Utilities.sleep(10000);
+  } else {
+    setEditUsers_();
+  }
+}
