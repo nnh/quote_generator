@@ -9,6 +9,10 @@ class Add_del_columns {
     this.sheet = sheet;
     this.term_row = 2;
     this.dummy_str = "***dummy***";
+
+    const props = PropertiesService.getScriptProperties();
+    this.setupName = props.getProperty("setup_sheet_name");
+    this.closingName = props.getProperty("closing_sheet_name");
   }
   /**
    * 見出し行の文字列を取得する。Setupより左、Closingより右の情報はダミー文字列に置き換える。
@@ -17,11 +21,9 @@ class Add_del_columns {
     const header_t = this.sheet
       .getRange(this.term_row, 1, 1, this.sheet.getLastColumn())
       .getValues()[0];
-    const get_s_p = PropertiesService.getScriptProperties();
-    const setup_idx = header_t.indexOf(get_s_p.getProperty("setup_sheet_name"));
-    const closing_idx = header_t.indexOf(
-      get_s_p.getProperty("closing_sheet_name"),
-    );
+    const setup_idx = header_t.indexOf(this.setupName);
+    const closing_idx = header_t.indexOf(this.closingName);
+
     if (setup_idx < 0 || closing_idx < 0) {
       return;
     }
@@ -38,75 +40,92 @@ class Add_del_columns {
     this.remove_col();
   }
   /**
-   * Setup~Closingを一列ずつにする。
+   * Setup~Closingを一列ずつにする（重複列を削除）
    */
   remove_col() {
     // Setup、Closingの見出しがなければ処理しない
     const header_t = this.get_setup_closing_range();
-    if (!header_t) {
-      return;
-    }
-    // ダミー文字列を削除
-    const check_header_t = header_t.filter((x) => x != this.dummy_str);
-    // 見出しの重複文字列を削除
-    const check_duplication = [...new Set(check_header_t)];
-    // 全ての項目が一列だけなら処理しない
-    if (check_header_t.length == check_duplication.length) {
-      return;
-    }
-    // 重複列の番号を降順で取得
-    const duplication_cols = check_duplication.filter(
-      (x) => check_header_t.filter((y) => y == x).length > 1,
-    );
-    let duplication_col_numbers = duplication_cols.map(
-      (x) => header_t.indexOf(x) + 1,
-    );
-    duplication_col_numbers.sort((x, y) => y - x);
-    for (let i = duplication_col_numbers.length - 1; i >= 0; i--) {
-      this.sheet.deleteColumn(duplication_col_numbers[i]);
-    }
-    this.remove_col();
+    if (!header_t) return;
+
+    // ダミーを除いた対象ヘッダ（元のインデックス付きで保持）
+    const targets = header_t
+      .map((name, idx) => ({ name, idx }))
+      .filter((x) => x.name !== this.dummy_str);
+
+    // 見出しごとに列番号をまとめる
+    const indexMap = {};
+    targets.forEach(({ name, idx }) => {
+      if (!indexMap[name]) indexMap[name] = [];
+      indexMap[name].push(idx + 1); // 列番号は1始まり
+    });
+
+    // 削除対象の列番号を収集（各見出しの2列目以降）
+    const deleteCols = [];
+    Object.values(indexMap).forEach((cols) => {
+      if (cols.length > 1) {
+        // 先頭1列を残して、それ以外を削除対象に
+        deleteCols.push(...cols.slice(1));
+      }
+    });
+
+    // 削除対象がなければ終了
+    if (deleteCols.length === 0) return;
+
+    // 列番号を降順で削除（ずれ防止）
+    deleteCols
+      .sort((a, b) => b - a)
+      .forEach((col) => {
+        this.sheet.deleteColumn(col);
+      });
   }
   /**
    * Setup~Closingの間で見出しが空白の行は削除する。
    */
   remove_cols_without_header() {
-    // Setup、Closingの見出しがなければ処理しない
-    const header_t = this.get_setup_closing_range();
-    if (!header_t) {
-      return;
+    while (true) {
+      const header_t = this.get_setup_closing_range();
+      if (!header_t) return;
+
+      const emptyIndex = header_t.indexOf("");
+      if (emptyIndex < 0) return;
+
+      this.sheet.deleteColumn(emptyIndex + 1);
     }
-    // 見出しが空白の行がなければ処理しない
-    if (header_t.every((x) => x)) {
-      return;
-    }
-    this.sheet.deleteColumn(header_t.indexOf("") + 1);
-    this.remove_cols_without_header();
   }
+
   /**
    * 列の追加を行う。
+   * @param {[string, string, number]} 追加対象列情報  [シート名, 見出し（未使用）, 必要列数]
    */
-  set add_target(target_array) {
-    this.target_head = target_array[0];
-    this.target_columns_count = target_array[2];
-  }
-  add_cols() {
+  add_cols([target_head, dummy, target_columns_count]) {
     // Setup、Closingの見出しがなければ処理しない
-    const header_t = this.get_setup_closing_range();
-    if (!header_t) {
-      return;
+    let header_t = this.get_setup_closing_range();
+    if (!header_t) return;
+
+    // 現在の列数を取得
+    const currentCols = header_t
+      .map((name, idx) => ({ name, idx }))
+      .filter((x) => x.name === target_head);
+
+    const currentCount = currentCols.length;
+
+    // すでに必要数あれば何もしない
+    if (currentCount >= target_columns_count) return;
+
+    // 基準となるコピー元列（最初の1列）
+    const baseColNumber = currentCols[0].idx + 1;
+
+    // 追加が必要な本数
+    const needToAdd = target_columns_count - currentCount;
+
+    // まとめて追加
+    for (let i = 0; i < needToAdd; i++) {
+      this.sheet.insertColumnAfter(baseColNumber + i);
+
+      this.sheet
+        .getRange(1, baseColNumber, this.sheet.getLastRow(), 1)
+        .copyTo(this.sheet.getRange(1, baseColNumber + i + 1));
     }
-    // すでに必要な列数が作成されていたら処理しない
-    const columns_count = header_t.filter((x) => x == this.target_head).length;
-    if (columns_count >= this.target_columns_count) {
-      return;
-    }
-    const col_number = header_t.indexOf(this.target_head) + 1;
-    this.sheet.insertColumnAfter(col_number);
-    this.sheet
-      .getRange(1, col_number, this.sheet.getLastRow(), 1)
-      .copyTo(this.sheet.getRange(1, col_number + 1));
-    this.add_cols();
   }
 }
 /**
@@ -202,13 +221,14 @@ function total2_3_add_del_cols() {
   // Trialシートの試験期間、見出し、試験期間年数を取得する
   const trial_term_info = getTrialTermInfo_();
   // 列の追加
-  const add_columns = trial_term_info.filter((x) => x[2] > 1);
+  const add_columns = trial_term_info.filter(
+    ([_sheetName, _header, count]) => count > 1,
+  );
   if (add_columns.length > 0) {
-    target_sheets.forEach((x) => {
-      const add_del = new Add_del_columns(x);
-      add_columns.forEach((y) => {
-        add_del.add_target = y;
-        add_del.add_cols();
+    target_sheets.forEach((sheet) => {
+      const add_del = new Add_del_columns(sheet);
+      add_columns.forEach(([sheetName, header, count]) => {
+        add_del.add_cols([sheetName, header, count], sheet);
       });
     });
   }
