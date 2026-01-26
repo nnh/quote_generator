@@ -2,38 +2,40 @@
  * Show/hide filters.
  */
 class FilterVisibleHidden {
-  constructor() {
+  constructor(excludeSheets = ["Price", "PriceLogicCompany", "PriceLogic"]) {
     this.ss = SpreadsheetApp.getActiveSpreadsheet();
-    // Price, PriceLogic, and PriceLogicCompany sheets are excluded.
-    const targetSheetNames = ["Price", "PriceLogicCompany", "PriceLogic"];
     this.sheets = this.ss
       .getSheets()
-      .filter((x) => !targetSheetNames.some((v) => x.getName() === v));
+      .filter((sheet) => !excludeSheets.includes(sheet.getName()));
   }
   getFilters() {
-    return this.sheets.map((sheet) => sheet.getFilter()).filter((x) => x);
+    return this.sheets.reduce((acc, sheet) => {
+      const filter = sheet.getFilter();
+      if (filter) acc.push(filter);
+      return acc;
+    }, []);
   }
-  removeFilterCriteria(targetFilter) {
-    const col = targetFilter.getRange().getColumn();
-    targetFilter.removeColumnFilterCriteria(col);
+  removeFilterCriteria(filter) {
+    const column = filter.getRange().getColumn();
+    filter.removeColumnFilterCriteria(column);
   }
-  createFilterCriteria() {
-    const filterCriteria = SpreadsheetApp.newFilterCriteria();
-    filterCriteria.setHiddenValues(["0"]);
-    return filterCriteria;
+  createFilterCriteria(hiddenValues = ["0"]) {
+    return SpreadsheetApp.newFilterCriteria().setHiddenValues(hiddenValues);
   }
-  setFilterCriteria(targetFilter, criteria) {
-    const col = targetFilter.getRange().getColumn();
-    targetFilter.setColumnFilterCriteria(col, criteria);
+  setFilterCriteria(filter, criteria) {
+    const column = filter.getRange().getColumn();
+    filter.setColumnFilterCriteria(column, criteria);
   }
-  filterVisible() {
-    this.getFilters().forEach((filter) => this.removeFilterCriteria(filter));
-  }
-  filterHidden() {
+  applyFilter(criteria = null) {
     this.getFilters().forEach((filter) => {
       this.removeFilterCriteria(filter);
-      const criteria = this.createFilterCriteria();
-      this.setFilterCriteria(filter, criteria);
+      if (criteria) this.setFilterCriteria(filter, criteria);
     });
+  }
+  filterVisible() {
+    this.applyFilter();
+  }
+  filterHidden() {
+    this.applyFilter(this.createFilterCriteria());
   }
 }
