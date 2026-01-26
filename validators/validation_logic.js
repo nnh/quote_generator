@@ -155,9 +155,9 @@ function checkQuotationOfficeOperationItems_(
   trial_months,
   setup_month,
 ) {
-  let office_bef_month = "";
-  let office_count = "";
-  let temp_value = "";
+  let office_bef_month = 0;
+  let office_count = 0;
+  let temp_value = 0;
   if (
     (get_quotation_request_value(array_quotation_request, "試験種別") ==
       get_s_p.getProperty("investigator_initiated_trial")) |
@@ -176,7 +176,7 @@ function checkQuotationOfficeOperationItems_(
     office_count = 1;
     office_bef_month = setup_month;
   } else {
-    temp_value = "";
+    temp_value = 0;
   }
   const res = new Map();
   res.set("officeOperationFromStartToEnd", {
@@ -193,32 +193,7 @@ function checkQuotationOfficeOperationItems_(
   });
   return res;
 }
-function checkQuotationKickoffMeetingItems_(
-  get_s_p,
-  array_quotation_request,
-  total_months,
-) {
-  let temp_value;
-  if (
-    get_quotation_request_value(array_quotation_request, "試験種別") ===
-    get_s_p.getProperty("investigator_initiated_trial")
-  ) {
-    temp_value = total_months;
-  } else {
-    temp_value = "";
-  }
-  if (
-    get_quotation_request_value(
-      array_quotation_request,
-      "キックオフミーティング",
-    ) === "あり"
-  ) {
-    temp_value = 1;
-  } else {
-    temp_value = "";
-  }
-  return { itemname: "キックオフミーティング準備・実行", value: temp_value };
-}
+
 function checkQuotationMonitoringItems_(
   array_quotation_request,
   facilities_value,
@@ -231,7 +206,7 @@ function checkQuotationMonitoringItems_(
       "1例あたりの実地モニタリング回数",
     ) > 0
       ? 1
-      : "";
+      : 0;
   const monitoringPreparationDocumentCreation = {
     itemname: "モニタリング準備業務（関連資料作成）",
     value: monitoringPreparationDocumentCreation_value,
@@ -250,7 +225,7 @@ function checkQuotationMonitoringItems_(
         ) *
         facilities_value *
         trial_ceil_year
-      : "";
+      : 0;
   const preStudyMonitoringAndEssentialDocumentReview = {
     itemname: "開始前モニタリング・必須文書確認",
     value: preStudyMonitoringAndEssentialDocumentReview_value,
@@ -267,7 +242,7 @@ function checkQuotationMonitoringItems_(
             "1例あたりの実地モニタリング回数",
           ),
         ) * number_of_cases_value
-      : "";
+      : 0;
   const caseMonitoringAndSAESupport = {
     itemname: "症例モニタリング・SAE対応",
     value: caseMonitoringAndSAESupport_value,
