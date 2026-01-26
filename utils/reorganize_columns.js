@@ -13,25 +13,40 @@ class Add_del_columns {
     const props = PropertiesService.getScriptProperties();
     this.setupName = props.getProperty("setup_sheet_name");
     this.closingName = props.getProperty("closing_sheet_name");
+    this._cachedHeader = null;
   }
   /**
    * 見出し行の文字列を取得する。Setupより左、Closingより右の情報はダミー文字列に置き換える。
    */
   get_setup_closing_range() {
+    // すでに取得済みならキャッシュを返す
+    if (this._cachedHeader) return this._cachedHeader;
+
     const header_t = this.sheet
       .getRange(this.term_row, 1, 1, this.sheet.getLastColumn())
       .getValues()[0];
+
     const setup_idx = header_t.indexOf(this.setupName);
     const closing_idx = header_t.indexOf(this.closingName);
 
     if (setup_idx < 0 || closing_idx < 0) {
       return;
     }
-    const res = header_t.map((x, idx) =>
+
+    // Setup〜Closing 以外をダミーに置換してキャッシュ
+    this._cachedHeader = header_t.map((x, idx) =>
       idx < setup_idx || closing_idx < idx ? this.dummy_str : x,
     );
-    return res;
+
+    return this._cachedHeader;
   }
+  /**
+   * ヘッダキャッシュを無効化する
+   */
+  invalidate_cache() {
+    this._cachedHeader = null;
+  }
+
   /**
    * 列の初期化を行う。
    */
@@ -76,6 +91,7 @@ class Add_del_columns {
       .sort((a, b) => b - a)
       .forEach((col) => {
         this.sheet.deleteColumn(col);
+        this.invalidate_cache(); // キャッシュ無効化
       });
   }
   /**
@@ -90,6 +106,7 @@ class Add_del_columns {
       if (emptyIndex < 0) return;
 
       this.sheet.deleteColumn(emptyIndex + 1);
+      this.invalidate_cache(); // 列構成が変わったのでキャッシュ破棄
     }
   }
 
@@ -121,6 +138,7 @@ class Add_del_columns {
     // まとめて追加
     for (let i = 0; i < needToAdd; i++) {
       this.sheet.insertColumnAfter(baseColNumber + i);
+      this.invalidate_cache(); // 列構成が変わったのでキャッシュ破棄
 
       this.sheet
         .getRange(1, baseColNumber, this.sheet.getLastRow(), 1)
@@ -145,12 +163,28 @@ function show_hidden_cols(target_sheet) {
   const header_t = add_del.get_setup_closing_range();
   const setup_col =
     header_t.indexOf(get_s_p.getProperty("setup_sheet_name")) + 1;
-  // 「Setup」〜「合計」の一つ前のセルまでを処理対象にする
-  for (let i = setup_col; i < goukei_col; i++) {
-    let temp_range = target_sheet.getRange(goukei_row, i);
-    temp_range.getValue() > 0
-      ? target_sheet.unhideColumn(temp_range)
-      : target_sheet.hideColumn(temp_range);
+  // 「Setup」〜「合計」直前までの合計行を一括取得
+  const width = goukei_col - setup_col;
+  const values = target_sheet
+    .getRange(goukei_row, setup_col, 1, width)
+    .getValues()[0];
+
+  // 配列を見ながら列の表示／非表示を切り替え
+  for (let offset = 0; offset < width; offset++) {
+    const col = setup_col + offset;
+    const value = values[offset];
+
+    // 列全体のRangeを取得（1列ぶん）
+    const colRange = target_sheet.getRange(
+      1,
+      col,
+      target_sheet.getMaxRows(),
+      1,
+    );
+
+    value > 0
+      ? target_sheet.unhideColumn(colRange)
+      : target_sheet.hideColumn(colRange);
   }
 }
 function total2_3_show_hidden_cols() {
@@ -164,47 +198,59 @@ function total2_3_show_hidden_cols() {
  * @return {number}
  */
 function get_years_target_col(sheet, target_str) {
-  const get_s_p = PropertiesService.getScriptProperties();
+  const props = PropertiesService.getScriptProperties();
+
   const target_row = sheet
     .getName()
-    .includes(get_s_p.getProperty("total2_sheet_name"))
+    .includes(props.getProperty("total2_sheet_name"))
     ? 4
-    : sheet.getName().includes(get_s_p.getProperty("total3_sheet_name"))
+    : sheet.getName().includes(props.getProperty("total3_sheet_name"))
       ? 3
       : null;
-  if (!target_row) {
-    return;
-  }
-  const target_values = sheet
-    .getRange(target_row, 1, 1, sheet.getLastColumn())
-    .getValues()[0];
-  return target_values.indexOf(target_str) + 1;
+
+  if (!target_row) return;
+
+  const lastCol = sheet.getLastColumn();
+  const rowValues = sheet.getRange(target_row, 1, 1, lastCol).getValues()[0];
+
+  const idx = rowValues.indexOf(target_str);
+  if (idx < 0) return; // 見つからなければ undefined
+
+  return idx + 1; // 列番号（1始まり）
 }
+
 /**
  * 「合計」の行番号を返す。
  * @param {sheet} sheet Total2/Total3を指定
  * @return {number}
  */
 function get_goukei_row(sheet) {
-  const get_s_p = PropertiesService.getScriptProperties();
+  const props = PropertiesService.getScriptProperties();
+
   const target_col = sheet
     .getName()
-    .includes(get_s_p.getProperty("total2_sheet_name"))
+    .includes(props.getProperty("total2_sheet_name"))
     ? 2
-    : sheet.getName().includes(get_s_p.getProperty("total3_sheet_name"))
+    : sheet.getName().includes(props.getProperty("total3_sheet_name"))
       ? 2
       : null;
-  if (!target_col) {
-    return;
+
+  if (!target_col) return;
+
+  const lastRow = sheet.getLastRow();
+  const values = sheet.getRange(1, target_col, lastRow, 1).getValues();
+
+  // 先頭から順に探して、見つかった瞬間に返す
+  for (let i = 0; i < values.length; i++) {
+    if (values[i][0] === "合計") {
+      return i + 1; // 行番号は1始まり
+    }
   }
-  const target_values = sheet
-    .getRange(1, target_col, sheet.getLastRow(), 1)
-    .getValues();
-  const goukei_idx = target_values
-    .map((x, idx) => (x == "合計" ? idx : null))
-    .filter((x) => x > 0)[0];
-  return goukei_idx + 1;
+
+  // 見つからなかった場合
+  return;
 }
+
 /**
  * Trialシートの試験期間年数から列の追加削除を行う
  * @param none
@@ -244,21 +290,31 @@ function total2_3_add_del_cols() {
  * @return {[sheet]}
  */
 function extract_target_sheet() {
-  const get_s_p = PropertiesService.getScriptProperties();
-  const sheet = get_sheets();
-  const total_T = [
-    get_s_p.getProperty("total2_sheet_name").toLowerCase(),
-    get_s_p.getProperty("total3_sheet_name").toLowerCase(),
+  const props = PropertiesService.getScriptProperties();
+  const sheets = get_sheets(); // 全シートの辞書
+
+  const totalNames = [
+    props.getProperty("total2_sheet_name").toLowerCase(),
+    props.getProperty("total3_sheet_name").toLowerCase(),
   ];
-  const total_foot_T = [
+
+  const suffixes = [
     "",
-    "_" + get_s_p.getProperty("name_nmc"),
-    "_" + get_s_p.getProperty("name_oscr"),
+    "_" + props.getProperty("name_nmc"),
+    "_" + props.getProperty("name_oscr"),
   ];
-  const target_sheets = total_T.reduce((res, total) => {
-    total_foot_T.forEach((foot) => res.push(sheet[total + foot]));
-    // total2_*, total3_* 存在しないシートを対象外にする
-    return res.filter((x) => x != null);
-  }, []);
-  return target_sheets;
+
+  const result = [];
+
+  // total2 / total3 × 接尾辞 の組み合わせをすべて試す
+  totalNames.forEach((base) => {
+    suffixes.forEach((suffix) => {
+      const sheetObj = sheets[base + suffix];
+      if (sheetObj) {
+        result.push(sheetObj);
+      }
+    });
+  });
+
+  return result;
 }
