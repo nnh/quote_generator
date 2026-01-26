@@ -463,8 +463,9 @@ class RoutineTest {
       .getRange("B:B")
       .getValues()
       .map((x, idx) =>
-        x ==
-        "シート名:Total,項目名:中間解析プログラム作成、解析実施（シングル）,想定値:回数がQuotation Requestシートの中間解析に必要な図表数*Quotation Requestシートの中間解析の頻度であることを確認"
+        x[0].startsWith(
+          "シート名:Total,項目名:中間解析プログラム作成、解析実施（シングル）,想定値:回数がQuotation Requestシートの中間解析に必要な図表数*Quotation Requestシートの中間解析の頻度であることを確認",
+        )
           ? idx
           : null,
       )
@@ -472,8 +473,9 @@ class RoutineTest {
     const checkSheetValue = checkSheet
       .getRange("A:A")
       .getValues()
-      .filter((x, idx) => idx > 0 && x != "" && idx != exclusionIdx1);
-    return checkSheetValue.every((x) => x == "OK");
+      .filter((x, idx) => idx > 0 && x[0] != "" && idx != exclusionIdx1);
+
+    return checkSheetValue.every((x) => x[0] === "OK");
   }
 }
 /**
