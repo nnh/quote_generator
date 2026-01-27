@@ -5,7 +5,7 @@ function initCheckSheet_() {
   initial_process();
   const get_s_p = PropertiesService.getScriptProperties();
   const sheet = get_sheets();
-  filterhidden();
+  hideFilterVisibility();
   sheet.check.clear();
   const array_quotation_request = sheet.quotation_request
     .getRange(1, 1, 2, sheet.quotation_request.getDataRange().getLastColumn())

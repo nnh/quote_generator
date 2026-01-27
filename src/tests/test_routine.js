@@ -414,7 +414,7 @@ class RoutineTest {
     return res;
   }
   routineTestInit() {
-    filtervisible();
+    resetFilterVisibility();
     const temp_init = this.routineTestDiscountInit();
     const targetSheetsName = temp_init.targetSheetsName;
     const setVal = temp_init.setVal;
