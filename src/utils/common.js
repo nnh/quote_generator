@@ -1,24 +1,43 @@
 /**
  * 列名から列番号を返す
- * @param {string} column_name 列名（'A'など）
- * @return Aなら1、のような列番号
+ * @param {string} column_name 列名（"A", "B", "AA" など）
+ * @return {number} Aなら1、AAなら27 のような列番号
  */
 function getColumnNumber(column_name) {
-  const temp_sheet = SpreadsheetApp.getActiveSheet();
-  const temp_range = temp_sheet.getRange(column_name + "1").getColumn();
-  return temp_range;
+  if (typeof column_name !== "string" || column_name.trim() === "") {
+    throw new Error("getColumnNumber: invalid column name: " + column_name);
+  }
+
+  const colStr = column_name.trim().toUpperCase();
+
+  // 列名として正しいかチェック（"A", "Z", "AA" など英大文字のみで構成されているか）
+  if (!/^[A-Z]+$/.test(colStr)) {
+    throw new Error(
+      "getColumnNumber: invalid column name format: " + column_name,
+    );
+  }
+
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const range = sheet.getRange(colStr + "1");
+  return range.getColumn();
 }
+
 /**
  * 列番号から列名を返す
- * @param {Number} column_name 列番号
- * @return 1ならA、のような列名
+ * @param {number|string} column_number 列番号（数値または数値文字列）
+ * @return {string} 1ならA、のような列名
  */
 function getColumnString(column_number) {
-  const temp_sheet = SpreadsheetApp.getActiveSheet();
-  const temp_range = temp_sheet.getRange(1, parseInt(column_number));
-  var temp_res = temp_range.getA1Notation();
-  temp_res = temp_res.replace(/\d/, "");
-  return temp_res;
+  const colNum = Number(column_number);
+
+  if (!Number.isInteger(colNum) || colNum <= 0) {
+    throw new Error("getColumnString: invalid column number: " + column_number);
+  }
+
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const range = sheet.getRange(1, colNum);
+  const columnLetter = range.getA1Notation().replace(/\d+/g, "");
+  return columnLetter;
 }
 
 /**
@@ -27,19 +46,19 @@ function getColumnString(column_number) {
  * @param {string} target_col 項目名の列
  * @return {associative array} array_fy_items 項目と行番号の連想配列
  * @example
- *   var array_item = get_fy_items(target_sheet, target_col);
+ *  const array_item = get_fy_items(target_sheet, target_col);
  */
 function get_fy_items(sheet, target_col) {
-  const get_s_p = PropertiesService.getScriptProperties();
-  var temp_array = sheet
+  const temp_array = sheet
     .getRange(1, parseInt(target_col), sheet.getDataRange().getLastRow(), 1)
     .getValues();
   // 二次元配列から一次元配列に変換
-  temp_array = Array.prototype.concat.apply([], temp_array);
-  var array_fy_items = {};
-  for (var i = 0; i < temp_array.length; i++) {
-    if (temp_array[i] != "") {
-      array_fy_items[temp_array[i]] = i + 1;
+  const flat_array = Array.prototype.concat.apply([], temp_array);
+  const array_fy_items = {};
+  // 同名項目が複数ある場合は最後の行番号を採用する
+  for (let i = 0; i < flat_array.length; i++) {
+    if (flat_array[i] != "") {
+      array_fy_items[flat_array[i]] = i + 1;
     }
   }
   return array_fy_items;
@@ -51,22 +70,23 @@ function get_fy_items(sheet, target_col) {
  * @param {string} target_value 検索対象の値
  */
 function get_row_num_matched_value(target_sheet, target_col_num, target_value) {
-  const target_col = getColumnString(target_col_num);
+  const target_col_index = target_col_num + 1;
+  const lastRow = target_sheet.getLastRow();
   const col_values = target_sheet
-    .getRange(target_col + ":" + target_col)
+    .getRange(1, target_col_index, lastRow, 1)
     .getValues()
-    .map(function (x) {
-      return x[0];
-    });
-  return col_values.indexOf(target_value) + 1;
+    .map((x) => x[0]);
+  const rowIndex = col_values.indexOf(target_value);
+  const rowNumber = rowIndex === -1 ? 0 : rowIndex + 1;
+  return rowNumber;
 }
 /**
  * quotation_requestの1行目（項目名）からフォーム入力情報を取得する
  * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
  * @param {string} header_str 検索対象の値
- * @return 項目名が完全一致すればその項目の値を返す。一致しなければnullを返す。
+ * @return {string|null} 項目名が完全一致すればその項目の値を返す。一致しなければnullを返す。
  * @example
- *   var trial_start_date = get_quotation_request_value(array_quotation_request, const_trial_start);
+ *   const trial_start_date = get_quotation_request_value(array_quotation_request, const_trial_start);
  */
 function get_quotation_request_value(array_quotation_request, header_str) {
   const temp_col = array_quotation_request[0].indexOf(header_str);
