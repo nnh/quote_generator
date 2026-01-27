@@ -45,7 +45,7 @@ function buildImbalanceTargets_(
   const DividedItemsCount = new GetArrayDividedItemsCountAdd();
 
   return targetImbalance.map((config) => {
-    let tempCount = get_quotation_request_value(
+    let tempCount = get_quotation_request_value_(
       array_quotation_request,
       config.requestItemName,
     );
@@ -56,7 +56,7 @@ function buildImbalanceTargets_(
     }
 
     const tempMultiplier = config.multiplierItemName
-      ? get_quotation_request_value(
+      ? get_quotation_request_value_(
           array_quotation_request,
           config.multiplierItemName,
         )
@@ -96,7 +96,7 @@ function writeImbalanceValues_(target, targetImbalance, scriptProps) {
           return;
         }
 
-        const sheetItems = get_fy_items(
+        const sheetItems = get_fy_items_(
           targetSheet,
           scriptProps.getProperty("fy_sheet_items_col"),
         );

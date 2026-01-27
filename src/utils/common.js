@@ -3,9 +3,9 @@
  * @param {string} column_name 列名（"A", "B", "AA" など）
  * @return {number} Aなら1、AAなら27 のような列番号
  */
-function getColumnNumber(column_name) {
+function getColumnNumber_(column_name) {
   if (typeof column_name !== "string" || column_name.trim() === "") {
-    throw new Error("getColumnNumber: invalid column name: " + column_name);
+    throw new Error("getColumnNumber_: invalid column name: " + column_name);
   }
 
   const colStr = column_name.trim().toUpperCase();
@@ -13,7 +13,7 @@ function getColumnNumber(column_name) {
   // 列名として正しいかチェック（"A", "Z", "AA" など英大文字のみで構成されているか）
   if (!/^[A-Z]+$/.test(colStr)) {
     throw new Error(
-      "getColumnNumber: invalid column name format: " + column_name,
+      "getColumnNumber_: invalid column name format: " + column_name,
     );
   }
 
@@ -27,11 +27,13 @@ function getColumnNumber(column_name) {
  * @param {number|string} column_number 列番号（数値または数値文字列）
  * @return {string} 1ならA、のような列名
  */
-function getColumnString(column_number) {
+function getColumnString_(column_number) {
   const colNum = Number(column_number);
 
   if (!Number.isInteger(colNum) || colNum <= 0) {
-    throw new Error("getColumnString: invalid column number: " + column_number);
+    throw new Error(
+      "getColumnString_: invalid column number: " + column_number,
+    );
   }
 
   const sheet = SpreadsheetApp.getActiveSheet();
@@ -46,14 +48,14 @@ function getColumnString(column_number) {
  * @param {number|string} target_col 項目名の列番号（数値または数値文字列）
  * @return {Object.<string, number>} 項目名と行番号のマップ
  * @example
- *  const array_item = get_fy_items(target_sheet, target_col);
+ *  const array_item = get_fy_items_(target_sheet, target_col);
  */
 
-function get_fy_items(sheet, target_col) {
+function get_fy_items_(sheet, target_col) {
   const colNum = Number(target_col);
 
   if (!Number.isInteger(colNum) || colNum <= 0) {
-    throw new Error("get_fy_items: invalid column number: " + target_col);
+    throw new Error("get_fy_items_: invalid column number: " + target_col);
   }
 
   const temp_array = sheet
@@ -77,7 +79,11 @@ function get_fy_items(sheet, target_col) {
  * @param {number} target_col_num 対象の列番号
  * @param {string} target_value 検索対象の値
  */
-function get_row_num_matched_value(target_sheet, target_col_num, target_value) {
+function get_row_num_matched_value_(
+  target_sheet,
+  target_col_num,
+  target_value,
+) {
   const lastRow = target_sheet.getLastRow();
   const col_values = target_sheet
     .getRange(1, target_col_num, lastRow, 1)
@@ -93,9 +99,9 @@ function get_row_num_matched_value(target_sheet, target_col_num, target_value) {
  * @param {string} header_str 検索対象の値
  * @return {string|null} 項目名が完全一致すればその項目の値を返す。一致しなければnullを返す。
  * @example
- *   const trial_start_date = get_quotation_request_value(array_quotation_request, const_trial_start);
+ *   const trial_start_date = get_quotation_request_value_(array_quotation_request, const_trial_start);
  */
-function get_quotation_request_value(array_quotation_request, header_str) {
+function get_quotation_request_value_(array_quotation_request, header_str) {
   const temp_col = array_quotation_request[0].indexOf(header_str);
   if (temp_col > -1) {
     return array_quotation_request[1][temp_col];

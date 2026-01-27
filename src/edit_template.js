@@ -102,7 +102,7 @@ function reconfigure_total(array_sheet, target_row) {
       temp_str +
       array_sheet[j] +
       "!" +
-      getColumnString(const_count_col) +
+      getColumnString_(const_count_col) +
       (i + 1) +
       "*Trial!" +
       trial_cell_addr +

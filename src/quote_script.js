@@ -24,7 +24,7 @@ function get_setup_closing_term_(temp_str, array_quotation_request) {
     closing_term = 6;
   }
   if (
-    get_quotation_request_value(
+    get_quotation_request_value_(
       array_quotation_request,
       "研究結果報告書作成支援",
     ) == "あり"
@@ -152,7 +152,7 @@ function get_trial_start_end_date_(
  */
 function set_items_price_(sheet, price, target_row) {
   if (target_row == 0) return;
-  const target_col = getColumnNumber("S");
+  const target_col = getColumnNumber_("S");
   if (price > 0) {
     sheet.getRange(target_row, target_col).setValue(price);
     sheet.getRange(target_row, target_col).offset(0, 1).setValue(1);
@@ -239,7 +239,7 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     temp_total,
     date_of_issue;
   for (var i = 0; i < trial_list.length; i++) {
-    temp_str = get_quotation_request_value(
+    temp_str = get_quotation_request_value_(
       array_quotation_request,
       trial_list[i][0],
     );
@@ -261,15 +261,15 @@ function set_trial_sheet_(sheet, array_quotation_request) {
         case const_trial_type:
           get_s_p.setProperty("trial_type_value", temp_str);
           // 試験期間を取得する
-          const trial_start_date = get_quotation_request_value(
+          const trial_start_date = get_quotation_request_value_(
             array_quotation_request,
             const_trial_start,
           );
-          const registration_end_date = get_quotation_request_value(
+          const registration_end_date = get_quotation_request_value_(
             array_quotation_request,
             const_registration_end,
           );
-          const trial_end_date = get_quotation_request_value(
+          const trial_end_date = get_quotation_request_value_(
             array_quotation_request,
             const_trial_end,
           );
@@ -362,7 +362,7 @@ function set_trial_sheet_(sheet, array_quotation_request) {
           }
           break;
         case const_crf:
-          temp_str_2 = get_quotation_request_value(
+          temp_str_2 = get_quotation_request_value_(
             array_quotation_request,
             "CDISC対応",
           );
@@ -390,7 +390,7 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     }
   }
   // 発行年月日
-  date_of_issue = get_row_num_matched_value(sheet.trial, 1, "発行年月日");
+  date_of_issue = get_row_num_matched_value_(sheet.trial, 1, "発行年月日");
   if (date_of_issue > 0) {
     sheet.trial
       .getRange(date_of_issue, 2)
@@ -399,7 +399,7 @@ function set_trial_sheet_(sheet, array_quotation_request) {
   // 単価の設定
   items_list.forEach((x) => {
     const quotation_request_header = x[0];
-    const totalPrice = get_quotation_request_value(
+    const totalPrice = get_quotation_request_value_(
       array_quotation_request,
       quotation_request_header,
     );
@@ -407,14 +407,14 @@ function set_trial_sheet_(sheet, array_quotation_request) {
       // 試験開始準備費用、症例登録、症例報告
       const ari_count = cost_of_cooperation_item_name.filter(
         (y) =>
-          get_quotation_request_value(array_quotation_request, y[0]) == "あり",
+          get_quotation_request_value_(array_quotation_request, y[0]) == "あり",
       ).length;
       const temp_price =
         ari_count > 0 ? parseInt(totalPrice / ari_count) : null;
       cost_of_cooperation_item_name.forEach((target) => {
-        const items_row = get_row_num_matched_value(sheet.items, 2, target[1]);
+        const items_row = get_row_num_matched_value_(sheet.items, 2, target[1]);
         if (
-          get_quotation_request_value(array_quotation_request, target[0]) ==
+          get_quotation_request_value_(array_quotation_request, target[0]) ==
           "あり"
         ) {
           const unit = sheet.items.getRange(items_row, 4).getValue();
@@ -432,7 +432,11 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     } else {
       // 保険料
       const items_header = x[1];
-      const items_row = get_row_num_matched_value(sheet.items, 2, items_header);
+      const items_row = get_row_num_matched_value_(
+        sheet.items,
+        2,
+        items_header,
+      );
       set_items_price_(sheet.items, totalPrice, items_row);
     }
   });
@@ -620,16 +624,16 @@ class SetSheetItemValues {
     );
     this.trial_end_date = Moment.moment(get_s_p.getProperty("trial_end_date"));
     const const_count_col = get_s_p.getProperty("fy_sheet_count_col");
-    this.target_col = getColumnString(const_count_col);
+    this.target_col = getColumnString_(const_count_col);
     // 企業原資または調整事務局の有無が「あり」または医師主導治験ならば事務局運営を積む
     this.clinical_trials_office_flg =
       get_s_p.getProperty("trial_type_value") ===
         get_s_p.getProperty("investigator_initiated_trial") ||
-      get_quotation_request_value(
+      get_quotation_request_value_(
         this.array_quotation_request,
         get_s_p.getProperty("coefficient"),
       ) === get_s_p.getProperty("commercial_company_coefficient") ||
-      get_quotation_request_value(
+      get_quotation_request_value_(
         this.array_quotation_request,
         "調整事務局設置の有無",
       ) === "あり";
@@ -681,7 +685,7 @@ class SetSheetItemValues {
       "ロジカルチェック、マニュアルチェック、クエリ対応";
     // 安全性管理、効安、事務局運営
     const ankan = get_count(
-      get_quotation_request_value(
+      get_quotation_request_value_(
         this.array_quotation_request,
         "安全性管理事務局設置",
       ),
@@ -689,7 +693,7 @@ class SetSheetItemValues {
       "安全性管理事務局業務",
     );
     const kouan = get_count(
-      get_quotation_request_value(
+      get_quotation_request_value_(
         this.array_quotation_request,
         "効安事務局設置",
       ),
@@ -719,7 +723,7 @@ class SetSheetItemValues {
       : this.getSheetValues(sheetname);
     const target_sheet =
       SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
-    const array_item = get_fy_items(
+    const array_item = get_fy_items_(
       target_sheet,
       get_s_p.getProperty("fy_sheet_items_col"),
     );
@@ -845,7 +849,7 @@ class SetSheetItemValues {
       [
         "PMDA相談資料作成支援",
         get_count(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             this.array_quotation_request,
             "PMDA相談資料作成支援",
           ),
@@ -856,7 +860,7 @@ class SetSheetItemValues {
       [
         "AMED申請資料作成支援",
         get_count(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             this.array_quotation_request,
             "AMED申請資料作成支援",
           ),
@@ -875,7 +879,7 @@ class SetSheetItemValues {
       [
         "キックオフミーティング準備・実行",
         get_count(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             this.array_quotation_request,
             "キックオフミーティング",
           ),
@@ -890,7 +894,7 @@ class SetSheetItemValues {
       [
         "モニタリング準備業務（関連資料作成）",
         get_count_more_than(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             this.array_quotation_request,
             "1例あたりの実地モニタリング回数",
           ),
@@ -907,7 +911,7 @@ class SetSheetItemValues {
       [
         "外部監査費用",
         get_count_more_than(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             this.array_quotation_request,
             "監査対象施設数",
           ),
@@ -918,7 +922,7 @@ class SetSheetItemValues {
       [
         get_s_p.getProperty("cost_of_prepare_item"),
         get_count(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             this.array_quotation_request,
             get_s_p.getProperty("cost_of_prepare_quotation_request"),
           ),
@@ -929,7 +933,7 @@ class SetSheetItemValues {
       [
         "保険料",
         get_count_more_than(
-          get_quotation_request_value(this.array_quotation_request, "保険料"),
+          get_quotation_request_value_(this.array_quotation_request, "保険料"),
           0,
           1,
         ),
@@ -937,7 +941,7 @@ class SetSheetItemValues {
       [
         "治験薬管理（中央）",
         get_count(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             this.array_quotation_request,
             "治験薬管理",
           ),
@@ -955,7 +959,7 @@ class SetSheetItemValues {
     }
     // csrの作成支援は医師主導治験ならば必須
     let csr_count = get_count(
-      get_quotation_request_value(
+      get_quotation_request_value_(
         this.array_quotation_request,
         "研究結果報告書作成支援",
       ),
@@ -965,7 +969,7 @@ class SetSheetItemValues {
     // 医師主導治験のみ算定または名称が異なる項目に対応する
     let csr = "研究結果報告書の作成";
     let final_analysis = "最終解析プログラム作成、解析実施（シングル）";
-    let final_analysis_table_count = get_quotation_request_value(
+    let final_analysis_table_count = get_quotation_request_value_(
       this.array_quotation_request,
       "統計解析に必要な図表数",
     );
@@ -984,7 +988,7 @@ class SetSheetItemValues {
       // 医師主導治験で症例検討会ありの場合症例検討会資料作成に1をセット、ミーティング1回追加
       if (
         get_count(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             this.array_quotation_request,
             "症例検討会",
           ),
@@ -1030,7 +1034,7 @@ class SetSheetItemValues {
       [
         get_s_p.getProperty("cost_of_report_item"),
         get_count(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             this.array_quotation_request,
             get_s_p.getProperty("cost_of_report_quotation_request"),
           ),
@@ -1041,7 +1045,7 @@ class SetSheetItemValues {
       [
         "外部監査費用",
         get_count_more_than(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             this.array_quotation_request,
             "監査対象施設数",
           ),
@@ -1065,19 +1069,19 @@ class SetSheetItemValues {
     // CRB申請費用
     if (this.sheetname == get_s_p.getProperty("registration_1_sheet_name")) {
       crb_first_year = get_count(
-        get_quotation_request_value(this.array_quotation_request, "CRB申請"),
+        get_quotation_request_value_(this.array_quotation_request, "CRB申請"),
         "あり",
         1,
       );
     } else {
       crb_after_second_year = get_count(
-        get_quotation_request_value(this.array_quotation_request, "CRB申請"),
+        get_quotation_request_value_(this.array_quotation_request, "CRB申請"),
         "あり",
         1,
       );
     }
     // 開始前モニタリング・必須文書確認
-    const essential_documents_count = get_quotation_request_value(
+    const essential_documents_count = get_quotation_request_value_(
       this.array_quotation_request,
       "年間1施設あたりの必須文書実地モニタリング回数",
     );
@@ -1092,7 +1096,7 @@ class SetSheetItemValues {
       [
         "治験薬運搬",
         get_count(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             this.array_quotation_request,
             "治験薬運搬",
           ),
@@ -1113,7 +1117,7 @@ class SetSheetItemValues {
       get_s_p.getProperty("investigator_initiated_trial")
         ? "中間解析プログラム作成、解析実施（ダブル）"
         : "中間解析プログラム作成、解析実施（シングル）";
-    const interimTableCount = get_quotation_request_value(
+    const interimTableCount = get_quotation_request_value_(
       this.array_quotation_request,
       "中間解析に必要な図表数",
     );
@@ -1136,7 +1140,7 @@ class SetSheetItemValues {
     const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
       this.sheetname,
     );
-    const targetRow = get_row_num_matched_value(
+    const targetRow = get_row_num_matched_value_(
       targetSheet,
       get_s_p.getProperty("fy_sheet_items_col"),
       itemname,

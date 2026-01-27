@@ -10,17 +10,17 @@ function initCheckSheet_() {
   const array_quotation_request = sheet.quotation_request
     .getRange(1, 1, 2, sheet.quotation_request.getDataRange().getLastColumn())
     .getValues();
-  const facilities_value = get_quotation_request_value(
+  const facilities_value = get_quotation_request_value_(
     array_quotation_request,
     get_s_p.getProperty("facilities_itemname"),
   );
-  const number_of_cases_value = get_quotation_request_value(
+  const number_of_cases_value = get_quotation_request_value_(
     array_quotation_request,
     get_s_p.getProperty("number_of_cases_itemname"),
   );
   const target_total = {
     sheet: sheet.total,
-    array_item: get_fy_items(
+    array_item: get_fy_items_(
       sheet.total,
       get_s_p.getProperty("fy_sheet_items_col"),
     ),
@@ -29,7 +29,7 @@ function initCheckSheet_() {
   };
   const target_total_ammount = {
     sheet: sheet.total,
-    array_item: get_fy_items(sheet.total, 2),
+    array_item: get_fy_items_(sheet.total, 2),
     col: 9,
     footer: "（金額）",
   };
@@ -38,11 +38,11 @@ function initCheckSheet_() {
     [
       "",
       "症例登録開始〜試験終了日の月数チェック（作業用）",
-      get_quotation_request_value(
+      get_quotation_request_value_(
         array_quotation_request,
         "症例登録開始日",
       ).toLocaleDateString("ja"),
-      get_quotation_request_value(
+      get_quotation_request_value_(
         array_quotation_request,
         "試験終了日",
       ).toLocaleDateString("ja"),
@@ -68,12 +68,12 @@ function initCheckSheet_() {
  * 検証の基準となる月数データを取得する
  */
 function calculateSetupAndClosingMonths(array_quotation_request, get_s_p) {
-  const trial_type = get_quotation_request_value(
+  const trial_type = get_quotation_request_value_(
     array_quotation_request,
     "試験種別",
   );
   const has_report_support =
-    get_quotation_request_value(
+    get_quotation_request_value_(
       array_quotation_request,
       "研究結果報告書作成支援",
     ) === "あり";
@@ -159,14 +159,14 @@ function checkQuotationOfficeOperationItems_(
   let office_count = 0;
   let temp_value = 0;
   if (
-    (get_quotation_request_value(array_quotation_request, "試験種別") ==
+    (get_quotation_request_value_(array_quotation_request, "試験種別") ==
       get_s_p.getProperty("investigator_initiated_trial")) |
-    (get_quotation_request_value(
+    (get_quotation_request_value_(
       array_quotation_request,
       "調整事務局設置の有無",
     ) ==
       "あり") |
-    (get_quotation_request_value(
+    (get_quotation_request_value_(
       array_quotation_request,
       get_s_p.getProperty("coefficient"),
     ) ==
@@ -201,7 +201,7 @@ function checkQuotationMonitoringItems_(
   trial_ceil_year,
 ) {
   const monitoringPreparationDocumentCreation_value =
-    get_quotation_request_value(
+    get_quotation_request_value_(
       array_quotation_request,
       "1例あたりの実地モニタリング回数",
     ) > 0
@@ -213,12 +213,12 @@ function checkQuotationMonitoringItems_(
   };
 
   const preStudyMonitoringAndEssentialDocumentReview_value =
-    get_quotation_request_value(
+    get_quotation_request_value_(
       array_quotation_request,
       "年間1施設あたりの必須文書実地モニタリング回数",
     ) > 0
       ? parseInt(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             array_quotation_request,
             "年間1施設あたりの必須文書実地モニタリング回数",
           ),
@@ -232,12 +232,12 @@ function checkQuotationMonitoringItems_(
   };
 
   const caseMonitoringAndSAESupport_value =
-    get_quotation_request_value(
+    get_quotation_request_value_(
       array_quotation_request,
       "1例あたりの実地モニタリング回数",
     ) > 0
       ? parseInt(
-          get_quotation_request_value(
+          get_quotation_request_value_(
             array_quotation_request,
             "1例あたりの実地モニタリング回数",
           ),

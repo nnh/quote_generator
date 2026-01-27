@@ -13,7 +13,7 @@ class RoutineTest {
       .getRange(1, 1, 2, quotation_request_last_col)
       .getValues();
     const interimCount =
-      get_quotation_request_value(
+      get_quotation_request_value_(
         array_quotation_request,
         "中間解析業務の依頼",
       ) == "あり"
@@ -441,7 +441,7 @@ class RoutineTest {
       .getValues();
     const tableCount =
       interimValue != ""
-        ? get_quotation_request_value(
+        ? get_quotation_request_value_(
             array_quotation_request,
             "中間解析に必要な図表数",
           )
