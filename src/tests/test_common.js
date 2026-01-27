@@ -90,7 +90,21 @@ class TrialDatesBackupForTest_ {
       throw new Error(`保存された ${this.propertyKey} が存在しません`);
     }
 
-    const values = JSON.parse(saved);
+    const saveValues = JSON.parse(saved);
+    // 日付を "yyyy/mm/dd" 形式の文字列に変換
+    const values = saveValues.map((row) =>
+      row.map((cell) => {
+        if (cell === "" || cell === null) return "";
+        const date = new Date(cell);
+        if (!isNaN(date.getTime())) {
+          const yyyy = date.getFullYear();
+          const mm = String(date.getMonth() + 1).padStart(2, "0");
+          const dd = String(date.getDate()).padStart(2, "0");
+          return `${yyyy}/${mm}/${dd}`;
+        }
+        return cell;
+      }),
+    );
 
     const trialSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
       this.sheetName,
