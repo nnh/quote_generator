@@ -32,10 +32,10 @@ class FilterVisibleHidden {
       if (criteria) this.setFilterCriteria(filter, criteria);
     });
   }
-  filterVisible() {
+  resetFilterVisibility() {
     this.applyFilter();
   }
-  filterHidden() {
+  hideFilterVisibility() {
     this.applyFilter(this.createFilterCriteria());
   }
 }

@@ -1,8 +1,6 @@
 /**
  * 見積処理メインエントリ
  * - quote_script_main
- */
-/**
  * Momentライブラリの追加が必要
  * ライブラリキー：MHMchiX6c1bwSqGM1PZiW_PxhMjh3Sh48
  */
@@ -21,39 +19,37 @@ function quote_script_main() {
     .getRange(1, 1, 2, quotation_request_last_col)
     .getValues();
   // Quotation requestシートのA2セルが空白の場合、Quotation requestが入っていないものと判断して処理を終了する
-  if (array_quotation_request[1][0] == "") {
+  if (array_quotation_request[1][0] === "") {
     Browser.msgBox(
       "Quotation requestシートの2行目に情報を貼り付けて再実行してください。",
     );
     return;
   }
-  const sheetnameIdx = 0;
-  const countIdx = 2;
-  filtervisible();
+  const SHEETNAME_IDX = 0;
+  const COUNT_IDX = 2;
+
+  resetFilterVisibility();
   set_trial_sheet_(sheet, array_quotation_request);
   const targetSheetList = getTrialTermInfo_()
     .map((x, idx) => x.concat(idx))
-    .filter((x) => x[countIdx] != "");
+    .filter((x) => x[COUNT_IDX] !== "");
   targetSheetList.forEach((x) => {
     const set_sheet_item_values = new SetSheetItemValues(
-      x[sheetnameIdx],
+      x[SHEETNAME_IDX],
       array_quotation_request,
     );
-    const temp = null;
-    const temp_setup = set_sheet_item_values.set_setup_items_(temp);
-    const temp_reg =
-      set_sheet_item_values.set_registration_term_items_(temp_setup);
-    const temp_reg_2 = set_sheet_item_values.set_registration_items_(temp_reg);
-    const temp_close = set_sheet_item_values.set_closing_items_(temp_reg_2);
-    const temp_exclude_setup =
-      set_sheet_item_values.set_all_sheet_exclude_setup_(temp_close);
-    const temp_all =
-      set_sheet_item_values.set_all_sheet_common_items_(temp_exclude_setup);
-    set_sheet_item_values.setSheetValues(x[sheetnameIdx], temp_all);
+    let values = null;
+    values = set_sheet_item_values.set_setup_items_(values);
+    values = set_sheet_item_values.set_registration_term_items_(values);
+    values = set_sheet_item_values.set_registration_items_(values);
+    values = set_sheet_item_values.set_closing_items_(values);
+    values = set_sheet_item_values.set_all_sheet_exclude_setup_(values);
+    values = set_sheet_item_values.set_all_sheet_common_items_(values);
+    set_sheet_item_values.setSheetValues(x[SHEETNAME_IDX], values);
   });
   setImbalanceValues_(array_quotation_request);
   const setupToClosing = get_target_term_sheets();
   setupToClosing.forEach((x) =>
-    x.getRange("B2").getValue() == "" ? x.hideSheet() : x.showSheet(),
+    x.getRange("B2").getValue() === "" ? x.hideSheet() : x.showSheet(),
   );
 }

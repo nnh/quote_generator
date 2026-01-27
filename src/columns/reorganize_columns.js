@@ -113,7 +113,7 @@ function total2_3_add_del_cols() {
   // 初回のみsetProtectionEditusersを実行
   initial_process();
   //　フィルタを解除し全行表示する
-  filtervisible();
+  resetFilterVisibility();
   const target_sheets = extract_target_sheet();
   // 列を初期化する
   target_sheets.forEach((x) => new Add_del_columns(x).init_cols());
@@ -134,7 +134,7 @@ function total2_3_add_del_cols() {
   // 合計0円の年度を非表示にする
   total2_3_show_hidden_cols();
   //　0の行を非表示にするフィルタをセット
-  filterhidden();
+  hideFilterVisibility();
 }
 /**
  * Total2, Total3シートの列構成用
