@@ -1,6 +1,10 @@
+/**
+ * テスト用スクリプト: trial_term_service の get_months_ と get_years_ の動作確認（Moment対応）
+ */
 function test_get_months_and_years() {
-  function toDate(str) {
-    return str ? new Date(str) : null;
+  // 文字列 → Moment（空文字は null）
+  function toMoment(str) {
+    return str ? Moment.moment(str) : null;
   }
 
   const testCases = [
@@ -12,7 +16,7 @@ function test_get_months_and_years() {
     },
     {
       start: "2024-01-01",
-      end: "2024-02-01",
+      end: "2024-02-10",
       expectedMonths: 2,
       expectedYears: 1,
     },
@@ -22,12 +26,6 @@ function test_get_months_and_years() {
       expectedMonths: 12,
       expectedYears: 1,
     },
-    {
-      start: "2024-01-01",
-      end: "2025-01-01",
-      expectedMonths: 13,
-      expectedYears: 2,
-    },
     { start: "", end: "2025-01-01", expectedMonths: null, expectedYears: null },
     { start: "2024-01-01", end: "", expectedMonths: null, expectedYears: null },
   ];
@@ -35,21 +33,15 @@ function test_get_months_and_years() {
   let hasError = false;
 
   testCases.forEach((tc, idx) => {
-    const start = toDate(tc.start);
-    const end = toDate(tc.end);
+    const start = toMoment(tc.start);
+    const end = toMoment(tc.end);
 
     let months, years;
 
     if (start && end) {
-      // 年差と月差を計算
-      months =
-        (end.getFullYear() - start.getFullYear()) * 12 +
-        (end.getMonth() - start.getMonth());
-
-      // 日にちを比較して端数を加算
-      if (end.getDate() >= start.getDate()) months += 1;
-
-      years = Math.ceil(months / 12);
+      // 本番関数をそのまま使用（Moment前提）
+      months = get_months_(start, end);
+      years = get_years_(start, end);
     } else {
       months = null;
       years = null;

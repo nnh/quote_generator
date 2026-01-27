@@ -132,7 +132,7 @@ function get_trial_start_end_date_(
           : trial_end_date.clone();
   get_s_p.setProperty(
     "registration_years",
-    get_years(temp_registration_start_date, temp_registration_end_date),
+    get_years_(temp_registration_start_date, temp_registration_end_date),
   );
   const temp_array = [
     [setup_start_date, setup_end_date],
@@ -628,7 +628,7 @@ function setImbalanceValues_(array_quotation_request) {
         ? tempCount * tempMultiplier
         : null;
     return Number.isInteger(targetNumber)
-      ? DividedItemsCount.getArrayDividedItemsCount(
+      ? DividedItemsCount.getArrayDividedItemsCount_(
           targetNumber,
           x[exclusionIdx],
         )

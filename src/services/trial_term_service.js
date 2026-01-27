@@ -1,19 +1,21 @@
 /**
- * 開始日、終了日から月数・年数を返す
+ * 開始日〜終了日に含まれる業務上の月数を返す
+ * ※ start_date は必ず月初、end_date は必ず月末に正規化済みであること
+ * ※ 正規化は get_trial_start_end_date_() 側で行う前提
  */
-function get_months(start_date, end_date) {
-  if (start_date == "" || end_date == "") {
-    return null;
-  }
-  return end_date.subtract(1, "days").diff(start_date, "months") + 1;
+function get_months_(start_date, end_date) {
+  // start_date / end_date が null, undefined, "" の場合は null を返す
+  if (!start_date || !end_date) return null;
+
+  // Moment.js を想定、1日引いた後に月数を計算し 1 を加える
+  return end_date.clone().subtract(1, "days").diff(start_date, "months") + 1;
 }
-function get_years(start_date, end_date) {
-  var temp;
-  if (start_date == "" || end_date == "") {
-    return null;
-  }
-  temp = get_months(start_date, end_date);
-  return Math.ceil(temp / 12);
+function get_years_(start_date, end_date) {
+  const months = get_months_(start_date, end_date);
+  if (months === null) return null;
+
+  // 月数を年数に変換し、小数は切り上げ
+  return Math.ceil(months / 12);
 }
 /**
  * Retrieve the trial period, heading, and number of years of trial period on the Trial sheet.
@@ -21,14 +23,35 @@ function get_years(start_date, end_date) {
  * @return {Array.<string>} the trial period, heading, and number of years of trial period on the Trial sheet.
  */
 function getTrialTermInfo_() {
+  // Trialシートの試験期間年数列
+  const trialTermCol = 3;
   const get_s_p = PropertiesService.getScriptProperties();
-  const sheet = get_sheets();
-  const row_count =
-    parseInt(get_s_p.getProperty("trial_closing_row")) -
-    parseInt(get_s_p.getProperty("trial_setup_row")) +
-    1;
-  const trial_term_info = sheet.trial
-    .getRange(parseInt(get_s_p.getProperty("trial_setup_row")), 1, row_count, 3)
+  const sheets = get_sheets();
+  if (!sheets || !sheets.trial) {
+    throw new Error("Trial シートが取得できません");
+  }
+  const trialSheet = sheets.trial;
+
+  const setupRow = parseInt(get_s_p.getProperty("trial_setup_row"), 10);
+  const closingRow = parseInt(get_s_p.getProperty("trial_closing_row"), 10);
+
+  if (isNaN(setupRow) || isNaN(closingRow)) {
+    throw new Error(
+      "trial_setup_row または trial_closing_row が正しく設定されていません",
+    );
+  }
+
+  const startRow = Math.min(setupRow, closingRow);
+  const endRow = Math.max(setupRow, closingRow);
+  const rowCount = endRow - startRow + 1;
+  if (rowCount <= 0) {
+    throw new Error(
+      "Trial 行範囲が不正です: startRow=" + startRow + ", endRow=" + endRow,
+    );
+  }
+
+  const trial_term_info = trialSheet
+    .getRange(startRow, 1, rowCount, trialTermCol)
     .getValues();
   return trial_term_info;
 }
@@ -43,23 +66,19 @@ class GetArrayDividedItemsCount {
    * @param {Array.<string>} Define sheets that are not to be processed. An array of sheet names, such as ['Setup', 'Closing']. If not defined, set to null.
    * @return {Array.<string>} A two-dimensional array of ['sheet name', 'title', 'years'].
    */
-  getTargetTerm(exclusionSheetNames = null) {
+  getTargetTerm_(exclusionSheetNames = null) {
     let target = this.trialTermInfo.filter((x) => x[this.yearIdx] != "");
     if (!exclusionSheetNames) {
       return target;
     }
-    exclusionSheetNames.forEach((x) => {
-      for (let i = 0; i < target.length; i++) {
-        if (x == target[i][this.sheetNameIdx]) {
-          target[i][this.sheetNameIdx] = null;
-          break;
-        }
-      }
-    });
-    target = target.filter((x) => x[this.sheetNameIdx]);
+    if (exclusionSheetNames) {
+      target = target.filter(
+        (row) => !exclusionSheetNames.includes(row[this.sheetNameIdx]),
+      );
+    }
     return target;
   }
-  getTotalCount(setValueList, target) {
+  getTotalCount_(setValueList, target) {
     return setValueList.reduce(
       (x, y, idx) => x + y * target[idx][this.yearIdx],
       0,
@@ -68,28 +87,23 @@ class GetArrayDividedItemsCount {
   /**
    * @param <number> totalNumber Total number of items to be split.
    * @param {Array.<string>} target A two-dimensional array of ['sheet name', 'title', 'years'].
-   * @param <number> inputAddStartSheetIdx If you want to specify a sheet to start adding, specify its index.
-   * @param <number> inputAddEndSheetIdx If you want to specify a sheet to end adding, specify its index.
    * @return A two-dimensional array of ['sheet name', 'count'].
    */
-  devidedItemCount(
-    totalNumber,
-    target,
-    inputAddStartSheetIdx = 0,
-    inputAddEndSheetIdx = target.length,
-  ) {
+  dividedItemCount_(totalNumber, target) {
     const totalYear = target.reduce((x, y) => x + y[this.yearIdx], 0);
     const tempSum = Math.trunc(totalNumber / totalYear);
     let setValueList = Array(target.length);
     setValueList.fill(tempSum);
-    let tempArraySum = this.getTotalCount(setValueList, target);
+    let tempArraySum = this.getTotalCount_(setValueList, target);
     let remainder = totalNumber - tempArraySum;
-    let roopCount = 10;
+    // 無限ループ防止用の最大試行回数
+    const MAX_LOOP = 10;
+    let loopCount = MAX_LOOP;
     while (remainder > 0) {
-      for (let i = 0; i <= target.length; i++) {
+      for (let i = 0; i < target.length; i++) {
         const temp = [...setValueList];
         temp[i]++;
-        const checkValue = this.getTotalCount(temp, target);
+        const checkValue = this.getTotalCount_(temp, target);
         if (checkValue <= totalNumber) {
           setValueList[i]++;
           remainder--;
@@ -100,8 +114,8 @@ class GetArrayDividedItemsCount {
           break;
         }
       }
-      roopCount--;
-      if (roopCount <= 0) {
+      loopCount--;
+      if (loopCount <= 0) {
         break;
       }
     }
@@ -111,14 +125,14 @@ class GetArrayDividedItemsCount {
     ]);
     return res;
   }
-  getArrayDividedItemsCount(totalNumber, exclusionSheetNames) {
-    const target = this.getTargetTerm(exclusionSheetNames);
-    return this.devidedItemCount(totalNumber, target, 1, target.length - 1);
+  getArrayDividedItemsCount_(totalNumber, exclusionSheetNames) {
+    const target = this.getTargetTerm_(exclusionSheetNames);
+    return this.dividedItemCount_(totalNumber, target);
   }
 }
 class GetArrayDividedItemsCountAdd extends GetArrayDividedItemsCount {
-  getArrayDividedItemsCount(totalNumber, exclusionSheetNames) {
-    const target = this.getTargetTerm(exclusionSheetNames);
-    return this.devidedItemCount(totalNumber, target, 1, target.length - 1);
+  getArrayDividedItemsCount_(totalNumber, exclusionSheetNames) {
+    const target = this.getTargetTerm_(exclusionSheetNames);
+    return this.dividedItemCount_(totalNumber, target);
   }
 }
