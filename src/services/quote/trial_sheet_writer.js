@@ -8,7 +8,7 @@
  * quotation_requestシートの内容からtrialシート, itemsシートを設定する
  * @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
  * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
- * @return none
+ * @return {void}
  * @example
  *   set_trial_sheet_(sheet, array_quotation_request);
  */
@@ -24,19 +24,13 @@ function set_trial_sheet_(sheet, array_quotation_request) {
   const const_facilities = get_s_p.getProperty("facilities_itemname");
   const const_number_of_cases = get_s_p.getProperty("number_of_cases_itemname");
   const const_coefficient = get_s_p.getProperty("coefficient");
-  const const_trial_start_col = parseInt(
-    get_s_p.getProperty("trial_start_col"),
-  );
-  const const_trial_end_col = parseInt(get_s_p.getProperty("trial_end_col"));
-  const const_trial_setup_row = parseInt(
-    get_s_p.getProperty("trial_setup_row"),
-  );
-  const const_trial_closing_row = parseInt(
+  const const_trial_start_col = Number(get_s_p.getProperty("trial_start_col"));
+  const const_trial_end_col = Number(get_s_p.getProperty("trial_end_col"));
+  const const_trial_setup_row = Number(get_s_p.getProperty("trial_setup_row"));
+  const const_trial_closing_row = Number(
     get_s_p.getProperty("trial_closing_row"),
   );
-  const const_trial_years_col = parseInt(
-    get_s_p.getProperty("trial_years_col"),
-  );
+  const const_trial_years_col = Number(get_s_p.getProperty("trial_years_col"));
   const const_total_month_col = 6;
   const trial_list = [
     [const_quotation_type, 2],
@@ -70,7 +64,7 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     ],
   ];
   const cdisc_addition = 3;
-  var temp_str,
+  let temp_str,
     temp_str_2,
     temp_start,
     temp_end,
@@ -79,15 +73,14 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     save_row,
     temp_total,
     date_of_issue;
-  for (var i = 0; i < trial_list.length; i++) {
-    temp_str = get_quotation_request_value_(
-      array_quotation_request,
-      trial_list[i][0],
-    );
+  for (let i = 0; i < trial_list.length; i++) {
+    const key = trial_list[i][0];
+    const row = Number(trial_list[i][1]);
+    temp_str = get_quotation_request_value_(array_quotation_request, key);
     if (temp_str != null) {
-      switch (trial_list[i][0]) {
+      switch (key) {
         case const_quotation_type:
-          if (temp_str == "正式見積") {
+          if (temp_str === "正式見積") {
             temp_str = "御見積書";
           } else {
             temp_str = "御参考見積書";
@@ -114,13 +107,10 @@ function set_trial_sheet_(sheet, array_quotation_request) {
             array_quotation_request,
             const_trial_end,
           );
-          if (
-            trial_start_date == null ||
-            registration_end_date == null ||
-            trial_end_date == null
-          ) {
+          if (!trial_start_date || !registration_end_date || !trial_end_date) {
             return;
           }
+
           get_setup_closing_term_(temp_str, array_quotation_request);
           const array_trial_date = get_trial_start_end_date_(
             trial_start_date,
@@ -168,19 +158,17 @@ function set_trial_sheet_(sheet, array_quotation_request) {
           }
           // totalはx年xヶ月と月数を出力
           temp_total = sheet.trial.getRange(save_row, const_total_month_col);
-          sheet.trial
-            .getRange(save_row, const_total_month_col)
-            .setFormula(
-              "=datedif(" +
-                sheet.trial
-                  .getRange(save_row, const_trial_start_col)
-                  .getA1Notation() +
-                ",(" +
-                sheet.trial
-                  .getRange(save_row, const_trial_end_col)
-                  .getA1Notation() +
-                '+1),"m")',
-            );
+          temp_total.setFormula(
+            "=datedif(" +
+              sheet.trial
+                .getRange(save_row, const_trial_start_col)
+                .getA1Notation() +
+              ",(" +
+              sheet.trial
+                .getRange(save_row, const_trial_end_col)
+                .getA1Notation() +
+              '+1),"m")',
+          );
           sheet.trial
             .getRange(save_row, const_trial_years_col)
             .setFormula(
@@ -195,7 +183,7 @@ function set_trial_sheet_(sheet, array_quotation_request) {
           break;
         case const_coefficient:
           if (
-            temp_str == get_s_p.getProperty("commercial_company_coefficient")
+            temp_str === get_s_p.getProperty("commercial_company_coefficient")
           ) {
             temp_str = 1.5;
           } else {
@@ -207,7 +195,7 @@ function set_trial_sheet_(sheet, array_quotation_request) {
             array_quotation_request,
             "CDISC対応",
           );
-          if (temp_str_2 == "あり") {
+          if (temp_str_2 === "あり") {
             delete_trial_comment_(
               '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
             );
@@ -227,7 +215,7 @@ function set_trial_sheet_(sheet, array_quotation_request) {
         default:
           break;
       }
-      sheet.trial.getRange(parseInt(trial_list[i][1]), 2).setValue(temp_str);
+      sheet.trial.getRange(row, 2).setValue(temp_str);
     }
   }
   // 発行年月日
@@ -237,6 +225,8 @@ function set_trial_sheet_(sheet, array_quotation_request) {
       .getRange(date_of_issue, 2)
       .setValue(Moment.moment().format("YYYY/MM/DD"));
   }
+  const numberOfCases = Number(get_s_p.getProperty("number_of_cases"));
+  const facilities = Number(get_s_p.getProperty("facilities_value"));
   // 単価の設定
   items_list.forEach((x) => {
     const quotation_request_header = x[0];
@@ -244,27 +234,30 @@ function set_trial_sheet_(sheet, array_quotation_request) {
       array_quotation_request,
       quotation_request_header,
     );
-    if (quotation_request_header == cost_of_cooperation) {
+    if (quotation_request_header === cost_of_cooperation) {
       // 試験開始準備費用、症例登録、症例報告
       const ari_count = cost_of_cooperation_item_name.filter(
         (y) =>
-          get_quotation_request_value_(array_quotation_request, y[0]) == "あり",
+          get_quotation_request_value_(array_quotation_request, y[0]) ===
+          "あり",
       ).length;
       const temp_price =
-        ari_count > 0 ? parseInt(totalPrice / ari_count) : null;
+        ari_count > 0 ? Math.floor(Number(totalPrice) / ari_count) : null;
+
       cost_of_cooperation_item_name.forEach((target) => {
         const items_row = get_row_num_matched_value_(sheet.items, 2, target[1]);
         if (
-          get_quotation_request_value_(array_quotation_request, target[0]) ==
+          get_quotation_request_value_(array_quotation_request, target[0]) ===
           "あり"
         ) {
           const unit = sheet.items.getRange(items_row, 4).getValue();
           const price =
-            unit == "症例"
-              ? temp_price / get_s_p.getProperty("number_of_cases")
-              : unit == "施設"
-                ? temp_price / get_s_p.getProperty("facilities_value")
+            unit === "症例"
+              ? temp_price / numberOfCases
+              : unit === "施設"
+                ? temp_price / facilities
                 : temp_price;
+
           set_items_price_(sheet.items, price, items_row);
         } else {
           set_items_price_(sheet.items, 0, items_row);
@@ -286,9 +279,9 @@ function set_trial_sheet_(sheet, array_quotation_request) {
  * itemsシートに単価を設定する
  */
 function set_items_price_(sheet, price, target_row) {
-  if (target_row == 0) return;
+  if (target_row === 0) return;
   const target_col = getColumnNumber_("S");
-  if (price > 0) {
+  if (Number(price) > 0) {
     sheet.getRange(target_row, target_col).setValue(price);
     sheet.getRange(target_row, target_col).offset(0, 1).setValue(1);
     sheet.getRange(target_row, target_col).offset(0, 2).setValue(1);
@@ -329,7 +322,7 @@ class Set_trial_comments {
       .getRange(start_row, start_col, comment_length, 1)
       .setValues(array_comment);
   }
-  set set_delete_comment(target) {
+  set targetToDelete(target) {
     this.delete_target = target;
   }
   delete_comment() {
@@ -353,11 +346,11 @@ class Set_trial_comments {
 /**
  * trialシートのコメントを追加する。
  * @param {string} str_comment コメント文字列
- * @return none
+ * @return {void}
  */
 function set_trial_comment_(str_comment) {
   const setComment = new Set_trial_comments();
-  setComment.set_delete_comment = str_comment;
+  setComment.targetToDelete = str_comment;
   const comments = setComment.delete_comment();
   comments.push([str_comment]);
   setComment.set_range_values(comments);
@@ -365,11 +358,11 @@ function set_trial_comment_(str_comment) {
 /**
  * trialシートのコメントを削除する。
  * @param {string} str_comment コメント文字列
- * @return none
+ * @return {void}
  */
 function delete_trial_comment_(str_comment) {
   const setComment = new Set_trial_comments();
-  setComment.set_delete_comment = str_comment;
+  setComment.targetToDelete = str_comment;
   const comments = setComment.delete_comment();
   setComment.set_range_values(comments);
 }

@@ -145,3 +145,16 @@ function assertEquals_(actual, expected, testName) {
     return false;
   }
 }
+/**
+ * 【テスト用】
+ * 試験種別の一覧を返す
+ */
+function getTrialTypeListForTest_() {
+  return [
+    "医師主導治験",
+    "特定臨床研究",
+    "観察研究・レジストリ",
+    "介入研究（特定臨床研究以外）",
+    "先進",
+  ];
+}

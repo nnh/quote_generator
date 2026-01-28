@@ -15,6 +15,9 @@ function get_trial_start_end_date_(
   input_trial_end_date,
 ) {
   const get_s_p = PropertiesService.getScriptProperties();
+  const setupTermMonths = Number(get_s_p.getProperty("setup_term"));
+  const closingTermMonths = Number(get_s_p.getProperty("closing_term"));
+
   // 試験開始日はその月の1日にする
   const trial_start_date = Moment.moment(input_trial_start_date).startOf(
     "month",
@@ -26,18 +29,16 @@ function get_trial_start_end_date_(
   // setup開始日
   const setup_start_date = trial_start_date
     .clone()
-    .subtract(parseInt(get_s_p.getProperty("setup_term")), "months");
-  // setupシートの最終日はsetup開始年度の3/31
-  const setup_end_date = Moment.moment([
-    setup_start_date.clone().subtract(3, "months").year() + 1,
-    2,
-    31,
-  ]);
+    .subtract(setupTermMonths, "months");
+  // setupシートの最終日はsetup開始日の属する年度の3/31
+  const setupFiscalYear = setup_start_date.clone().subtract(3, "months").year();
+  const setup_end_date = Moment.moment([setupFiscalYear + 1, 2, 31]);
+
   // closing終了日
   const closing_end_date = trial_end_date
     .clone()
     .add(1, "days")
-    .add(parseInt(get_s_p.getProperty("closing_term")), "months")
+    .add(closingTermMonths, "months")
     .subtract(1, "days");
   // closingシートの開始日はclosing終了年度の4/1
   const closing_start_date = Moment.moment([
@@ -46,6 +47,7 @@ function get_trial_start_end_date_(
     1,
   ]);
   // setup終了日〜closing開始日までの月数を取得する
+  // 月単位での差分（端数切り捨て）
   const diff_from_setup_end_to_closing_start = closing_start_date.diff(
     setup_end_date,
     "months",
@@ -59,6 +61,7 @@ function get_trial_start_end_date_(
     registration_1_start_date != ""
       ? registration_1_start_date.clone().add(1, "years").subtract(1, "days")
       : "";
+  // 月単位での差分（端数切り捨て）
   const diff_from_reg1_end_to_closing_start =
     registration_1_end_date != ""
       ? closing_start_date.diff(registration_1_end_date, "months")
@@ -72,6 +75,7 @@ function get_trial_start_end_date_(
     observation_2_end_date != ""
       ? closing_start_date.clone().subtract(1, "years")
       : "";
+  // 月単位での差分（端数切り捨て）
   const diff_from_reg1_end_to_obs2_start =
     observation_2_start_date != ""
       ? observation_2_start_date.diff(registration_1_end_date, "months")

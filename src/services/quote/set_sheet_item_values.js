@@ -99,7 +99,7 @@ class SetSheetItemValues {
     const central_monitoring =
       "ロジカルチェック、マニュアルチェック、クエリ対応";
     // 安全性管理、効安、事務局運営
-    const ankan = get_count(
+    const ankan = returnIfEquals_(
       get_quotation_request_value_(
         this.array_quotation_request,
         "安全性管理事務局設置",
@@ -107,7 +107,7 @@ class SetSheetItemValues {
       "設置・委託する",
       "安全性管理事務局業務",
     );
-    const kouan = get_count(
+    const kouan = returnIfEquals_(
       get_quotation_request_value_(
         this.array_quotation_request,
         "効安事務局設置",
@@ -263,7 +263,7 @@ class SetSheetItemValues {
       ["検討会実施（TV会議等）", 4],
       [
         "PMDA相談資料作成支援",
-        get_count(
+        returnIfEquals_(
           get_quotation_request_value_(
             this.array_quotation_request,
             "PMDA相談資料作成支援",
@@ -274,7 +274,7 @@ class SetSheetItemValues {
       ],
       [
         "AMED申請資料作成支援",
-        get_count(
+        returnIfEquals_(
           get_quotation_request_value_(
             this.array_quotation_request,
             "AMED申請資料作成支援",
@@ -285,7 +285,7 @@ class SetSheetItemValues {
       ],
       [
         "特定臨床研究法申請資料作成支援",
-        get_count(
+        returnIfEquals_(
           get_s_p.getProperty("trial_type_value"),
           get_s_p.getProperty("specified_clinical_trial"),
           get_s_p.getProperty("function_facilities"),
@@ -293,7 +293,7 @@ class SetSheetItemValues {
       ],
       [
         "キックオフミーティング準備・実行",
-        get_count(
+        returnIfEquals_(
           get_quotation_request_value_(
             this.array_quotation_request,
             "キックオフミーティング",
@@ -308,7 +308,7 @@ class SetSheetItemValues {
       ["薬剤対応", drug_support],
       [
         "モニタリング準備業務（関連資料作成）",
-        get_count_more_than(
+        returnIfGreaterThan_(
           get_quotation_request_value_(
             this.array_quotation_request,
             "1例あたりの実地モニタリング回数",
@@ -325,7 +325,7 @@ class SetSheetItemValues {
       ["入力の手引作成", 1],
       [
         "外部監査費用",
-        get_count_more_than(
+        returnIfGreaterThan_(
           get_quotation_request_value_(
             this.array_quotation_request,
             "監査対象施設数",
@@ -336,7 +336,7 @@ class SetSheetItemValues {
       ],
       [
         get_s_p.getProperty("cost_of_prepare_item"),
-        get_count(
+        returnIfEquals_(
           get_quotation_request_value_(
             this.array_quotation_request,
             get_s_p.getProperty("cost_of_prepare_quotation_request"),
@@ -347,7 +347,7 @@ class SetSheetItemValues {
       ],
       [
         "保険料",
-        get_count_more_than(
+        returnIfGreaterThan_(
           get_quotation_request_value_(this.array_quotation_request, "保険料"),
           0,
           1,
@@ -355,7 +355,7 @@ class SetSheetItemValues {
       ],
       [
         "治験薬管理（中央）",
-        get_count(
+        returnIfEquals_(
           get_quotation_request_value_(
             this.array_quotation_request,
             "治験薬管理",
@@ -373,7 +373,7 @@ class SetSheetItemValues {
       return input_values;
     }
     // csrの作成支援は医師主導治験ならば必須
-    let csr_count = get_count(
+    let csr_count = returnIfEquals_(
       get_quotation_request_value_(
         this.array_quotation_request,
         "研究結果報告書作成支援",
@@ -402,7 +402,7 @@ class SetSheetItemValues {
       audit_support = 1;
       // 医師主導治験で症例検討会ありの場合症例検討会資料作成に1をセット、ミーティング1回追加
       if (
-        get_count(
+        returnIfEquals_(
           get_quotation_request_value_(
             this.array_quotation_request,
             "症例検討会",
@@ -431,11 +431,11 @@ class SetSheetItemValues {
       ["症例検討会資料作成", clinical_conference],
       [
         "統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成",
-        get_count_more_than(final_analysis_table_count, 0, 1),
+        returnIfGreaterThan_(final_analysis_table_count, 0, 1),
       ],
       [
         final_analysis,
-        get_count_more_than(
+        returnIfGreaterThan_(
           final_analysis_table_count,
           0,
           final_analysis_table_count,
@@ -443,12 +443,12 @@ class SetSheetItemValues {
       ],
       [
         "最終解析報告書作成（出力結果＋表紙）",
-        get_count_more_than(final_analysis_table_count, 0, 1),
+        returnIfGreaterThan_(final_analysis_table_count, 0, 1),
       ],
       [csr, csr_count],
       [
         get_s_p.getProperty("cost_of_report_item"),
-        get_count(
+        returnIfEquals_(
           get_quotation_request_value_(
             this.array_quotation_request,
             get_s_p.getProperty("cost_of_report_quotation_request"),
@@ -459,7 +459,7 @@ class SetSheetItemValues {
       ],
       [
         "外部監査費用",
-        get_count_more_than(
+        returnIfGreaterThan_(
           get_quotation_request_value_(
             this.array_quotation_request,
             "監査対象施設数",
@@ -483,13 +483,13 @@ class SetSheetItemValues {
     let crb_after_second_year = "";
     // CRB申請費用
     if (this.sheetname == get_s_p.getProperty("registration_1_sheet_name")) {
-      crb_first_year = get_count(
+      crb_first_year = returnIfEquals_(
         get_quotation_request_value_(this.array_quotation_request, "CRB申請"),
         "あり",
         1,
       );
     } else {
-      crb_after_second_year = get_count(
+      crb_after_second_year = returnIfEquals_(
         get_quotation_request_value_(this.array_quotation_request, "CRB申請"),
         "あり",
         1,
@@ -510,7 +510,7 @@ class SetSheetItemValues {
       ["名古屋医療センターCRB申請費用(2年目以降)", crb_after_second_year],
       [
         "治験薬運搬",
-        get_count(
+        returnIfEquals_(
           get_quotation_request_value_(
             this.array_quotation_request,
             "治験薬運搬",

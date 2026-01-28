@@ -1,3 +1,8 @@
+/**
+ * build_imbalance_targets.js のテスト
+ * 各種不均衡ターゲットの計算ロジックが正しいことを確認する
+ * パターン1、パターン2それぞれについて、実地モニタリング、監査、症例登録毎の支払のケースを網羅する
+ */
 function execAllImbalanceTests() {
   testImbalance_monitoring_case1();
   testImbalance_monitoring_case2();
