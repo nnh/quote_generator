@@ -2,7 +2,6 @@
  * Trial / Items シート生成・価格設定・コメント操作
  * - set_trial_sheet_
  * - set_items_price_
- * - Set_trial_comments クラス
  */
 
 function handleQuotationType_(value) {
@@ -310,17 +309,18 @@ function set_trial_sheet_(sheet, array_quotation_request) {
   const get_s_p = PropertiesService.getScriptProperties();
   const const_facilities = get_s_p.getProperty("facilities_itemname");
   const const_number_of_cases = get_s_p.getProperty("number_of_cases_itemname");
+  const coefficient = get_s_p.getProperty("coefficient");
   const trial_list = [
     [TRIAL_FIELDS.QUOTATION_TYPE, 2],
     ["見積発行先", 4],
     ["研究代表者名", 8],
     ["試験課題名", 9],
-    [TRIAL_FIELDS.ACRONYM, 10],
+    ["試験実施番号", 10],
     [TRIAL_FIELDS.TRIAL_TYPE, 27],
     [const_number_of_cases, get_s_p.getProperty("trial_number_of_cases_row")],
     [const_facilities, get_s_p.getProperty("trial_const_facilities_row")],
     [TRIAL_FIELDS.CRF, 30],
-    [TRIAL_FIELDS.COEFFICIENT, 44],
+    [coefficient, 44],
   ];
   const cost_of_cooperation = "研究協力費、負担軽減費";
   const items_list = [
@@ -354,7 +354,9 @@ function set_trial_sheet_(sheet, array_quotation_request) {
       array_quotation_request,
       key,
     );
-    if (quotationRequestValue == null) return;
+    if (quotationRequestValue == null) {
+      throw new Error(`Missing quotation request value for key: ${key}`);
+    }
 
     const result = dispatchTrialField_(key, quotationRequestValue, context);
     sheet.trial.getRange(row, 2).setValue(result);
@@ -435,79 +437,4 @@ function set_items_price_(sheet, price, target_row) {
     sheet.getRange(target_row, target_col).offset(0, 1).setValue("");
     sheet.getRange(target_row, target_col).offset(0, 2).setValue("");
   }
-}
-/**
- * trialシートのコメントを追加・削除する。
- */
-class Set_trial_comments {
-  constructor() {
-    this.sheet = get_sheets();
-    this.const_range = PropertiesService.getScriptProperties().getProperty(
-      "trial_comment_range",
-    );
-  }
-  clear_comments() {
-    this.sheet.trial.getRange(this.const_range).clearContent();
-  }
-  set_range_values(array_comment) {
-    const start_row = this.sheet.trial
-      .getRange(this.const_range)
-      .getCell(1, 1)
-      .getRow();
-    const start_col = this.sheet.trial
-      .getRange(this.const_range)
-      .getCell(1, 1)
-      .getColumn();
-    const comment_length = array_comment.length;
-    this.clear_comments();
-    if (comment_length <= 0) {
-      return;
-    }
-    this.sheet.trial
-      .getRange(start_row, start_col, comment_length, 1)
-      .setValues(array_comment);
-  }
-  set targetToDelete(target) {
-    this.delete_target = target;
-  }
-  delete_comment() {
-    const comment_formulas = this.sheet.trial
-      .getRange(this.const_range)
-      .getFormulas();
-    const comment_values = this.sheet.trial
-      .getRange(this.const_range)
-      .getValues();
-    let before_delete_comments = [];
-    for (let i = 0; i < comment_formulas.length; i++) {
-      before_delete_comments[i] =
-        comment_formulas[i] != "" ? comment_formulas[i] : comment_values[i];
-    }
-    const del_comment = before_delete_comments.filter(
-      (x) => x != this.delete_target && x != "",
-    );
-    return del_comment;
-  }
-}
-/**
- * trialシートのコメントを追加する。
- * @param {string} str_comment コメント文字列
- * @return {void}
- */
-function set_trial_comment_(str_comment) {
-  const setComment = new Set_trial_comments();
-  setComment.targetToDelete = str_comment;
-  const comments = setComment.delete_comment();
-  comments.push([str_comment]);
-  setComment.set_range_values(comments);
-}
-/**
- * trialシートのコメントを削除する。
- * @param {string} str_comment コメント文字列
- * @return {void}
- */
-function delete_trial_comment_(str_comment) {
-  const setComment = new Set_trial_comments();
-  setComment.targetToDelete = str_comment;
-  const comments = setComment.delete_comment();
-  setComment.set_range_values(comments);
 }

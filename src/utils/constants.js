@@ -7,7 +7,6 @@ const TRIAL_FIELDS = {
   QUOTATION_TYPE: "見積種別",
   TRIAL_TYPE: "試験種別",
   CRF: "CRF項目数",
-  ACRONYM: "試験実施番号",
 };
 
 const CDISC_ADDITION = 3;
