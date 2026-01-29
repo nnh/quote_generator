@@ -4,6 +4,300 @@
  * - set_items_price_
  * - Set_trial_comments クラス
  */
+
+function handleQuotationType_(value) {
+  return value === "正式見積" ? "御見積書" : "御参考見積書";
+}
+function handleNumberOfCases_(value, scriptProperties) {
+  scriptProperties.setProperty("number_of_cases", value);
+  return;
+}
+function handleFacilities_(value, scriptProperties) {
+  scriptProperties.setProperty("facilities_value", value);
+  return;
+}
+/**
+ * 見積係数を正規化する
+ * - 商用企業の場合は 1.5
+ * - それ以外は 1
+ *
+ * @param {string} coefficientValue quotation_request から取得した値
+ * @param {PropertiesService.Properties} scriptProperties
+ * @return {number} 正規化後の係数
+ */
+function normalizeCoefficient_(coefficientValue, scriptProperties) {
+  const commercialCoefficient = scriptProperties.getProperty(
+    "commercial_company_coefficient",
+  );
+
+  return coefficientValue === commercialCoefficient ? 1.5 : 1;
+}
+/**
+ * CRF項目数を CDISC対応有無に応じて調整し、コメントを更新する
+ *
+ * @param {string|number} crfCount CRF項目数（元の値）
+ * @param {Array.<string>} arrayQuotationRequest quotation_request シートの値
+ * @return {string|number} trialシートに設定する数式文字列またはCRF項目数
+ */
+function handleCrfWithCdisc_(crfCount, arrayQuotationRequest) {
+  const isCdiscEnabled =
+    get_quotation_request_value_(arrayQuotationRequest, "CDISC対応") === "あり";
+
+  if (!isCdiscEnabled) {
+    return crfCount;
+  }
+
+  // 既存コメント削除
+  delete_trial_comment_(
+    '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
+  );
+
+  // CDISC対応コメント追加
+  set_trial_comment_(
+    '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
+  );
+
+  // CRF数を式に変換
+  const crfValue = typeof crfCount === "number" ? crfCount : `"${crfCount}"`;
+  return `=${crfValue}*${CDISC_ADDITION}`;
+}
+/**
+ * 見積用スプレッドシート名をリネームする
+ *
+ * 形式:
+ *   Quote {acronym} {yyyyMMdd}
+ *
+ * @param {string} acronym 試験実施番号
+ * @return {void}
+ */
+function renameSpreadsheetWithAcronym_(acronym) {
+  const today = Utilities.formatDate(new Date(), "JST", "yyyyMMdd");
+  SpreadsheetApp.getActiveSpreadsheet().rename(`Quote ${acronym} ${today}`);
+  return;
+}
+/**
+ * 試験種別をスクリプトプロパティに保存する
+ * @param {string} trialType 試験種別
+ * @return {void}
+ */
+function setTrialTypeProperty_(trialType) {
+  const sp = PropertiesService.getScriptProperties();
+  sp.setProperty("trial_type_value", trialType);
+  return;
+}
+/**
+ * 試験期間に必要な日付を取得する
+ * @param {Array.<string>} array_quotation_request quotation_request シートの値
+ * @return {{trialStartDate:any, registrationEndDate:any, trialEndDate:any}|null}
+ */
+function getTrialDates_(array_quotation_request) {
+  const trialStartDate = get_quotation_request_value_(
+    array_quotation_request,
+    "症例登録開始日",
+  );
+  const registrationEndDate = get_quotation_request_value_(
+    array_quotation_request,
+    "症例登録終了日",
+  );
+  const trialEndDate = get_quotation_request_value_(
+    array_quotation_request,
+    "試験終了日",
+  );
+
+  if (!trialStartDate || !registrationEndDate || !trialEndDate) {
+    return null;
+  }
+
+  return {
+    trialStartDate,
+    registrationEndDate,
+    trialEndDate,
+  };
+}
+/**
+ * 試験種別に応じて setup / closing 期間（月数）を決定する
+ * @param {string} trialType 試験種別
+ * @param {Array.<string>} array_quotation_request quotation_request シートの値
+ * @return {void}
+ */
+function determineSetupAndClosingTerm_(trialType, array_quotation_request) {
+  get_setup_closing_term_(trialType, array_quotation_request);
+  return;
+}
+/**
+ * 試験開始日・終了日から、試験期間配列を生成する
+ *
+ * @param {Date} trialStartDate 試験開始日
+ * @param {Date} trialEndDate 試験終了日
+ * @return {Array.<Array.<Date>>} [[startDate, endDate], ...]
+ */
+function buildTrialDateArray_(trialStartDate, trialEndDate) {
+  return get_trial_start_end_date_(trialStartDate, trialEndDate);
+}
+/**
+ * trialシートに試験期間配列を書き込む
+ *
+ * @param {Object} sheet sheetsオブジェクト
+ * @param {Array.<Array.<Moment>>} trialDateArray 試験期間配列
+ * @param {number} trialSetupRow trialSetup開始行
+ * @param {number} trialStartCol trial開始列
+ * @param {number} trialEndCol trial終了列
+ * @param {number} trialYearsCol 年数表示列
+ * @param {number} totalMonthCol 総月数表示列
+ * @return {void}
+ */
+function writeTrialDatesToSheet_(
+  sheet,
+  trialDateArray,
+  trialSetupRow,
+  trialStartCol,
+  trialEndCol,
+  trialYearsCol,
+  totalMonthCol,
+) {
+  sheet.trial
+    .getRange(trialSetupRow, trialStartCol, trialDateArray.length, 2)
+    .clear();
+
+  let lastRow = null;
+
+  trialDateArray.forEach((dates, i) => {
+    const startCell = sheet.trial.getRange(trialSetupRow + i, trialStartCol);
+    const endCell = sheet.trial.getRange(trialSetupRow + i, trialEndCol);
+
+    const [startDate, endDate] = dates;
+
+    if (startDate) startCell.setValue(startDate.format("YYYY/MM/DD"));
+    if (endDate) endCell.setValue(endDate.format("YYYY/MM/DD"));
+
+    const startAddr = startCell.getA1Notation();
+    const endAddr = endCell.getA1Notation();
+
+    sheet.trial
+      .getRange(trialSetupRow + i, trialYearsCol)
+      .setFormula(
+        `=if(and($${startAddr}<>"",$${endAddr}<>""),datedif($${startAddr},$${endAddr},"y")+1,"")`,
+      );
+
+    lastRow = trialSetupRow + i;
+  });
+
+  // total（月数）
+  const totalCell = sheet.trial.getRange(lastRow, totalMonthCol);
+  totalCell.setFormula(
+    `=datedif(${sheet.trial
+      .getRange(lastRow, trialStartCol)
+      .getA1Notation()},(${sheet.trial
+      .getRange(lastRow, trialEndCol)
+      .getA1Notation()}+1),"m")`,
+  );
+
+  // x年xヶ月 表示
+  sheet.trial
+    .getRange(lastRow, trialYearsCol)
+    .setFormula(
+      `=trunc(${totalCell.getA1Notation()}/12) & "年" & if(mod(${totalCell.getA1Notation()},12)<>0,mod(${totalCell.getA1Notation()},12) & "ヶ月","")`,
+    );
+  return;
+}
+
+/**
+ * 試験種別に応じて試験期間を計算し、trialシートへ反映する
+ *
+ * @param {string} trialType 試験種別
+ * @param {Array.<string>} array_quotation_request quotation_request シートの値
+ * @param {Object} sheet sheets オブジェクト
+ * @return {void}
+ */
+function handleTrialType_(trialType, array_quotation_request, sheet) {
+  const get_s_p = PropertiesService.getScriptProperties();
+  setTrialTypeProperty_(trialType);
+  const trialDates = getTrialDates_(array_quotation_request);
+  if (!trialDates) {
+    return;
+  }
+
+  const { trialStartDate, registrationEndDate, trialEndDate } = trialDates;
+  determineSetupAndClosingTerm_(trialType, array_quotation_request);
+
+  // 試験期間配列を取得
+  const trialDateArray = buildTrialDateArray_(trialStartDate, trialEndDate);
+
+  const trialStartCol = Number(get_s_p.getProperty("trial_start_col"));
+  const trialEndCol = Number(get_s_p.getProperty("trial_end_col"));
+  const trialSetupRow = Number(get_s_p.getProperty("trial_setup_row"));
+  const trialYearsCol = Number(get_s_p.getProperty("trial_years_col"));
+  const totalMonthCol = 6;
+
+  // 既存値クリア
+  sheet.trial
+    .getRange(trialSetupRow, trialStartCol, trialDateArray.length, 2)
+    .clear();
+
+  writeTrialDatesToSheet_(
+    sheet,
+    trialDateArray,
+    trialSetupRow,
+    trialStartCol,
+    trialEndCol,
+    trialYearsCol,
+    totalMonthCol,
+  );
+  return;
+}
+
+/**
+ * Trialシートの各項目に応じた処理を振り分ける関数
+ *
+ * この関数は、各試験関連項目に応じて値の変換やスクリプトプロパティの更新、
+ * スプレッドシート名の変更などを行います。
+ *
+ * @param {string} key - 処理対象の項目名（例: "試験種別", "CRF項目数"）
+ * @param {any} fieldValue - quotation_requestシートから取得した値
+ * @param {Object} context - 共通コンテキストオブジェクト
+ * @param {PropertiesService.Properties} context.properties - スクリプトプロパティ
+ * @param {Array.<string>} context.arrayQuotationRequest - quotation_requestシートの値
+ * @param {Object} context.sheet - Sheetsオブジェクト（trial, itemsシートなど）
+ *
+ * @returns {any} - trialシートにセットする最終値。fieldValueがnullの場合はnullを返す
+ *
+ * @example
+ * const processedValue = dispatchTrialField_("CRF項目数", 120, context);
+ */
+function dispatchTrialField_(key, fieldValue, context) {
+  if (fieldValue == null) return null;
+
+  const sp = context.properties;
+  const arrayQuotationRequest = context.arrayQuotationRequest;
+  const sheet = context.sheet;
+  const const_facilities = sp.getProperty("facilities_itemname");
+  const const_number_of_cases = sp.getProperty("number_of_cases_itemname");
+  const const_coefficient = sp.getProperty("coefficient");
+
+  switch (key) {
+    case TRIAL_FIELDS.QUOTATION_TYPE:
+      return handleQuotationType_(fieldValue);
+    case const_number_of_cases:
+      handleNumberOfCases_(fieldValue, sp);
+      return fieldValue;
+    case const_facilities:
+      handleFacilities_(fieldValue, sp);
+      return fieldValue;
+    case TRIAL_FIELDS.TRIAL_TYPE:
+      handleTrialType_(fieldValue, arrayQuotationRequest, sheet);
+      return fieldValue;
+    case const_coefficient:
+      return (fieldValue = normalizeCoefficient_(fieldValue, sp));
+    case TRIAL_FIELDS.CRF:
+      return handleCrfWithCdisc_(fieldValue, arrayQuotationRequest);
+    case TRIAL_FIELDS.ACRONYM:
+      renameSpreadsheetWithAcronym_(fieldValue);
+      return fieldValue;
+    default:
+      return fieldValue;
+  }
+}
+
 /**
  * quotation_requestシートの内容からtrialシート, itemsシートを設定する
  * @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
@@ -14,35 +308,19 @@
  */
 function set_trial_sheet_(sheet, array_quotation_request) {
   const get_s_p = PropertiesService.getScriptProperties();
-  const const_quotation_type = "見積種別";
-  const const_trial_type = "試験種別";
-  const const_trial_start = "症例登録開始日";
-  const const_registration_end = "症例登録終了日";
-  const const_trial_end = "試験終了日";
-  const const_crf = "CRF項目数";
-  const const_acronym = "試験実施番号";
   const const_facilities = get_s_p.getProperty("facilities_itemname");
   const const_number_of_cases = get_s_p.getProperty("number_of_cases_itemname");
-  const const_coefficient = get_s_p.getProperty("coefficient");
-  const const_trial_start_col = Number(get_s_p.getProperty("trial_start_col"));
-  const const_trial_end_col = Number(get_s_p.getProperty("trial_end_col"));
-  const const_trial_setup_row = Number(get_s_p.getProperty("trial_setup_row"));
-  const const_trial_closing_row = Number(
-    get_s_p.getProperty("trial_closing_row"),
-  );
-  const const_trial_years_col = Number(get_s_p.getProperty("trial_years_col"));
-  const const_total_month_col = 6;
   const trial_list = [
-    [const_quotation_type, 2],
+    [TRIAL_FIELDS.QUOTATION_TYPE, 2],
     ["見積発行先", 4],
     ["研究代表者名", 8],
     ["試験課題名", 9],
-    [const_acronym, 10],
-    [const_trial_type, 27],
+    [TRIAL_FIELDS.ACRONYM, 10],
+    [TRIAL_FIELDS.TRIAL_TYPE, 27],
     [const_number_of_cases, get_s_p.getProperty("trial_number_of_cases_row")],
     [const_facilities, get_s_p.getProperty("trial_const_facilities_row")],
-    [const_crf, 30],
-    [const_coefficient, 44],
+    [TRIAL_FIELDS.CRF, 30],
+    [TRIAL_FIELDS.COEFFICIENT, 44],
   ];
   const cost_of_cooperation = "研究協力費、負担軽減費";
   const items_list = [
@@ -63,163 +341,30 @@ function set_trial_sheet_(sheet, array_quotation_request) {
       get_s_p.getProperty("cost_of_report_item"),
     ],
   ];
-  const cdisc_addition = 3;
-  let temp_str,
-    temp_str_2,
-    temp_start,
-    temp_end,
-    temp_start_addr,
-    temp_end_addr,
-    save_row,
-    temp_total,
-    date_of_issue;
   for (let i = 0; i < trial_list.length; i++) {
     const key = trial_list[i][0];
     const row = Number(trial_list[i][1]);
-    temp_str = get_quotation_request_value_(array_quotation_request, key);
-    if (temp_str != null) {
-      switch (key) {
-        case const_quotation_type:
-          if (temp_str === "正式見積") {
-            temp_str = "御見積書";
-          } else {
-            temp_str = "御参考見積書";
-          }
-          break;
-        case const_number_of_cases:
-          get_s_p.setProperty("number_of_cases", temp_str);
-          break;
-        case const_facilities:
-          get_s_p.setProperty("facilities_value", temp_str);
-          break;
-        case const_trial_type:
-          get_s_p.setProperty("trial_type_value", temp_str);
-          // 試験期間を取得する
-          const trial_start_date = get_quotation_request_value_(
-            array_quotation_request,
-            const_trial_start,
-          );
-          const registration_end_date = get_quotation_request_value_(
-            array_quotation_request,
-            const_registration_end,
-          );
-          const trial_end_date = get_quotation_request_value_(
-            array_quotation_request,
-            const_trial_end,
-          );
-          if (!trial_start_date || !registration_end_date || !trial_end_date) {
-            return;
-          }
+    const context = {
+      sheet,
+      arrayQuotationRequest: array_quotation_request,
+      properties: PropertiesService.getScriptProperties(),
+    };
 
-          get_setup_closing_term_(temp_str, array_quotation_request);
-          const array_trial_date = get_trial_start_end_date_(
-            trial_start_date,
-            trial_end_date,
-          );
-          sheet.trial
-            .getRange(
-              const_trial_setup_row,
-              const_trial_start_col,
-              array_trial_date.length,
-              2,
-            )
-            .clear();
-          for (var j = 0; j < array_trial_date.length; j++) {
-            temp_start = sheet.trial.getRange(
-              const_trial_setup_row + j,
-              const_trial_start_col,
-            );
-            temp_end = sheet.trial.getRange(
-              const_trial_setup_row + j,
-              const_trial_end_col,
-            );
-            if (array_trial_date[j][0] != "") {
-              temp_start.setValue(array_trial_date[j][0].format("YYYY/MM/DD"));
-            }
-            if (array_trial_date[j][1] != "") {
-              temp_end.setValue(array_trial_date[j][1].format("YYYY/MM/DD"));
-            }
-            temp_start_addr = temp_start.getA1Notation();
-            temp_end_addr = temp_end.getA1Notation();
-            sheet.trial
-              .getRange(const_trial_setup_row + j, const_trial_years_col)
-              .setFormula(
-                "=if(and($" +
-                  temp_start_addr +
-                  '<>"",$' +
-                  temp_end_addr +
-                  '<>""),datedif($' +
-                  temp_start_addr +
-                  ",$" +
-                  temp_end_addr +
-                  ',"y")+1,"")',
-              );
-            save_row = const_trial_setup_row + j;
-          }
-          // totalはx年xヶ月と月数を出力
-          temp_total = sheet.trial.getRange(save_row, const_total_month_col);
-          temp_total.setFormula(
-            "=datedif(" +
-              sheet.trial
-                .getRange(save_row, const_trial_start_col)
-                .getA1Notation() +
-              ",(" +
-              sheet.trial
-                .getRange(save_row, const_trial_end_col)
-                .getA1Notation() +
-              '+1),"m")',
-          );
-          sheet.trial
-            .getRange(save_row, const_trial_years_col)
-            .setFormula(
-              "=trunc(" +
-                temp_total.getA1Notation() +
-                '/12) & "年" & if(mod(' +
-                temp_total.getA1Notation() +
-                ",12)<>0,mod(" +
-                temp_total.getA1Notation() +
-                ',12) & "ヶ月","")',
-            );
-          break;
-        case const_coefficient:
-          if (
-            temp_str === get_s_p.getProperty("commercial_company_coefficient")
-          ) {
-            temp_str = 1.5;
-          } else {
-            temp_str = 1;
-          }
-          break;
-        case const_crf:
-          temp_str_2 = get_quotation_request_value_(
-            array_quotation_request,
-            "CDISC対応",
-          );
-          if (temp_str_2 === "あり") {
-            delete_trial_comment_(
-              '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
-            );
-            temp_str = "=" + temp_str + " * " + cdisc_addition;
-            set_trial_comment_(
-              '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
-            );
-          } else {
-            temp_str = temp_str;
-          }
-          break;
-        case const_acronym:
-          SpreadsheetApp.getActiveSpreadsheet().rename(
-            `Quote ${temp_str} ${Utilities.formatDate(new Date(), "JST", "yyyyMMdd")}`,
-          );
-          break;
-        default:
-          break;
-      }
-      sheet.trial.getRange(row, 2).setValue(temp_str);
-    }
+    const quotationRequestValue = get_quotation_request_value_(
+      array_quotation_request,
+      key,
+    );
+    if (quotationRequestValue == null) return;
+
+    const result = dispatchTrialField_(key, quotationRequestValue, context);
+    sheet.trial.getRange(row, 2).setValue(result);
   }
   // 発行年月日
-  date_of_issue = get_row_num_matched_value_(sheet.trial, 1, "発行年月日");
+  const date_of_issue = get_row_num_matched_value_(
+    sheet.trial,
+    1,
+    "発行年月日",
+  );
   if (date_of_issue > 0) {
     sheet.trial
       .getRange(date_of_issue, 2)
