@@ -55,15 +55,6 @@ function register_script_property() {
       parseInt(get_s_p.getProperty("trial_const_facilities_row")),
   );
   get_s_p.setProperty("folder_id", "");
-  get_s_p.setProperty("cost_of_prepare_quotation_request", "試験開始準備費用");
-  get_s_p.setProperty(
-    "cost_of_registration_quotation_request",
-    "症例登録毎の支払",
-  );
-  get_s_p.setProperty(
-    "cost_of_report_quotation_request",
-    "症例最終報告書提出毎の支払",
-  );
   get_s_p.setProperty("cost_of_prepare_item", "試験開始準備費用");
   get_s_p.setProperty("cost_of_registration_item", "症例登録");
   get_s_p.setProperty("cost_of_report_item", "症例報告");

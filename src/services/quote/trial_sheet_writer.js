@@ -322,25 +322,6 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     [TRIAL_FIELDS.CRF, 30],
     [coefficient, 44],
   ];
-  const cost_of_cooperation = "研究協力費、負担軽減費";
-  const items_list = [
-    ["保険料", "保険料"],
-    [cost_of_cooperation, null],
-  ];
-  const cost_of_cooperation_item_name = [
-    [
-      get_s_p.getProperty("cost_of_prepare_quotation_request"),
-      get_s_p.getProperty("cost_of_prepare_item"),
-    ],
-    [
-      get_s_p.getProperty("cost_of_registration_quotation_request"),
-      get_s_p.getProperty("cost_of_registration_item"),
-    ],
-    [
-      get_s_p.getProperty("cost_of_report_quotation_request"),
-      get_s_p.getProperty("cost_of_report_item"),
-    ],
-  ];
   for (let i = 0; i < trial_list.length; i++) {
     const key = trial_list[i][0];
     const row = Number(trial_list[i][1]);
@@ -372,69 +353,6 @@ function set_trial_sheet_(sheet, array_quotation_request) {
       .getRange(date_of_issue, 2)
       .setValue(Moment.moment().format("YYYY/MM/DD"));
   }
-  const numberOfCases = Number(get_s_p.getProperty("number_of_cases"));
-  const facilities = Number(get_s_p.getProperty("facilities_value"));
-  // 単価の設定
-  items_list.forEach((x) => {
-    const quotation_request_header = x[0];
-    const totalPrice = get_quotation_request_value_(
-      array_quotation_request,
-      quotation_request_header,
-    );
-    if (quotation_request_header === cost_of_cooperation) {
-      // 試験開始準備費用、症例登録、症例報告
-      const ari_count = cost_of_cooperation_item_name.filter(
-        (y) =>
-          get_quotation_request_value_(array_quotation_request, y[0]) ===
-          "あり",
-      ).length;
-      const temp_price =
-        ari_count > 0 ? Math.floor(Number(totalPrice) / ari_count) : null;
-
-      cost_of_cooperation_item_name.forEach((target) => {
-        const items_row = get_row_num_matched_value_(sheet.items, 2, target[1]);
-        if (
-          get_quotation_request_value_(array_quotation_request, target[0]) ===
-          "あり"
-        ) {
-          const unit = sheet.items.getRange(items_row, 4).getValue();
-          const price =
-            unit === "症例"
-              ? temp_price / numberOfCases
-              : unit === "施設"
-                ? temp_price / facilities
-                : temp_price;
-
-          set_items_price_(sheet.items, price, items_row);
-        } else {
-          set_items_price_(sheet.items, 0, items_row);
-        }
-      });
-    } else {
-      // 保険料
-      const items_header = x[1];
-      const items_row = get_row_num_matched_value_(
-        sheet.items,
-        2,
-        items_header,
-      );
-      set_items_price_(sheet.items, totalPrice, items_row);
-    }
-  });
-}
-/**
- * itemsシートに単価を設定する
- */
-function set_items_price_(sheet, price, target_row) {
-  if (target_row === 0) return;
-  const target_col = getColumnNumber_("S");
-  if (Number(price) > 0) {
-    sheet.getRange(target_row, target_col).setValue(price);
-    sheet.getRange(target_row, target_col).offset(0, 1).setValue(1);
-    sheet.getRange(target_row, target_col).offset(0, 2).setValue(1);
-  } else {
-    sheet.getRange(target_row, target_col).setValue("");
-    sheet.getRange(target_row, target_col).offset(0, 1).setValue("");
-    sheet.getRange(target_row, target_col).offset(0, 2).setValue("");
-  }
+  const itemSheet = sheet.items;
+  applyItemPrices_(array_quotation_request, itemSheet);
 }

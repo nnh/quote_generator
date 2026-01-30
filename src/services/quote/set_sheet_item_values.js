@@ -335,11 +335,11 @@ class SetSheetItemValues {
         ),
       ],
       [
-        get_s_p.getProperty("cost_of_prepare_item"),
+        ITEMS_SHEET.ITEMNAMES.PREPARE_FEE,
         returnIfEquals_(
           get_quotation_request_value_(
             this.array_quotation_request,
-            get_s_p.getProperty("cost_of_prepare_quotation_request"),
+            QUOTATION_REQUEST_SHEET.ITEMNAMES.PREPARE_FEE,
           ),
           "あり",
           get_s_p.getProperty("function_facilities"),
@@ -348,7 +348,10 @@ class SetSheetItemValues {
       [
         "保険料",
         returnIfGreaterThan_(
-          get_quotation_request_value_(this.array_quotation_request, "保険料"),
+          get_quotation_request_value_(
+            this.array_quotation_request,
+            QUOTATION_REQUEST_SHEET.ITEMNAMES.INSURANCE_FEE,
+          ),
           0,
           1,
         ),
@@ -451,7 +454,7 @@ class SetSheetItemValues {
         returnIfEquals_(
           get_quotation_request_value_(
             this.array_quotation_request,
-            get_s_p.getProperty("cost_of_report_quotation_request"),
+            QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE,
           ),
           "あり",
           get_s_p.getProperty("function_number_of_cases"),
