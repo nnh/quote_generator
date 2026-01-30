@@ -5,10 +5,7 @@
 class TrialCommentManager {
   constructor() {
     this.trialSheet = get_sheets().trial;
-    const rangeA1 = PropertiesService.getScriptProperties().getProperty(
-      "trial_comment_range",
-    );
-    this.commentRange = this.trialSheet.getRange(rangeA1);
+    this.commentRange = this.trialSheet.getRange(TRIAL_SHEET.RANGES.COMMENT);
   }
   clearComments() {
     this.commentRange.clearContent();

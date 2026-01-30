@@ -9,10 +9,9 @@
  * 試験種別が特別な試験（医師主導治験・特定臨床研究）かどうか判定する
  */
 function isSpecialTrial_(trialType) {
-  const sp = PropertiesService.getScriptProperties();
   return (
-    trialType === sp.getProperty("investigator_initiated_trial") ||
-    trialType === sp.getProperty("specified_clinical_trial")
+    trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED ||
+    trialType === TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL_TRIAL
   );
 }
 
@@ -24,7 +23,7 @@ function hasReportSupport_(array_quotation_request) {
     get_quotation_request_value_(
       array_quotation_request,
       "研究結果報告書作成支援",
-    ) === "あり"
+    ) === COMMON_EXISTENCE_LABELS.YES
   );
 }
 /**

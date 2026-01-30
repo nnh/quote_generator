@@ -24,10 +24,8 @@ function handleFacilities_(value, scriptProperties) {
  * @param {PropertiesService.Properties} scriptProperties
  * @return {number} 正規化後の係数
  */
-function normalizeCoefficient_(coefficientValue, scriptProperties) {
-  const commercialCoefficient = scriptProperties.getProperty(
-    "commercial_company_coefficient",
-  );
+function normalizeCoefficient_(coefficientValue) {
+  const commercialCoefficient = QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
 
   return coefficientValue === commercialCoefficient ? 1.5 : 1;
 }
@@ -40,7 +38,8 @@ function normalizeCoefficient_(coefficientValue, scriptProperties) {
  */
 function handleCrfWithCdisc_(crfCount, arrayQuotationRequest) {
   const isCdiscEnabled =
-    get_quotation_request_value_(arrayQuotationRequest, "CDISC対応") === "あり";
+    get_quotation_request_value_(arrayQuotationRequest, "CDISC対応") ===
+    COMMON_EXISTENCE_LABELS.YES;
 
   if (!isCdiscEnabled) {
     return crfCount;
@@ -222,10 +221,10 @@ function handleTrialType_(trialType, array_quotation_request, sheet) {
   // 試験期間配列を取得
   const trialDateArray = buildTrialDateArray_(trialStartDate, trialEndDate);
 
-  const trialStartCol = Number(get_s_p.getProperty("trial_start_col"));
-  const trialEndCol = Number(get_s_p.getProperty("trial_end_col"));
-  const trialSetupRow = Number(get_s_p.getProperty("trial_setup_row"));
-  const trialYearsCol = Number(get_s_p.getProperty("trial_years_col"));
+  const trialStartCol = TRIAL_SHEET.COLUMNS.TRIAL_START;
+  const trialEndCol = TRIAL_SHEET.COLUMNS.TRIAL_END;
+  const trialSetupRow = TRIAL_SHEET.ROWS.TRIAL_SETUP;
+  const trialYearsCol = TRIAL_SHEET.COLUMNS.TRIAL_YEARS;
   const totalMonthCol = 6;
 
   // 既存値クリア
@@ -269,12 +268,11 @@ function dispatchTrialField_(key, fieldValue, context) {
   const sp = context.properties;
   const arrayQuotationRequest = context.arrayQuotationRequest;
   const sheet = context.sheet;
-  const const_facilities = sp.getProperty("facilities_itemname");
-  const const_number_of_cases = sp.getProperty("number_of_cases_itemname");
-  const const_coefficient = sp.getProperty("coefficient");
+  const const_facilities = ITEM_LABELS.FACILITIES;
+  const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
 
   switch (key) {
-    case TRIAL_FIELDS.QUOTATION_TYPE:
+    case TRIAL_SHEET.ITEMNAMES.QUOTATION_TYPE:
       return handleQuotationType_(fieldValue);
     case const_number_of_cases:
       handleNumberOfCases_(fieldValue, sp);
@@ -282,14 +280,14 @@ function dispatchTrialField_(key, fieldValue, context) {
     case const_facilities:
       handleFacilities_(fieldValue, sp);
       return fieldValue;
-    case TRIAL_FIELDS.TRIAL_TYPE:
+    case TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE:
       handleTrialType_(fieldValue, arrayQuotationRequest, sheet);
       return fieldValue;
-    case const_coefficient:
-      return (fieldValue = normalizeCoefficient_(fieldValue, sp));
-    case TRIAL_FIELDS.CRF:
+    case ITEM_LABELS.FUNDING_SOURCE_LABEL:
+      return (fieldValue = normalizeCoefficient_(fieldValue));
+    case TRIAL_SHEET.ITEMNAMES.CRF:
       return handleCrfWithCdisc_(fieldValue, arrayQuotationRequest);
-    case TRIAL_FIELDS.ACRONYM:
+    case "試験実施番号":
       renameSpreadsheetWithAcronym_(fieldValue);
       return fieldValue;
     default:
@@ -306,21 +304,19 @@ function dispatchTrialField_(key, fieldValue, context) {
  *   set_trial_sheet_(sheet, array_quotation_request);
  */
 function set_trial_sheet_(sheet, array_quotation_request) {
-  const get_s_p = PropertiesService.getScriptProperties();
-  const const_facilities = get_s_p.getProperty("facilities_itemname");
-  const const_number_of_cases = get_s_p.getProperty("number_of_cases_itemname");
-  const coefficient = get_s_p.getProperty("coefficient");
+  const const_facilities = ITEM_LABELS.FACILITIES;
+  const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
   const trial_list = [
-    [TRIAL_FIELDS.QUOTATION_TYPE, 2],
+    [TRIAL_SHEET.ITEMNAMES.QUOTATION_TYPE, 2],
     ["見積発行先", 4],
     ["研究代表者名", 8],
     ["試験課題名", 9],
     ["試験実施番号", 10],
-    [TRIAL_FIELDS.TRIAL_TYPE, 27],
-    [const_number_of_cases, get_s_p.getProperty("trial_number_of_cases_row")],
-    [const_facilities, get_s_p.getProperty("trial_const_facilities_row")],
-    [TRIAL_FIELDS.CRF, 30],
-    [coefficient, 44],
+    [TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE, 27],
+    [const_number_of_cases, TRIAL_SHEET.ROWS.CASES],
+    [const_facilities, TRIAL_SHEET.ROWS.FACILITIES],
+    [TRIAL_SHEET.ITEMNAMES.CRF, 30],
+    [ITEM_LABELS.FUNDING_SOURCE_LABEL, 44],
   ];
   for (let i = 0; i < trial_list.length; i++) {
     const key = trial_list[i][0];

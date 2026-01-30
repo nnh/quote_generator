@@ -46,7 +46,7 @@ function check_output_values() {
     itemname: pmdaName,
     value: getValueIfMatch_(
       get_quotation_request_value_(array_quotation_request, pmdaName),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       1,
       0,
     ),
@@ -57,7 +57,7 @@ function check_output_values() {
     itemname: amedName,
     value: getValueIfMatch_(
       get_quotation_request_value_(array_quotation_request, amedName),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       1,
       0,
     ),
@@ -83,7 +83,7 @@ function check_output_values() {
         array_quotation_request,
         "キックオフミーティング",
       ),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       1,
       0,
     ),
@@ -93,7 +93,7 @@ function check_output_values() {
     itemname: "症例検討会準備・実行",
     value: getValueIfMatch_(
       get_quotation_request_value_(array_quotation_request, "症例検討会"),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       1,
       0,
     ),
@@ -103,7 +103,7 @@ function check_output_values() {
     itemname: "薬剤対応",
     value: getValueIfMatch_(
       get_quotation_request_value_(array_quotation_request, "試験種別"),
-      get_s_p.getProperty("investigator_initiated_trial"),
+      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED,
       facilities_value,
       0,
     ),
@@ -115,7 +115,7 @@ function check_output_values() {
     itemname: "監査対応",
     value: getValueIfMatch_(
       get_quotation_request_value_(array_quotation_request, "試験種別"),
-      get_s_p.getProperty("investigator_initiated_trial"),
+      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED,
       1,
       0,
     ),
@@ -125,7 +125,7 @@ function check_output_values() {
     itemname: "SOP一式、CTR登録案、TMF管理",
     value: getValueIfMatch_(
       get_quotation_request_value_(array_quotation_request, "試験種別"),
-      get_s_p.getProperty("investigator_initiated_trial"),
+      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED,
       1,
       0,
     ),
@@ -134,7 +134,7 @@ function check_output_values() {
   // IRB承認
   const [irbApprobal_name, irbApproval_value] =
     get_quotation_request_value_(array_quotation_request, "試験種別") ==
-    get_s_p.getProperty("investigator_initiated_trial")
+    TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
       ? ["IRB承認確認、施設管理", facilities_value]
       : ["IRB準備・承認確認", 0];
   total_checkitems.push({
@@ -146,7 +146,7 @@ function check_output_values() {
     itemname: "特定臨床研究法申請資料作成支援",
     value: getValueIfMatch_(
       get_quotation_request_value_(array_quotation_request, "試験種別"),
-      get_s_p.getProperty("specified_clinical_trial"),
+      TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL_TRIAL,
       facilities_value,
       0,
     ),
@@ -195,7 +195,7 @@ function check_output_values() {
 
   const initialSiteAndUserAccountSetup_name =
     get_quotation_request_value_(array_quotation_request, "試験種別") ==
-    get_s_p.getProperty("investigator_initiated_trial")
+    TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
       ? "初期アカウント設定（施設・ユーザー）"
       : "初期アカウント設定（施設・ユーザー）、IRB承認確認";
   total_checkitems.push({
@@ -233,7 +233,7 @@ function check_output_values() {
     itemname: "症例検討会資料作成",
     value: getValueIfMatch_(
       get_quotation_request_value_(array_quotation_request, "症例検討会"),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       1,
       0,
     ),
@@ -269,7 +269,7 @@ function check_output_values() {
     get_quotation_request_value_(
       array_quotation_request,
       "中間解析業務の依頼",
-    ) === "あり"
+    ) === COMMON_EXISTENCE_LABELS.YES
   ) {
     statisticalAnalysisDocumentsPreparation_value++;
   }
@@ -277,7 +277,7 @@ function check_output_values() {
     get_quotation_request_value_(
       array_quotation_request,
       "最終解析業務の依頼",
-    ) === "あり"
+    ) === COMMON_EXISTENCE_LABELS.YES
   ) {
     statisticalAnalysisDocumentsPreparation_value++;
   }
@@ -288,14 +288,14 @@ function check_output_values() {
 
   const trial_analysis_name =
     get_quotation_request_value_(array_quotation_request, "試験種別") ==
-    get_s_p.getProperty("investigator_initiated_trial")
+    TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
       ? "中間解析プログラム作成、解析実施（ダブル）"
       : "中間解析プログラム作成、解析実施（シングル）";
   const trial_analysis_value =
     get_quotation_request_value_(
       array_quotation_request,
       "中間解析業務の依頼",
-    ) === "あり"
+    ) === COMMON_EXISTENCE_LABELS.YES
       ? "回数がQuotation Requestシートの中間解析に必要な図表数*Quotation Requestシートの中間解析の頻度であることを確認"
       : 0;
 
@@ -311,7 +311,7 @@ function check_output_values() {
         array_quotation_request,
         "中間解析業務の依頼",
       ),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       1,
       0,
     ),
@@ -319,7 +319,7 @@ function check_output_values() {
 
   const final_analysis_name =
     get_quotation_request_value_(array_quotation_request, "試験種別") ==
-    get_s_p.getProperty("investigator_initiated_trial")
+    TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
       ? "最終解析プログラム作成、解析実施（ダブル）"
       : "最終解析プログラム作成、解析実施（シングル）";
 
@@ -330,7 +330,7 @@ function check_output_values() {
         array_quotation_request,
         "最終解析業務の依頼",
       ),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       get_quotation_request_value_(
         array_quotation_request,
         "統計解析に必要な図表数",
@@ -346,7 +346,7 @@ function check_output_values() {
         array_quotation_request,
         "最終解析業務の依頼",
       ),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       1,
       0,
     ),
@@ -356,7 +356,7 @@ function check_output_values() {
   let csr_value = "";
   if (
     get_quotation_request_value_(array_quotation_request, "試験種別") ==
-    get_s_p.getProperty("investigator_initiated_trial")
+    TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
   ) {
     csr_name = "CSRの作成支援";
     csr_value = 1;
@@ -366,7 +366,7 @@ function check_output_values() {
       get_quotation_request_value_(
         array_quotation_request,
         "研究結果報告書作成支援",
-      ) === "あり"
+      ) === COMMON_EXISTENCE_LABELS.YES
     ) {
       csr_value = 1;
     } else {
@@ -386,7 +386,7 @@ function check_output_values() {
         array_quotation_request,
         trialStartPreparationCost_name,
       ),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       facilities_value,
       0,
     ),
@@ -396,7 +396,7 @@ function check_output_values() {
     itemname: "症例登録",
     value: getValueIfMatch_(
       get_quotation_request_value_(array_quotation_request, "症例登録毎の支払"),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       number_of_cases_value,
       0,
     ),
@@ -409,7 +409,7 @@ function check_output_values() {
         array_quotation_request,
         "症例最終報告書提出毎の支払",
       ),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       number_of_cases_value,
       0,
     ),
@@ -422,13 +422,14 @@ function check_output_values() {
     itemname: "名古屋医療センターCRB申請費用(初年度)",
     value: getValueIfMatch_(
       get_quotation_request_value_(array_quotation_request, "CRB申請"),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       1,
       0,
     ),
   });
   const nagoyaMedicalCenterCRBApplicationFeeLaterYears_value =
-    get_quotation_request_value_(array_quotation_request, "CRB申請") === "あり"
+    get_quotation_request_value_(array_quotation_request, "CRB申請") ===
+    COMMON_EXISTENCE_LABELS.YES
       ? trial_year > 1
         ? trial_year - 1
         : 0
@@ -483,7 +484,7 @@ function check_output_values() {
         array_quotation_request,
         investigationalDrugTransport,
       ),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       facilities_value * trial_year,
       0,
     ),
@@ -497,7 +498,7 @@ function check_output_values() {
         array_quotation_request,
         investigationalDrugManagement,
       ),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       1,
       0,
     ),
@@ -511,7 +512,7 @@ function check_output_values() {
     get_quotation_request_value_(
       array_quotation_request,
       "研究協力費、負担軽減費配分管理",
-    ) === "あり"
+    ) === COMMON_EXISTENCE_LABELS.YES
       ? get_quotation_request_value_(
           array_quotation_request,
           "研究協力費、負担軽減費",

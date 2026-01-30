@@ -6,9 +6,13 @@
 function compareTotalSheetTotaltoVerticalTotal_() {
   const sheet = get_sheets();
   const GetRowCol = new GetTargetRowCol();
-  const goukeikingakuCol = GetRowCol.getTargetCol(sheet.total, 4, "金額");
+  const goukeikingakuCol = GetRowCol.getTargetCol(
+    sheet.total,
+    4,
+    ITEM_LABELS.AMMOUNT,
+  );
   const totalValues = sheet.total.getDataRange().getValues();
-  const sum = totalValues.filter((x) => x[1] === "合計")[0][
+  const sum = totalValues.filter((x) => x[1] === ITEM_LABELS.SUM)[0][
     goukeikingakuCol - 1
   ];
   const arrayGoukeikingaku = totalValues
@@ -79,7 +83,11 @@ class CompareTotal2Total3SheetVerticalTotalToHorizontal {
   }
   compareTotal() {
     const res = this.target.map((x) => {
-      const goukeiRowCol = this.getTargetRowCol(x, "合計", "合計");
+      const goukeiRowCol = this.getTargetRowCol(
+        x,
+        ITEM_LABELS.SUM,
+        ITEM_LABELS.SUM,
+      );
       const compareTarget = this.getVerticalHorizontalTotal(x, goukeiRowCol);
       return this.getComparisonResultEqual(compareTarget);
     });
@@ -93,10 +101,18 @@ class CompareTotal2Total3SheetVerticalTotalToHorizontal {
     // An error of 1 yen is acceptable.
     const res = this.target.map((x) => {
       const res = {};
-      const goukeiRowCol = this.getTargetRowCol(x, "合計", "合計");
+      const goukeiRowCol = this.getTargetRowCol(
+        x,
+        ITEM_LABELS.SUM,
+        ITEM_LABELS.SUM,
+      );
       res.verticalTotal =
         this.getVerticalTotal(x, goukeiRowCol) * (1 - this.discountRate);
-      const discountRowCol = this.getTargetRowCol(x, "特別値引後合計", "合計");
+      const discountRowCol = this.getTargetRowCol(
+        x,
+        "特別値引後合計",
+        ITEM_LABELS.SUM,
+      );
       res.horizontalTotal = this.getHorizontalTotal(x, discountRowCol);
       return res;
     });

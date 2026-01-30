@@ -1,23 +1,28 @@
-function setTargetInblanceValues_(scriptProps, patientRegistrationFee) {
-  const setupAndClosingExclusion = ["Setup", "Closing"];
+function setTargetInblanceValues_() {
+  const setupAndClosingExclusion = [
+    QUOTATION_SHEET_NAMES.SETUP,
+    QUOTATION_SHEET_NAMES.CLOSING,
+  ];
   const targetImbalance = [
     {
-      requestItemName: "1例あたりの実地モニタリング回数",
+      requestItemName:
+        QUOTATION_REQUEST_SHEET.ITEMNAMES.MONITORING_COUNT_PER_CASE,
       exclusionSheets: setupAndClosingExclusion,
-      targetItemName: "症例モニタリング・SAE対応",
-      multiplierItemName: scriptProps.getProperty("number_of_cases_itemname"),
+      targetItemName: ITEMS_SHEET.ITEMNAMES.MONITORING_COUNT_PER_CASE,
+      multiplierItemName: ITEM_LABELS.NUMBER_OF_CASES,
     },
     {
-      requestItemName: "監査対象施設数",
+      requestItemName:
+        QUOTATION_REQUEST_SHEET.ITEMNAMES.AUDIT_TARGET_FACILITIES,
       exclusionSheets: setupAndClosingExclusion,
-      targetItemName: "施設監査費用",
+      targetItemName: ITEMS_SHEET.ITEMNAMES.AUDIT_TARGET_FACILITIES,
       multiplierItemName: null,
     },
     {
-      requestItemName: patientRegistrationFee,
+      requestItemName: QUOTATION_REQUEST_SHEET.ITEMNAMES.REGISTRATION_FEE,
       exclusionSheets: setupAndClosingExclusion,
-      targetItemName: "症例登録",
-      multiplierItemName: scriptProps.getProperty("number_of_cases_itemname"),
+      targetItemName: ITEMS_SHEET.ITEMNAMES.REGISTRATION_FEE,
+      multiplierItemName: ITEM_LABELS.NUMBER_OF_CASES,
     },
   ];
   return targetImbalance;
@@ -25,23 +30,14 @@ function setTargetInblanceValues_(scriptProps, patientRegistrationFee) {
 function setImbalanceValues_(array_quotation_request) {
   // 年毎に設定する値が不均等である項目への対応
   const scriptProps = PropertiesService.getScriptProperties();
-  const patientRegistrationFee = "症例登録毎の支払";
-  const targetImbalance = setTargetInblanceValues_(
-    scriptProps,
-    patientRegistrationFee,
-  );
+  const targetImbalance = setTargetInblanceValues_();
   const target = buildImbalanceTargets_(
     array_quotation_request,
     targetImbalance,
-    patientRegistrationFee,
   );
   writeImbalanceValues_(target, targetImbalance, scriptProps);
 }
-function buildImbalanceTargets_(
-  array_quotation_request,
-  targetImbalance,
-  patientRegistrationFee,
-) {
+function buildImbalanceTargets_(array_quotation_request, targetImbalance) {
   const DividedItemsCount = new GetArrayDividedItemsCountAdd();
 
   return targetImbalance.map((config) => {
@@ -51,8 +47,11 @@ function buildImbalanceTargets_(
     );
 
     // 症例登録毎の支払は「あり、なし」で入力される
-    if (config.requestItemName === patientRegistrationFee) {
-      tempCount = tempCount === "あり" ? 1 : 0;
+    if (
+      config.requestItemName ===
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.REGISTRATION_FEE
+    ) {
+      tempCount = tempCount === COMMON_EXISTENCE_LABELS.YES ? 1 : 0;
     }
 
     const tempMultiplier = config.multiplierItemName
@@ -98,7 +97,7 @@ function writeImbalanceValues_(target, targetImbalance, scriptProps) {
 
         const sheetItems = get_fy_items_(
           targetSheet,
-          scriptProps.getProperty("fy_sheet_items_col"),
+          TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
         );
 
         const targetRow = sheetItems[targetImbalance[idx].targetItemName];
@@ -110,10 +109,7 @@ function writeImbalanceValues_(target, targetImbalance, scriptProps) {
         }
 
         targetSheet
-          .getRange(
-            targetRow,
-            parseInt(scriptProps.getProperty("fy_sheet_count_col"), 10),
-          )
+          .getRange(targetRow, TOTAL_AND_PHASE_SHEET.COLUMNS.COUNT)
           .setValue(targetSheetAndValue[VALUE_IDX]);
       });
     }

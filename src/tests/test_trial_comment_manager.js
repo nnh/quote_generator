@@ -1,17 +1,16 @@
 function testTrial_comment_manager() {
   const trialSheet =
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Trial");
-  const rangeA1 = PropertiesService.getScriptProperties().getProperty(
-    "trial_comment_range",
-  );
-  const commentRange = trialSheet.getRange(rangeA1);
+  const commentRange = trialSheet.getRange(TRIAL_SHEET.RANGES.COMMENT);
   const test1 = testHandleCrfWithCdisc_case1_(commentRange);
   const test2 = testHandleCrfWithCdisc_case2_(commentRange);
   const test3 = testHandleCrfWithCdisc_case3_(commentRange);
   const test4 = testHandleCrfWithCdisc_case4_(commentRange);
   const test5 = testHandleCrfWithCdisc_case5_(commentRange);
 }
-function getTestHandleCrfWithCdisc_QuotationRequestArray_(value = "あり") {
+function getTestHandleCrfWithCdisc_QuotationRequestArray_(
+  value = COMMON_EXISTENCE_LABELS.YES,
+) {
   return createTestQuotationRequestArrayWithColumn_(
     null,
     "AL",
@@ -79,7 +78,7 @@ function testHandleCrfWithCdisc_case1_(commentRange) {
   const testName = "CDISC対応あり、コメント削除して追加";
   return testHandleCrfWithCdisc_common_(
     commentRange,
-    "あり",
+    COMMON_EXISTENCE_LABELS.YES,
     beforeComments,
     expectedComments,
     testName,
@@ -112,7 +111,7 @@ function testHandleCrfWithCdisc_case2_(commentRange) {
   const testName = "CDISC対応あり、コメントが存在しない場合";
   return testHandleCrfWithCdisc_common_(
     commentRange,
-    "あり",
+    COMMON_EXISTENCE_LABELS.YES,
     beforeComments,
     expectedComments,
     testName,
@@ -150,7 +149,7 @@ function testHandleCrfWithCdisc_case3_(commentRange) {
   const testName = "CDISC対応あり、コメントが存在する場合";
   return testHandleCrfWithCdisc_common_(
     commentRange,
-    "あり",
+    COMMON_EXISTENCE_LABELS.YES,
     beforeComments,
     expectedComments,
     testName,
@@ -176,7 +175,7 @@ function testHandleCrfWithCdisc_case4_(commentRange) {
   const testName = "CDISC対応なし１";
   return testHandleCrfWithCdisc_common_(
     commentRange,
-    "なし",
+    COMMON_EXISTENCE_LABELS.NO,
     beforeComments,
     expectedComments,
     testName,
@@ -199,7 +198,7 @@ function testHandleCrfWithCdisc_case5_(commentRange) {
   const testName = "CDISC対応なし２";
   return testHandleCrfWithCdisc_common_(
     commentRange,
-    "なし",
+    COMMON_EXISTENCE_LABELS.NO,
     beforeComments,
     expectedComments,
     testName,

@@ -7,17 +7,23 @@ class SetSheetItemValues {
   constructor(sheetname, array_quotation_request) {
     this.sheetname = sheetname;
     this.array_quotation_request = array_quotation_request;
+    this.initTrialTerm_();
+    this.initTrialDates_();
+    this.initTargetColumn_();
+    // 企業原資または調整事務局の有無が「あり」または医師主導治験ならば事務局運営を積む
+    this.initClinicalTrialsOfficeFlg_();
+  }
+  initTrialTerm_() {
     const months_col = 5;
     const sheetname_col = 0;
-    const get_s_p = PropertiesService.getScriptProperties();
-    const trial_sheet =
-      SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Trial");
-    const const_trial_setup_row = parseInt(
-      get_s_p.getProperty("trial_setup_row"),
+
+    const trial_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+      TRIAL_SHEET.NAME,
     );
-    const const_trial_closing_row = parseInt(
-      get_s_p.getProperty("trial_closing_row"),
-    );
+
+    const const_trial_setup_row = TRIAL_SHEET.ROWS.TRIAL_SETUP;
+    const const_trial_closing_row = TRIAL_SHEET.ROWS.TRIAL_CLOSING;
+
     const trial_term_values = trial_sheet
       .getRange(
         const_trial_setup_row,
@@ -27,32 +33,51 @@ class SetSheetItemValues {
       )
       .getValues()
       .filter((x) => x[sheetname_col] == this.sheetname)[0];
+
     this.trial_target_terms = trial_term_values[months_col];
+    this.trial_term_values = trial_term_values;
+  }
+  initTrialDates_() {
+    const get_s_p = PropertiesService.getScriptProperties();
+
     this.trial_target_start_date = Moment.moment(
-      trial_term_values[parseInt(get_s_p.getProperty("trial_start_col")) - 1],
+      this.trial_term_values
+        ? this.trial_term_values[TRIAL_SHEET.COLUMNS.TRIAL_START - 1]
+        : undefined,
     );
+
     this.trial_target_end_date = Moment.moment(
-      trial_term_values[parseInt(get_s_p.getProperty("trial_end_col")) - 1],
+      this.trial_term_values
+        ? this.trial_term_values[TRIAL_SHEET.COLUMNS.TRIAL_END - 1]
+        : undefined,
     );
+
     this.trial_start_date = Moment.moment(
       get_s_p.getProperty("trial_start_date"),
     );
+
     this.trial_end_date = Moment.moment(get_s_p.getProperty("trial_end_date"));
-    const const_count_col = get_s_p.getProperty("fy_sheet_count_col");
+  }
+  initTargetColumn_() {
+    const const_count_col = TOTAL_AND_PHASE_SHEET.COLUMNS.COUNT;
     this.target_col = getColumnString_(const_count_col);
-    // 企業原資または調整事務局の有無が「あり」または医師主導治験ならば事務局運営を積む
+  }
+  initClinicalTrialsOfficeFlg_() {
+    const get_s_p = PropertiesService.getScriptProperties();
+
     this.clinical_trials_office_flg =
       get_s_p.getProperty("trial_type_value") ===
-        get_s_p.getProperty("investigator_initiated_trial") ||
+        TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED ||
       get_quotation_request_value_(
         this.array_quotation_request,
-        get_s_p.getProperty("coefficient"),
-      ) === get_s_p.getProperty("commercial_company_coefficient") ||
+        QUOTATION_REQUEST_SHEET.ITEMNAMES.COEFFICIENT,
+      ) === QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL ||
       get_quotation_request_value_(
         this.array_quotation_request,
-        "調整事務局設置の有無",
-      ) === "あり";
+        QUOTATION_REQUEST_SHEET.ITEMNAMES.ADJUSTMENT_OFFICE_EXISTENCE,
+      ) === COMMON_EXISTENCE_LABELS.YES;
   }
+
   get_registration_month_() {
     const registration_month =
       this.trial_target_terms > 12
@@ -76,10 +101,10 @@ class SetSheetItemValues {
   set_registration_term_items_(input_values) {
     const get_s_p = PropertiesService.getScriptProperties();
     if (
-      (this.sheetname == get_s_p.getProperty("setup_sheet_name") &&
+      (this.sheetname == QUOTATION_SHEET_NAMES.SETUP &&
         this.trial_target_terms <
           parseInt(get_s_p.getProperty("setup_term"))) ||
-      (this.sheetname == get_s_p.getProperty("closing_sheet_name") &&
+      (this.sheetname == QUOTATION_SHEET_NAMES.CLOSING &&
         this.trial_target_terms < parseInt(get_s_p.getProperty("closing_term")))
     ) {
       return input_values;
@@ -90,10 +115,9 @@ class SetSheetItemValues {
     let registration_clinical_trials_office = 0;
     if (this.clinical_trials_office_flg) {
       registration_clinical_trials_office = registration_month;
-      if (this.sheetname === get_s_p.getProperty("registration_1_sheet_name")) {
-        setup_clinical_trials_office = get_s_p.getProperty(
-          "reg1_setup_clinical_trials_office",
-        );
+      if (this.sheetname === QUOTATION_SHEET_NAMES.REGISTRATION_1) {
+        setup_clinical_trials_office =
+          Number(get_s_p.getProperty("reg1_setup_clinical_trials_office")) || 0;
       }
     }
     const central_monitoring =
@@ -140,7 +164,7 @@ class SetSheetItemValues {
       SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
     const array_item = get_fy_items_(
       target_sheet,
-      get_s_p.getProperty("fy_sheet_items_col"),
+      TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
     );
     target_items.forEach((target_item) => {
       const target_items_name = target_item[0];
@@ -153,39 +177,32 @@ class SetSheetItemValues {
     return array_count;
   }
   getTargetRange(sheetname) {
-    const target_sheet =
-      SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
-    const target_range = target_sheet.getRange(
-      this.target_col + ":" + this.target_col,
-    );
-    return target_range;
+    return getTargetCountRange_(sheetname, this.target_col);
   }
   getSheetValues(sheetname) {
-    const target_range = this.getTargetRange(sheetname);
-    return target_range.getValues();
+    return getTargetCountValues_(sheetname, this.target_col);
   }
   setSheetValues(sheetname, target_values) {
-    const target_range = this.getTargetRange(sheetname);
-    target_range.setValues(target_values);
+    setTargetCountValues_(sheetname, this.target_col, target_values);
   }
   set_all_sheet_exclude_setup_(input_values) {
     const get_s_p = PropertiesService.getScriptProperties();
-    if (this.sheetname == get_s_p.getProperty("setup_sheet_name")) {
+    if (this.sheetname == QUOTATION_SHEET_NAMES.SETUP) {
       const dummy = this.set_setup_term_("reg1_setup_database_management");
     }
     if (
-      this.sheetname == get_s_p.getProperty("setup_sheet_name") &&
+      this.sheetname == QUOTATION_SHEET_NAMES.SETUP &&
       this.trial_target_terms <= parseInt(get_s_p.getProperty("setup_term"))
     ) {
       return input_values;
     }
     let databaseManagementTerm =
       this.trial_target_terms < 12 ? this.trial_target_terms : 12;
-    if (this.sheetname == get_s_p.getProperty("setup_sheet_name")) {
+    if (this.sheetname == QUOTATION_SHEET_NAMES.SETUP) {
       databaseManagementTerm =
         databaseManagementTerm - parseInt(get_s_p.getProperty("setup_term"));
     }
-    if (this.sheetname === get_s_p.getProperty("registration_1_sheet_name")) {
+    if (this.sheetname === QUOTATION_SHEET_NAMES.REGISTRATION_1) {
       databaseManagementTerm =
         databaseManagementTerm -
         parseInt(get_s_p.getProperty("reg1_setup_database_management"));
@@ -222,7 +239,7 @@ class SetSheetItemValues {
   }
   set_setup_items_(input_values) {
     const get_s_p = PropertiesService.getScriptProperties();
-    if (this.sheetname != get_s_p.getProperty("setup_sheet_name")) {
+    if (this.sheetname != QUOTATION_SHEET_NAMES.SETUP) {
       return input_values;
     }
     // 医師主導治験のみ算定または名称が異なる項目に対応する
@@ -236,27 +253,27 @@ class SetSheetItemValues {
     // trial!C29が空白でない場合は初期アカウント設定数をC29から取得する
     const dm_irb =
       "=if(isblank(" +
-      get_s_p.getProperty("trial_sheet_name") +
+      TRIAL_SHEET.NAME +
       "!C" +
-      String(parseInt(get_s_p.getProperty("trial_const_facilities_row"))) +
+      String(TRIAL_SHEET.ROWS.FACILITIES) +
       "), " +
-      get_s_p.getProperty("trial_sheet_name") +
+      TRIAL_SHEET.NAME +
       "!B" +
-      String(parseInt(get_s_p.getProperty("trial_const_facilities_row"))) +
+      String(TRIAL_SHEET.ROWS.FACILITIES) +
       "," +
-      get_s_p.getProperty("trial_sheet_name") +
+      TRIAL_SHEET.NAME +
       "!C" +
-      String(parseInt(get_s_p.getProperty("trial_const_facilities_row"))) +
+      String(parseInt(TRIAL_SHEET.ROWS.TRIAL_CONST_FACILITIES)) +
       ")";
     if (
-      get_s_p.getProperty("trial_type_value") ==
-      get_s_p.getProperty("investigator_initiated_trial")
+      get_s_p.getProperty("trial_type_value") ===
+      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
     ) {
       sop = 1;
       office_irb_str = "IRB承認確認、施設管理";
-      office_irb = get_s_p.getProperty("function_facilities");
+      office_irb = FUNCTION_FORMULAS.FACILITIES;
       set_accounts = "初期アカウント設定（施設・ユーザー）";
-      drug_support = get_s_p.getProperty("function_facilities");
+      drug_support = FUNCTION_FORMULAS.FACILITIES;
     }
     const set_items_list = [
       ["プロトコルレビュー・作成支援", 1],
@@ -268,7 +285,7 @@ class SetSheetItemValues {
             this.array_quotation_request,
             "PMDA相談資料作成支援",
           ),
-          "あり",
+          COMMON_EXISTENCE_LABELS.YES,
           1,
         ),
       ],
@@ -279,16 +296,16 @@ class SetSheetItemValues {
             this.array_quotation_request,
             "AMED申請資料作成支援",
           ),
-          "あり",
+          COMMON_EXISTENCE_LABELS.YES,
           1,
         ),
       ],
       [
         "特定臨床研究法申請資料作成支援",
         returnIfEquals_(
-          get_s_p.getProperty("trial_type_value"),
-          get_s_p.getProperty("specified_clinical_trial"),
-          get_s_p.getProperty("function_facilities"),
+          TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE,
+          TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL,
+          FUNCTION_FORMULAS.FACILITIES,
         ),
       ],
       [
@@ -298,7 +315,7 @@ class SetSheetItemValues {
             this.array_quotation_request,
             "キックオフミーティング",
           ),
-          "あり",
+          COMMON_EXISTENCE_LABELS.YES,
           1,
         ),
       ],
@@ -341,8 +358,8 @@ class SetSheetItemValues {
             this.array_quotation_request,
             QUOTATION_REQUEST_SHEET.ITEMNAMES.PREPARE_FEE,
           ),
-          "あり",
-          get_s_p.getProperty("function_facilities"),
+          COMMON_EXISTENCE_LABELS.YES,
+          FUNCTION_FORMULAS.FACILITIES,
         ),
       ],
       [
@@ -363,7 +380,7 @@ class SetSheetItemValues {
             this.array_quotation_request,
             "治験薬管理",
           ),
-          "あり",
+          COMMON_EXISTENCE_LABELS.YES,
           1,
         ),
       ],
@@ -372,7 +389,7 @@ class SetSheetItemValues {
   }
   set_closing_items_(input_values) {
     const get_s_p = PropertiesService.getScriptProperties();
-    if (this.sheetname != get_s_p.getProperty("closing_sheet_name")) {
+    if (this.sheetname != QUOTATION_SHEET_NAMES.CLOSING) {
       return input_values;
     }
     // csrの作成支援は医師主導治験ならば必須
@@ -381,7 +398,7 @@ class SetSheetItemValues {
         this.array_quotation_request,
         "研究結果報告書作成支援",
       ),
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
       1,
     );
     // 医師主導治験のみ算定または名称が異なる項目に対応する
@@ -396,8 +413,8 @@ class SetSheetItemValues {
     let pmda_support = "";
     let audit_support = "";
     if (
-      get_s_p.getProperty("trial_type_value") ==
-      get_s_p.getProperty("investigator_initiated_trial")
+      get_s_p.getProperty("trial_type_value") ===
+      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
     ) {
       csr = "CSRの作成支援";
       csr_count = 1;
@@ -410,7 +427,7 @@ class SetSheetItemValues {
             this.array_quotation_request,
             "症例検討会",
           ),
-          "あり",
+          COMMON_EXISTENCE_LABELS.YES,
           1,
         ) > 0
       ) {
@@ -450,14 +467,14 @@ class SetSheetItemValues {
       ],
       [csr, csr_count],
       [
-        get_s_p.getProperty("cost_of_report_item"),
+        ITEMS_SHEET.ITEMNAMES.REPORT_FEE,
         returnIfEquals_(
           get_quotation_request_value_(
             this.array_quotation_request,
             QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE,
           ),
-          "あり",
-          get_s_p.getProperty("function_number_of_cases"),
+          COMMON_EXISTENCE_LABELS.YES,
+          FUNCTION_FORMULAS.NUMBER_OF_CASES,
         ),
       ],
       [
@@ -475,26 +492,25 @@ class SetSheetItemValues {
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
   set_registration_items_(input_values) {
-    const get_s_p = PropertiesService.getScriptProperties();
     if (
-      this.sheetname == get_s_p.getProperty("setup_sheet_name") ||
-      this.sheetname == get_s_p.getProperty("closing_sheet_name")
+      this.sheetname == QUOTATION_SHEET_NAMES.SETUP ||
+      this.sheetname == QUOTATION_SHEET_NAMES.CLOSING
     ) {
       return input_values;
     }
     let crb_first_year = "";
     let crb_after_second_year = "";
     // CRB申請費用
-    if (this.sheetname == get_s_p.getProperty("registration_1_sheet_name")) {
+    if (this.sheetname == QUOTATION_SHEET_NAMES.REGISTRATION_1) {
       crb_first_year = returnIfEquals_(
         get_quotation_request_value_(this.array_quotation_request, "CRB申請"),
-        "あり",
+        COMMON_EXISTENCE_LABELS.YES,
         1,
       );
     } else {
       crb_after_second_year = returnIfEquals_(
         get_quotation_request_value_(this.array_quotation_request, "CRB申請"),
-        "あり",
+        COMMON_EXISTENCE_LABELS.YES,
         1,
       );
     }
@@ -504,9 +520,7 @@ class SetSheetItemValues {
       "年間1施設あたりの必須文書実地モニタリング回数",
     );
     const essential_documents = Number.isInteger(essential_documents_count)
-      ? get_s_p.getProperty("function_facilities") +
-        " * " +
-        essential_documents_count
+      ? FUNCTION_FORMULAS.FACILITIES + " * " + essential_documents_count
       : "";
     const set_items_list = [
       ["名古屋医療センターCRB申請費用(初年度)", crb_first_year],
@@ -518,8 +532,8 @@ class SetSheetItemValues {
             this.array_quotation_request,
             "治験薬運搬",
           ),
-          "あり",
-          get_s_p.getProperty("function_facilities"),
+          COMMON_EXISTENCE_LABELS.YES,
+          FUNCTION_FORMULAS.FACILITIES,
         ),
       ],
       ["開始前モニタリング・必須文書確認", essential_documents],
@@ -531,8 +545,8 @@ class SetSheetItemValues {
     const dataCleaning_before = this.getTargetItemCount("データクリーニング");
     const dataCleaning = dataCleaning_before > 0 ? dataCleaning_before + 1 : 1;
     const interimAnalysis =
-      get_s_p.getProperty("trial_type_value") ==
-      get_s_p.getProperty("investigator_initiated_trial")
+      get_s_p.getProperty("trial_type_value") ===
+      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
         ? "中間解析プログラム作成、解析実施（ダブル）"
         : "中間解析プログラム作成、解析実施（シングル）";
     const interimTableCount = get_quotation_request_value_(
@@ -554,18 +568,7 @@ class SetSheetItemValues {
    * @return {number} 回数
    */
   getTargetItemCount(itemname) {
-    const get_s_p = PropertiesService.getScriptProperties();
-    const targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      this.sheetname,
-    );
-    const targetRow = get_row_num_matched_value_(
-      targetSheet,
-      get_s_p.getProperty("fy_sheet_items_col"),
-      itemname,
-    );
-    return targetSheet
-      .getRange(targetRow, parseInt(get_s_p.getProperty("fy_sheet_count_col")))
-      .getValue();
+    return getTargetItemCount_(this.sheetname, itemname);
   }
 }
 /**

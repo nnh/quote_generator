@@ -5,51 +5,32 @@
  */
 function get_sheets() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const get_s_p = PropertiesService.getScriptProperties();
-  let sheet = {
-    trial: ss.getSheetByName(get_s_p.getProperty("trial_sheet_name")),
+  const sheet = {
+    trial: ss.getSheetByName(QUOTATION_SHEET_NAMES.TRIAL),
     quotation_request: ss.getSheetByName(
-      get_s_p.getProperty("quotation_request_sheet_name"),
+      QUOTATION_SHEET_NAMES.QUOTATION_REQUEST,
     ),
-    total: ss.getSheetByName(get_s_p.getProperty("total_sheet_name")),
-    total2: ss.getSheetByName(get_s_p.getProperty("total2_sheet_name")),
-    total3: ss.getSheetByName(get_s_p.getProperty("total3_sheet_name")),
-    setup: ss.getSheetByName(get_s_p.getProperty("setup_sheet_name")),
-    registration_1: ss.getSheetByName(
-      get_s_p.getProperty("registration_1_sheet_name"),
-    ),
-    registration_2: ss.getSheetByName(
-      get_s_p.getProperty("registration_2_sheet_name"),
-    ),
-    interim_1: ss.getSheetByName(get_s_p.getProperty("interim_1_sheet_name")),
-    observation_1: ss.getSheetByName(
-      get_s_p.getProperty("observation_1_sheet_name"),
-    ),
-    interim_2: ss.getSheetByName(get_s_p.getProperty("interim_2_sheet_name")),
-    observation_2: ss.getSheetByName(
-      get_s_p.getProperty("observation_2_sheet_name"),
-    ),
-    closing: ss.getSheetByName(get_s_p.getProperty("closing_sheet_name")),
-    items: ss.getSheetByName(get_s_p.getProperty("items_sheet_name")),
-    quote: ss.getSheetByName(get_s_p.getProperty("quote_sheet_name")),
-    check: ss.getSheetByName(get_s_p.getProperty("value_check_sheet_name")),
+    total: ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL),
+    total2: ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2),
+    total3: ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL3),
+    setup: ss.getSheetByName(QUOTATION_SHEET_NAMES.SETUP),
+    registration_1: ss.getSheetByName(QUOTATION_SHEET_NAMES.REGISTRATION_1),
+    registration_2: ss.getSheetByName(QUOTATION_SHEET_NAMES.REGISTRATION_2),
+    interim_1: ss.getSheetByName(QUOTATION_SHEET_NAMES.INTERIM_1),
+    observation_1: ss.getSheetByName(QUOTATION_SHEET_NAMES.OBSERVATION_1),
+    interim_2: ss.getSheetByName(QUOTATION_SHEET_NAMES.INTERIM_2),
+    observation_2: ss.getSheetByName(QUOTATION_SHEET_NAMES.OBSERVATION_2),
+    closing: ss.getSheetByName(QUOTATION_SHEET_NAMES.CLOSING),
+    items: ss.getSheetByName(QUOTATION_SHEET_NAMES.ITEMS),
+    quote: ss.getSheetByName(QUOTATION_SHEET_NAMES.QUOTE),
+    check: ss.getSheetByName(VALIDATION_CHECK_SHEET_NAME),
   };
-  const temp_sheet = ss.getSheetByName(
-    get_s_p.getProperty("total_nmc_sheet_name"),
-  );
+  const temp_sheet = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_NMC);
   if (temp_sheet != null) {
-    sheet.total_nmc = ss.getSheetByName(
-      get_s_p.getProperty("total_nmc_sheet_name"),
-    );
-    sheet.total2_nmc = ss.getSheetByName(
-      get_s_p.getProperty("total2_nmc_sheet_name"),
-    );
-    sheet.total_oscr = ss.getSheetByName(
-      get_s_p.getProperty("total_oscr_sheet_name"),
-    );
-    sheet.total2_oscr = ss.getSheetByName(
-      get_s_p.getProperty("total2_oscr_sheet_name"),
-    );
+    sheet.total_nmc = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_NMC);
+    sheet.total2_nmc = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2_NMC);
+    sheet.total_oscr = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_OSCR);
+    sheet.total2_oscr = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2_OSCR);
   }
   return sheet;
 }

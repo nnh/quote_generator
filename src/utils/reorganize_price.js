@@ -3,12 +3,10 @@
  */
 class CopyItemsSheet {
   constructor() {
-    this.itemsSheetName =
-      PropertiesService.getScriptProperties().getProperty("items_sheet_name");
+    this.itemsSheetName = QUOTATION_SHEET_NAMES.ITEMS;
     if (this.itemsSheetName === null) {
       initial_process();
-      this.itemsSheetName =
-        PropertiesService.getScriptProperties().getProperty("items_sheet_name");
+      this.itemsSheetName = QUOTATION_SHEET_NAMES.ITEMS;
     }
     this.itemsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
       this.itemsSheetName,
@@ -17,7 +15,7 @@ class CopyItemsSheet {
       .getRange(1, 1, this.itemsSheet.getLastRow(), 1)
       .getValues()
       .flat()
-      .indexOf("合計");
+      .indexOf(ITEM_LABELS.SUM);
     this.setInSheetFormulaList = 0;
     this.arrayLastIndex = 0;
   }

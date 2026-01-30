@@ -25,15 +25,14 @@ function get_years_(start_date, end_date) {
 function getTrialTermInfo_() {
   // Trialシートの試験期間年数列
   const trialTermCol = 3;
-  const get_s_p = PropertiesService.getScriptProperties();
   const sheets = get_sheets();
   if (!sheets || !sheets.trial) {
     throw new Error("Trial シートが取得できません");
   }
   const trialSheet = sheets.trial;
 
-  const setupRow = parseInt(get_s_p.getProperty("trial_setup_row"), 10);
-  const closingRow = parseInt(get_s_p.getProperty("trial_closing_row"), 10);
+  const setupRow = TRIAL_SHEET.ROWS.TRIAL_SETUP;
+  const closingRow = TRIAL_SHEET.ROWS.TRIAL_CLOSING;
 
   if (isNaN(setupRow) || isNaN(closingRow)) {
     throw new Error(

@@ -216,7 +216,7 @@ function testImbalance_patientRegistration_case1() {
     null,
     "AJ",
     "症例登録毎の支払",
-    "あり",
+    COMMON_EXISTENCE_LABELS.YES,
   );
   const quotationRequestData = createTestQuotationRequestArrayWithColumn_(
     temp,
@@ -267,7 +267,7 @@ function testImbalance_patientRegistration_case2() {
     null,
     "AJ",
     "症例登録毎の支払",
-    "あり",
+    COMMON_EXISTENCE_LABELS.YES,
   );
   const quotationRequestData = createTestQuotationRequestArrayWithColumn_(
     temp,

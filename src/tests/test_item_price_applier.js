@@ -46,9 +46,9 @@ function testResearchSupportFee() {
   testResearchSupportFee_(
     3000000,
     new Map([
-      ["prepareFee", "なし"],
-      ["caseRegistrationFee", "なし"],
-      ["finalReportFee", "なし"],
+      ["prepareFee", COMMON_EXISTENCE_LABELS.NO],
+      ["caseRegistrationFee", COMMON_EXISTENCE_LABELS.NO],
+      ["finalReportFee", COMMON_EXISTENCE_LABELS.NO],
       ["targetCases", 10],
       ["facilities", 10],
     ]),
@@ -63,9 +63,9 @@ function testResearchSupportFee() {
   testResearchSupportFee_(
     3000000,
     new Map([
-      ["prepareFee", "あり"],
-      ["caseRegistrationFee", "なし"],
-      ["finalReportFee", "なし"],
+      ["prepareFee", COMMON_EXISTENCE_LABELS.YES],
+      ["caseRegistrationFee", COMMON_EXISTENCE_LABELS.NO],
+      ["finalReportFee", COMMON_EXISTENCE_LABELS.NO],
       ["targetCases", 10],
       ["facilities", 10],
     ]),
@@ -80,9 +80,9 @@ function testResearchSupportFee() {
   testResearchSupportFee_(
     3000000,
     new Map([
-      ["prepareFee", "なし"],
-      ["caseRegistrationFee", "あり"],
-      ["finalReportFee", "なし"],
+      ["prepareFee", COMMON_EXISTENCE_LABELS.NO],
+      ["caseRegistrationFee", COMMON_EXISTENCE_LABELS.YES],
+      ["finalReportFee", COMMON_EXISTENCE_LABELS.NO],
       ["targetCases", 10],
       ["facilities", 10],
     ]),
@@ -97,9 +97,9 @@ function testResearchSupportFee() {
   testResearchSupportFee_(
     3000000,
     new Map([
-      ["prepareFee", "なし"],
-      ["caseRegistrationFee", "なし"],
-      ["finalReportFee", "あり"],
+      ["prepareFee", COMMON_EXISTENCE_LABELS.NO],
+      ["caseRegistrationFee", COMMON_EXISTENCE_LABELS.NO],
+      ["finalReportFee", COMMON_EXISTENCE_LABELS.YES],
       ["targetCases", 10],
       ["facilities", 10],
     ]),
@@ -114,9 +114,9 @@ function testResearchSupportFee() {
   testResearchSupportFee_(
     3000000,
     new Map([
-      ["prepareFee", "あり"],
-      ["caseRegistrationFee", "なし"],
-      ["finalReportFee", "あり"],
+      ["prepareFee", COMMON_EXISTENCE_LABELS.YES],
+      ["caseRegistrationFee", COMMON_EXISTENCE_LABELS.NO],
+      ["finalReportFee", COMMON_EXISTENCE_LABELS.YES],
       ["targetCases", 10],
       ["facilities", 10],
     ]),
@@ -131,9 +131,9 @@ function testResearchSupportFee() {
   testResearchSupportFee_(
     3000000,
     new Map([
-      ["prepareFee", "なし"],
-      ["caseRegistrationFee", "あり"],
-      ["finalReportFee", "あり"],
+      ["prepareFee", COMMON_EXISTENCE_LABELS.NO],
+      ["caseRegistrationFee", COMMON_EXISTENCE_LABELS.YES],
+      ["finalReportFee", COMMON_EXISTENCE_LABELS.YES],
       ["targetCases", 10],
       ["facilities", 10],
     ]),
@@ -148,9 +148,9 @@ function testResearchSupportFee() {
   testResearchSupportFee_(
     3000000,
     new Map([
-      ["prepareFee", "あり"],
-      ["caseRegistrationFee", "あり"],
-      ["finalReportFee", "あり"],
+      ["prepareFee", COMMON_EXISTENCE_LABELS.YES],
+      ["caseRegistrationFee", COMMON_EXISTENCE_LABELS.YES],
+      ["finalReportFee", COMMON_EXISTENCE_LABELS.YES],
       ["targetCases", 10],
       ["facilities", 10],
     ]),
@@ -166,9 +166,9 @@ function testResearchSupportFee() {
   testResearchSupportFee_(
     0,
     new Map([
-      ["prepareFee", "あり"],
-      ["caseRegistrationFee", "あり"],
-      ["finalReportFee", "あり"],
+      ["prepareFee", COMMON_EXISTENCE_LABELS.YES],
+      ["caseRegistrationFee", COMMON_EXISTENCE_LABELS.YES],
+      ["finalReportFee", COMMON_EXISTENCE_LABELS.YES],
       ["targetCases", 10],
       ["facilities", 10],
     ]),
@@ -183,9 +183,9 @@ function testResearchSupportFee() {
   testResearchSupportFee_(
     "",
     new Map([
-      ["prepareFee", "あり"],
-      ["caseRegistrationFee", "あり"],
-      ["finalReportFee", "あり"],
+      ["prepareFee", COMMON_EXISTENCE_LABELS.YES],
+      ["caseRegistrationFee", COMMON_EXISTENCE_LABELS.YES],
+      ["finalReportFee", COMMON_EXISTENCE_LABELS.YES],
       ["targetCases", 10],
       ["facilities", 10],
     ]),
@@ -201,9 +201,9 @@ function testResearchSupportFee() {
   testResearchSupportFee_(
     0,
     new Map([
-      ["prepareFee", "なし"],
-      ["caseRegistrationFee", "なし"],
-      ["finalReportFee", "なし"],
+      ["prepareFee", COMMON_EXISTENCE_LABELS.NO],
+      ["caseRegistrationFee", COMMON_EXISTENCE_LABELS.NO],
+      ["finalReportFee", COMMON_EXISTENCE_LABELS.NO],
       ["targetCases", 10],
       ["facilities", 10],
     ]),
@@ -218,9 +218,9 @@ function testResearchSupportFee() {
   testResearchSupportFee_(
     "",
     new Map([
-      ["prepareFee", "なし"],
-      ["caseRegistrationFee", "なし"],
-      ["finalReportFee", "なし"],
+      ["prepareFee", COMMON_EXISTENCE_LABELS.NO],
+      ["caseRegistrationFee", COMMON_EXISTENCE_LABELS.NO],
+      ["finalReportFee", COMMON_EXISTENCE_LABELS.NO],
       ["targetCases", 10],
       ["facilities", 10],
     ]),

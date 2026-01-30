@@ -12,19 +12,19 @@ function initCheckSheet_() {
     .getValues();
   const facilities_value = get_quotation_request_value_(
     array_quotation_request,
-    get_s_p.getProperty("facilities_itemname"),
+    ITEM_LABELS.FACILITIES,
   );
   const number_of_cases_value = get_quotation_request_value_(
     array_quotation_request,
-    get_s_p.getProperty("number_of_cases_itemname"),
+    ITEM_LABELS.NUMBER_OF_CASES,
   );
   const target_total = {
     sheet: sheet.total,
     array_item: get_fy_items_(
       sheet.total,
-      get_s_p.getProperty("fy_sheet_items_col"),
+      TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
     ),
-    col: parseInt(get_s_p.getProperty("fy_sheet_count_col")),
+    col: TOTAL_AND_PHASE_SHEET.COLUMNS.COUNT,
     footer: null,
   };
   const target_total_ammount = {
@@ -76,15 +76,15 @@ function calculateSetupAndClosingMonths(array_quotation_request, get_s_p) {
     get_quotation_request_value_(
       array_quotation_request,
       "研究結果報告書作成支援",
-    ) === "あり";
+    ) === COMMON_EXISTENCE_LABELS.YES;
 
   let setup_month = 3;
   let closing_month = 3;
 
   // 医師主導治験または特定臨床研究の場合
   if (
-    trial_type === get_s_p.getProperty("investigator_initiated_trial") ||
-    trial_type === get_s_p.getProperty("specified_clinical_trial")
+    trial_type === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED ||
+    trial_type === TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL_TRIAL
   ) {
     setup_month = 6;
     closing_month = 6;
@@ -115,23 +115,23 @@ function compareTotalAmounts_(sheet, output_row) {
   const total_total_ammount = get_total_amount({
     sheet: sheet.total,
     item_cols: "B:B",
-    total_row_itemname: "合計",
+    total_row_itemname: ITEM_LABELS.SUM,
     header_row: 4,
-    total_col_itemname: "金額",
+    total_col_itemname: ITEM_LABELS.AMMOUNT,
   });
   const total2_total_ammount = get_total_amount({
     sheet: sheet.total2,
     item_cols: "B:B",
-    total_row_itemname: "合計",
+    total_row_itemname: ITEM_LABELS.SUM,
     header_row: 4,
-    total_col_itemname: "合計",
+    total_col_itemname: ITEM_LABELS.SUM,
   });
   const total3_total_ammount = get_total_amount({
     sheet: sheet.total3,
     item_cols: "B:B",
-    total_row_itemname: "合計",
+    total_row_itemname: ITEM_LABELS.SUM,
     header_row: 3,
-    total_col_itemname: "合計",
+    total_col_itemname: ITEM_LABELS.SUM,
   });
   const ammount_check = [null, "Total, Total2, Total3の合計金額チェック"];
   if (
@@ -160,17 +160,17 @@ function checkQuotationOfficeOperationItems_(
   let temp_value = 0;
   if (
     (get_quotation_request_value_(array_quotation_request, "試験種別") ==
-      get_s_p.getProperty("investigator_initiated_trial")) |
+      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED) |
     (get_quotation_request_value_(
       array_quotation_request,
       "調整事務局設置の有無",
     ) ==
-      "あり") |
+      COMMON_EXISTENCE_LABELS.YES) |
     (get_quotation_request_value_(
       array_quotation_request,
-      get_s_p.getProperty("coefficient"),
+      ITEM_LABELS.FUNDING_SOURCE_LABEL,
     ) ==
-      get_s_p.getProperty("commercial_company_coefficient"))
+      QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL)
   ) {
     temp_value = trial_months;
     office_count = 1;

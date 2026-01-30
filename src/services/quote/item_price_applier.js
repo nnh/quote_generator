@@ -87,7 +87,7 @@ function processResearchSupportFee_(array_quotation_request, itemSheet) {
 
     if (
       get_quotation_request_value_(array_quotation_request, requestKey) ===
-      "あり"
+      COMMON_EXISTENCE_LABELS.YES
     ) {
       const unit = itemSheet.getRange(items_row, itemUnitColNumber).getValue();
       const price = calculatePriceByUnit_(
@@ -118,7 +118,7 @@ function countEnabledItems_(array_quotation_request, itemMappings) {
   return itemMappings.filter(
     ([requestKey]) =>
       get_quotation_request_value_(array_quotation_request, requestKey) ===
-      "あり",
+      COMMON_EXISTENCE_LABELS.YES,
   ).length;
 }
 /**

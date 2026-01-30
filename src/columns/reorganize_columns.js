@@ -5,17 +5,15 @@
  * @return none
  */
 function show_hidden_cols(target_sheet) {
-  const get_s_p = PropertiesService.getScriptProperties();
   // 「合計」行を取得
   const goukei_row = get_goukei_row(target_sheet);
   // 「合計」列を取得
-  const goukei_col = get_years_target_col(target_sheet, "合計");
+  const goukei_col = get_years_target_col(target_sheet, ITEM_LABELS.SUM);
   // 「Setup」列を取得
   const add_del = new Add_del_columns(target_sheet);
   const header_t = add_del.get_setup_closing_range();
   if (!header_t) return;
-  const setup_col =
-    header_t.indexOf(get_s_p.getProperty("setup_sheet_name")) + 1;
+  const setup_col = header_t.indexOf(QUOTATION_SHEET_NAMES.SETUP) + 1;
   // 「Setup」〜「合計」直前までの合計行を一括取得
   const width = goukei_col - setup_col;
   const values = target_sheet
@@ -51,13 +49,9 @@ function total2_3_show_hidden_cols() {
  * @return {number}
  */
 function get_years_target_col(sheet, target_str) {
-  const props = PropertiesService.getScriptProperties();
-
-  const target_row = sheet
-    .getName()
-    .includes(props.getProperty("total2_sheet_name"))
+  const target_row = sheet.getName().includes(QUOTATION_SHEET_NAMES.TOTAL2)
     ? 4
-    : sheet.getName().includes(props.getProperty("total3_sheet_name"))
+    : sheet.getName().includes(QUOTATION_SHEET_NAMES.TOTAL3)
       ? 3
       : null;
 
@@ -78,13 +72,9 @@ function get_years_target_col(sheet, target_str) {
  * @return {number}
  */
 function get_goukei_row(sheet) {
-  const props = PropertiesService.getScriptProperties();
-
-  const target_col = sheet
-    .getName()
-    .includes(props.getProperty("total2_sheet_name"))
+  const target_col = sheet.getName().includes(QUOTATION_SHEET_NAMES.TOTAL2)
     ? 2
-    : sheet.getName().includes(props.getProperty("total3_sheet_name"))
+    : sheet.getName().includes(QUOTATION_SHEET_NAMES.TOTAL3)
       ? 2
       : null;
 
@@ -95,7 +85,7 @@ function get_goukei_row(sheet) {
 
   // 先頭から順に探して、見つかった瞬間に返す
   for (let i = 0; i < values.length; i++) {
-    if (values[i][0] === "合計") {
+    if (values[i][0] === ITEM_LABELS.SUM) {
       return i + 1; // 行番号は1始まり
     }
   }
@@ -143,19 +133,14 @@ function total2_3_add_del_cols() {
  * @return {[sheet]}
  */
 function extract_target_sheet() {
-  const props = PropertiesService.getScriptProperties();
   const sheets = get_sheets(); // 全シートの辞書
 
   const totalNames = [
-    props.getProperty("total2_sheet_name").toLowerCase(),
-    props.getProperty("total3_sheet_name").toLowerCase(),
+    QUOTATION_SHEET_NAMES.TOTAL2.toLowerCase(),
+    QUOTATION_SHEET_NAMES.TOTAL3.toLowerCase(),
   ];
 
-  const suffixes = [
-    "",
-    "_" + props.getProperty("name_nmc"),
-    "_" + props.getProperty("name_oscr"),
-  ];
+  const suffixes = ["", `_${ORG.NMC}`, `_${ORG.OSCR}`];
 
   const result = [];
 

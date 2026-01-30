@@ -56,7 +56,6 @@ function ssToPdf() {
   // Total2, Total3シートの合計0円の列を非表示に、0円以上の列を表示にする
   total2_3_show_hidden_cols();
   const output_folder = DriveApp.getRootFolder();
-  const get_s_p = PropertiesService.getScriptProperties();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const const_page_fit = 4;
   const const_vertical = true;
@@ -64,18 +63,10 @@ function ssToPdf() {
   // Setup〜Closingシートを取得
   var target_sheets = get_target_term_sheets();
   // Quote, Total, Total2, Total3を追加
-  target_sheets.push(
-    ss.getSheetByName(get_s_p.getProperty("quote_sheet_name")),
-  );
-  target_sheets.push(
-    ss.getSheetByName(get_s_p.getProperty("total_sheet_name")),
-  );
-  target_sheets.push(
-    ss.getSheetByName(get_s_p.getProperty("total2_sheet_name")),
-  );
-  target_sheets.push(
-    ss.getSheetByName(get_s_p.getProperty("total3_sheet_name")),
-  );
+  target_sheets.push(ss.getSheetByName(QUOTATION_SHEET_NAMES.QUOTE));
+  target_sheets.push(ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL));
+  target_sheets.push(ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2));
+  target_sheets.push(ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL3));
   var pdf_settings_all_sheets = {
     sheet_name: null,
     portrait: const_vertical,
@@ -86,28 +77,26 @@ function ssToPdf() {
   create_pdf_total_book_(target_sheets, pdf_settings_all_sheets);
   // nmc
   const target_sheet_nmc = [
-    ss.getSheetByName(get_s_p.getProperty("quote_nmc_sheet_name")),
-    ss.getSheetByName(get_s_p.getProperty("total_nmc_sheet_name")),
-    ss.getSheetByName(get_s_p.getProperty("total2_nmc_sheet_name")),
+    ss.getSheetByName(QUOTATION_REQUEST_SHEET_NAMES.QUOTE_NMC),
+    ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_NMC),
+    ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2_NMC),
   ];
-  pdf_settings_all_sheets.pdf_name =
-    ss.getName() + "_" + get_s_p.getProperty("name_nmc");
+  pdf_settings_all_sheets.pdf_name = ss.getName() + "_" + ORG.NMC;
   create_pdf_total_book_(target_sheet_nmc, pdf_settings_all_sheets);
   // oscr
   const target_sheet_oscr = [
-    ss.getSheetByName(get_s_p.getProperty("quote_oscr_sheet_name")),
-    ss.getSheetByName(get_s_p.getProperty("total_oscr_sheet_name")),
-    ss.getSheetByName(get_s_p.getProperty("total2_oscr_sheet_name")),
+    ss.getSheetByName(QUOTATION_SHEET_NAMES.QUOTE_OSCR),
+    ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_OSCR),
+    ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2_OSCR),
   ];
-  pdf_settings_all_sheets.pdf_name =
-    ss.getName() + "_" + get_s_p.getProperty("name_oscr");
+  pdf_settings_all_sheets.pdf_name = ss.getName() + "_" + ORG.OSCR;
   create_pdf_total_book_(target_sheet_oscr, pdf_settings_all_sheets);
   // Total2, Total3横を出力
   const target_sheets_name_horizontal = [
-    get_s_p.getProperty("total2_sheet_name"),
-    get_s_p.getProperty("total3_sheet_name"),
-    get_s_p.getProperty("total2_nmc_sheet_name"),
-    get_s_p.getProperty("total2_oscr_sheet_name"),
+    QUOTATION_SHEET_NAMES.TOTAL2,
+    QUOTATION_SHEET_NAMES.TOTAL3,
+    QUOTATION_SHEET_NAMES.TOTAL2_NMC,
+    QUOTATION_SHEET_NAMES.TOTAL2_OSCR,
   ];
   target_sheets_name_horizontal.map(function (x) {
     if (!ss.getSheetByName(x).isSheetHidden()) {

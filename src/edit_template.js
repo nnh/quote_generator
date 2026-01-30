@@ -9,7 +9,7 @@ function add_items(item_str, target_row, target_col) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const get_s_p = PropertiesService.getScriptProperties();
   // itemsシート
-  var target_sheet = ss.getSheetByName(get_s_p.getProperty("items_sheet_name"));
+  var target_sheet = ss.getSheetByName(QUOTATION_SHEET_NAMES.ITEMS);
   copy_formulas_to_inserted_line(target_sheet, target_row, null);
   target_sheet.getRange(target_row, target_col).clearDataValidations();
   target_sheet.getRange(target_row, target_col).setValue(item_str);
@@ -20,31 +20,31 @@ function add_items(item_str, target_row, target_col) {
     copy_formulas_to_inserted_line(ss.getSheetByName(x), target_row - 1, null);
   });
   target_sheetnames = [
-    get_s_p.getProperty("total_sheet_name"),
-    get_s_p.getProperty("total2_sheet_name"),
-    get_s_p.getProperty("total3_sheet_name"),
-    get_s_p.getProperty("setup_sheet_name"),
-    get_s_p.getProperty("registration_1_sheet_name"),
-    get_s_p.getProperty("registration_2_sheet_name"),
-    get_s_p.getProperty("interim_1_sheet_name"),
-    get_s_p.getProperty("observation_1_sheet_name"),
-    get_s_p.getProperty("interim_2_sheet_name"),
-    get_s_p.getProperty("observation_2_sheet_name"),
-    get_s_p.getProperty("closing_sheet_name"),
+    QUOTATION_SHEET_NAMES.TOTAL,
+    QUOTATION_SHEET_NAMES.TOTAL2,
+    QUOTATION_SHEET_NAMES.TOTAL3,
+    QUOTATION_SHEET_NAMES.SETUP,
+    QUOTATION_SHEET_NAMES.REGISTRATION_1,
+    QUOTATION_SHEET_NAMES.REGISTRATION_2,
+    QUOTATION_SHEET_NAMES.INTERIM_1,
+    QUOTATION_SHEET_NAMES.OBSERVATION_1,
+    QUOTATION_SHEET_NAMES.INTERIM_2,
+    QUOTATION_SHEET_NAMES.OBSERVATION_2,
+    QUOTATION_SHEET_NAMES.CLOSING,
   ];
   var temp = target_sheetnames.map(function (x) {
     copy_formulas_to_inserted_line(ss.getSheetByName(x), target_row + 2, null);
   });
   // totalシートの数式再セット
   temp_sheet_t = [
-    get_s_p.getProperty("setup_sheet_name"),
-    get_s_p.getProperty("registration_1_sheet_name"),
-    get_s_p.getProperty("registration_2_sheet_name"),
-    get_s_p.getProperty("interim_1_sheet_name"),
-    get_s_p.getProperty("observation_1_sheet_name"),
-    get_s_p.getProperty("interim_2_sheet_name"),
-    get_s_p.getProperty("observation_2_sheet_name"),
-    get_s_p.getProperty("closing_sheet_name"),
+    QUOTATION_SHEET_NAMES.SETUP,
+    QUOTATION_SHEET_NAMES.REGISTRATION_1,
+    QUOTATION_SHEET_NAMES.REGISTRATION_2,
+    QUOTATION_SHEET_NAMES.INTERIM_1,
+    QUOTATION_SHEET_NAMES.OBSERVATION_1,
+    QUOTATION_SHEET_NAMES.INTERIM_2,
+    QUOTATION_SHEET_NAMES.OBSERVATION_2,
+    QUOTATION_SHEET_NAMES.CLOSING,
   ];
   reconfigure_total(temp_sheet_t, target_row + 2);
 }
@@ -84,13 +84,10 @@ function copy_formulas_to_inserted_line(sheet, target_row, ref_row) {
  * @return none
  */
 function reconfigure_total(array_sheet, target_row) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const get_s_p = PropertiesService.getScriptProperties();
-  const const_trial_setup_row = get_s_p.getProperty("trial_setup_row");
-  const const_trial_years_col = get_s_p.getProperty("trial_years_col");
-  const const_count_col = get_s_p.getProperty("fy_sheet_count_col");
+  const const_trial_setup_row = TRIAL_SHEET.ROWS.TRIAL_SETUP;
+  const const_trial_years_col = TRIAL_SHEET.COLUMNS.TRIAL_YEARS;
+  const const_count_col = TOTAL_AND_PHASE_SHEET.COLUMNS.COUNT;
   const sheet = get_sheets();
-  const const_start_row = 4;
   var trial_cell_addr, temp_str;
   var i = target_row;
   temp_str = "=";
