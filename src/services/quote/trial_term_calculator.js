@@ -277,3 +277,41 @@ function get_trial_start_end_date_(
 
   return dates.sheetDateArray;
 }
+/**
+ * 登録月数を計算する
+ * Moment 依存あり
+ */
+function calcRegistrationMonth_({
+  trial_target_terms,
+  trial_start_date,
+  trial_end_date,
+  trial_target_start_date,
+  trial_target_end_date,
+}) {
+  if (trial_target_terms > 12) {
+    return 12;
+  }
+
+  if (
+    trial_start_date <= trial_target_start_date &&
+    trial_target_end_date <= trial_end_date
+  ) {
+    return trial_target_terms;
+  }
+
+  if (trial_target_start_date < trial_start_date) {
+    return trial_target_end_date
+      .clone()
+      .add(1, "days")
+      .diff(trial_start_date, "months");
+  }
+
+  if (trial_end_date < trial_target_end_date) {
+    return trial_end_date
+      .clone()
+      .add(1, "days")
+      .diff(trial_target_start_date, "months");
+  }
+
+  return "";
+}

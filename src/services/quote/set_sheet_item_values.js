@@ -1,42 +1,27 @@
 /**
  * 年度別シート値設定クラス
  * - class SetSheetItemValues
- * - setInterimAnalysis
  */
 class SetSheetItemValues {
   constructor(sheetname, array_quotation_request) {
     this.sheetname = sheetname;
     this.array_quotation_request = array_quotation_request;
-    this.initTrialTerm_();
-    this.initTrialDates_();
-    this.initTargetColumn_();
+    const trialTerm = getTrialTerm_(this.sheetname);
+    this.trial_target_terms = trialTerm.trial_target_terms;
+    this.trial_term_values = trialTerm.trial_term_values;
+    //initSetSheetItemValues_(this);
+    const trialDates = initSetSheetItemTrialDates_(this.trial_term_values);
+    this.trial_target_start_date = trialDates.trial_target_start_date;
+    this.trial_target_end_date = trialDates.trial_target_end_date;
+    this.trial_start_date = trialDates.trial_start_date;
+    this.trial_end_date = trialDates.trial_end_date;
+    this.target_col = initTargetColumn_();
     // 企業原資または調整事務局の有無が「あり」または医師主導治験ならば事務局運営を積む
-    this.initClinicalTrialsOfficeFlg_();
-  }
-  initTrialTerm_() {
-    const months_col = 5;
-    const sheetname_col = 0;
-
-    const trial_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      TRIAL_SHEET.NAME,
+    this.clinical_trials_office_flg = initClinicalTrialsOfficeFlg_(
+      this.array_quotation_request,
     );
-
-    const const_trial_setup_row = TRIAL_SHEET.ROWS.TRIAL_SETUP;
-    const const_trial_closing_row = TRIAL_SHEET.ROWS.TRIAL_CLOSING;
-
-    const trial_term_values = trial_sheet
-      .getRange(
-        const_trial_setup_row,
-        1,
-        const_trial_closing_row - const_trial_setup_row + 1,
-        trial_sheet.getDataRange().getLastColumn(),
-      )
-      .getValues()
-      .filter((x) => x[sheetname_col] == this.sheetname)[0];
-
-    this.trial_target_terms = trial_term_values[months_col];
-    this.trial_term_values = trial_term_values;
   }
+  /*
   initTrialDates_() {
     const get_s_p = PropertiesService.getScriptProperties();
 
@@ -57,27 +42,8 @@ class SetSheetItemValues {
     );
 
     this.trial_end_date = Moment.moment(get_s_p.getProperty("trial_end_date"));
-  }
-  initTargetColumn_() {
-    const const_count_col = TOTAL_AND_PHASE_SHEET.COLUMNS.COUNT;
-    this.target_col = getColumnString_(const_count_col);
-  }
-  initClinicalTrialsOfficeFlg_() {
-    const get_s_p = PropertiesService.getScriptProperties();
-
-    this.clinical_trials_office_flg =
-      get_s_p.getProperty("trial_type_value") ===
-        TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED ||
-      get_quotation_request_value_(
-        this.array_quotation_request,
-        QUOTATION_REQUEST_SHEET.ITEMNAMES.COEFFICIENT,
-      ) === QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL ||
-      get_quotation_request_value_(
-        this.array_quotation_request,
-        QUOTATION_REQUEST_SHEET.ITEMNAMES.ADJUSTMENT_OFFICE_EXISTENCE,
-      ) === COMMON_EXISTENCE_LABELS.YES;
-  }
-
+  }*/
+  /*
   get_registration_month_() {
     const registration_month =
       this.trial_target_terms > 12
@@ -98,6 +64,17 @@ class SetSheetItemValues {
               : "";
     return registration_month;
   }
+  */
+  get_registration_month_() {
+    return calcRegistrationMonth_({
+      trial_target_terms: this.trial_target_terms,
+      trial_start_date: this.trial_start_date,
+      trial_end_date: this.trial_end_date,
+      trial_target_start_date: this.trial_target_start_date,
+      trial_target_end_date: this.trial_target_end_date,
+    });
+  }
+
   set_registration_term_items_(input_values) {
     const get_s_p = PropertiesService.getScriptProperties();
     if (
@@ -570,30 +547,4 @@ class SetSheetItemValues {
   getTargetItemCount(itemname) {
     return getTargetItemCount_(this.sheetname, itemname);
   }
-}
-/**
- * アクティブシートに中間解析の項目を設定する。
- * @param none
- * @return none
- */
-function setInterimAnalysis() {
-  const check = get_target_term_sheets().map((x) => x.getName());
-  const target = SpreadsheetApp.getActiveSpreadsheet()
-    .getActiveSheet()
-    .getName();
-  if (check.indexOf(target) < 0) {
-    return;
-  }
-  const sheet = get_sheets();
-  const quotation_request_last_col = sheet.quotation_request
-    .getDataRange()
-    .getLastColumn();
-  const array_quotation_request = sheet.quotation_request
-    .getRange(1, 1, 2, quotation_request_last_col)
-    .getValues();
-  const set_sheet_item_values = new SetSheetItemValues(
-    target,
-    array_quotation_request,
-  );
-  set_sheet_item_values.setInterimAnalysis();
 }
