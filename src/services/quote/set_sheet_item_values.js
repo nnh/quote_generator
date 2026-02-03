@@ -9,7 +9,6 @@ class SetSheetItemValues {
     const trialTerm = getTrialTerm_(this.sheetname);
     this.trial_target_terms = trialTerm.trial_target_terms;
     this.trial_term_values = trialTerm.trial_term_values;
-    //initSetSheetItemValues_(this);
     const trialDates = initSetSheetItemTrialDates_(this.trial_term_values);
     this.trial_target_start_date = trialDates.trial_target_start_date;
     this.trial_target_end_date = trialDates.trial_target_end_date;
@@ -21,51 +20,7 @@ class SetSheetItemValues {
       this.array_quotation_request,
     );
   }
-  /*
-  initTrialDates_() {
-    const get_s_p = PropertiesService.getScriptProperties();
-
-    this.trial_target_start_date = Moment.moment(
-      this.trial_term_values
-        ? this.trial_term_values[TRIAL_SHEET.COLUMNS.TRIAL_START - 1]
-        : undefined,
-    );
-
-    this.trial_target_end_date = Moment.moment(
-      this.trial_term_values
-        ? this.trial_term_values[TRIAL_SHEET.COLUMNS.TRIAL_END - 1]
-        : undefined,
-    );
-
-    this.trial_start_date = Moment.moment(
-      get_s_p.getProperty("trial_start_date"),
-    );
-
-    this.trial_end_date = Moment.moment(get_s_p.getProperty("trial_end_date"));
-  }*/
-  /*
-  get_registration_month_() {
-    const registration_month =
-      this.trial_target_terms > 12
-        ? 12
-        : this.trial_start_date <= this.trial_target_start_date &&
-            this.trial_target_end_date <= this.trial_end_date
-          ? this.trial_target_terms
-          : this.trial_target_start_date < this.trial_start_date
-            ? this.trial_target_end_date
-                .clone()
-                .add(1, "days")
-                .diff(this.trial_start_date, "months")
-            : this.trial_end_date < this.trial_target_end_date
-              ? this.trial_end_date
-                  .clone()
-                  .add(1, "days")
-                  .diff(this.trial_target_start_date, "months")
-              : "";
-    return registration_month;
-  }
-  */
-  get_registration_month_() {
+  /*  get_registration_month_() {
     return calcRegistrationMonth_({
       trial_target_terms: this.trial_target_terms,
       trial_start_date: this.trial_start_date,
@@ -73,8 +28,7 @@ class SetSheetItemValues {
       trial_target_start_date: this.trial_target_start_date,
       trial_target_end_date: this.trial_target_end_date,
     });
-  }
-
+  }*/
   set_registration_term_items_(input_values) {
     const get_s_p = PropertiesService.getScriptProperties();
     if (
@@ -86,7 +40,14 @@ class SetSheetItemValues {
     ) {
       return input_values;
     }
-    const registration_month = this.get_registration_month_();
+    //    const registration_month = this.get_registration_month_();
+    const registration_month = calcRegistrationMonth_({
+      trial_target_terms: this.trial_target_terms,
+      trial_start_date: this.trial_start_date,
+      trial_end_date: this.trial_end_date,
+      trial_target_start_date: this.trial_target_start_date,
+      trial_target_end_date: this.trial_target_end_date,
+    });
     // 事務局運営
     let setup_clinical_trials_office = 0;
     let registration_clinical_trials_office = 0;
@@ -133,7 +94,6 @@ class SetSheetItemValues {
     );
   }
   getSetValues(target_items, sheetname, input_values) {
-    const get_s_p = PropertiesService.getScriptProperties();
     let array_count = input_values
       ? input_values
       : this.getSheetValues(sheetname);
@@ -143,15 +103,7 @@ class SetSheetItemValues {
       target_sheet,
       TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
     );
-    target_items.forEach((target_item) => {
-      const target_items_name = target_item[0];
-      const month_count = target_item[1];
-      const temp_row = array_item[target_items_name] - 1;
-      if (!Number.isNaN(temp_row)) {
-        array_count[temp_row][0] = month_count;
-      }
-    });
-    return array_count;
+    return applyTargetItemsToValues_(array_count, array_item, target_items);
   }
   getTargetRange(sheetname) {
     return getTargetCountRange_(sheetname, this.target_col);
