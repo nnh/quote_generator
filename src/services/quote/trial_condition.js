@@ -11,7 +11,7 @@
 function isSpecialTrial_(trialType) {
   return (
     trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED ||
-    trialType === TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL_TRIAL
+    trialType === TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL
   );
 }
 

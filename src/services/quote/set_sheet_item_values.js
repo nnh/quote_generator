@@ -20,15 +20,6 @@ class SetSheetItemValues {
       this.array_quotation_request,
     );
   }
-  /*  get_registration_month_() {
-    return calcRegistrationMonth_({
-      trial_target_terms: this.trial_target_terms,
-      trial_start_date: this.trial_start_date,
-      trial_end_date: this.trial_end_date,
-      trial_target_start_date: this.trial_target_start_date,
-      trial_target_end_date: this.trial_target_end_date,
-    });
-  }*/
   set_registration_term_items_(input_values) {
     const get_s_p = PropertiesService.getScriptProperties();
     if (
@@ -40,7 +31,6 @@ class SetSheetItemValues {
     ) {
       return input_values;
     }
-    //    const registration_month = this.get_registration_month_();
     const registration_month = calcRegistrationMonth_({
       trial_target_terms: this.trial_target_terms,
       trial_start_date: this.trial_start_date,
@@ -94,16 +84,11 @@ class SetSheetItemValues {
     );
   }
   getSetValues(target_items, sheetname, input_values) {
-    let array_count = input_values
-      ? input_values
-      : this.getSheetValues(sheetname);
-    const target_sheet =
-      SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
-    const array_item = get_fy_items_(
-      target_sheet,
-      TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
+    return buildSheetValuesWithTargetItems_(
+      sheetname,
+      target_items,
+      input_values,
     );
-    return applyTargetItemsToValues_(array_count, array_item, target_items);
   }
   getTargetRange(sheetname) {
     return getTargetCountRange_(sheetname, this.target_col);
@@ -167,153 +152,17 @@ class SetSheetItemValues {
     return this.set_setup_term_("reg1_setup_clinical_trials_office");
   }
   set_setup_items_(input_values) {
-    const get_s_p = PropertiesService.getScriptProperties();
     if (this.sheetname != QUOTATION_SHEET_NAMES.SETUP) {
       return input_values;
     }
-    // 医師主導治験のみ算定または名称が異なる項目に対応する
-    let sop = "";
-    let office_irb_str = "IRB準備・承認確認";
-    let office_irb = "";
-    let set_accounts = "初期アカウント設定（施設・ユーザー）、IRB承認確認";
     // 事務局運営
     const clinical_trials_office = this.set_setup_clinical_trials_office();
-    let drug_support = "";
-    // trial!C29が空白でない場合は初期アカウント設定数をC29から取得する
-    const dm_irb =
-      "=if(isblank(" +
-      TRIAL_SHEET.NAME +
-      "!C" +
-      String(TRIAL_SHEET.ROWS.FACILITIES) +
-      "), " +
-      TRIAL_SHEET.NAME +
-      "!B" +
-      String(TRIAL_SHEET.ROWS.FACILITIES) +
-      "," +
-      TRIAL_SHEET.NAME +
-      "!C" +
-      String(parseInt(TRIAL_SHEET.ROWS.TRIAL_CONST_FACILITIES)) +
-      ")";
-    if (
-      get_s_p.getProperty("trial_type_value") ===
-      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
-    ) {
-      sop = 1;
-      office_irb_str = "IRB承認確認、施設管理";
-      office_irb = FUNCTION_FORMULAS.FACILITIES;
-      set_accounts = "初期アカウント設定（施設・ユーザー）";
-      drug_support = FUNCTION_FORMULAS.FACILITIES;
-    }
-    const set_items_list = [
-      ["プロトコルレビュー・作成支援", 1],
-      ["検討会実施（TV会議等）", 4],
-      [
-        "PMDA相談資料作成支援",
-        returnIfEquals_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            "PMDA相談資料作成支援",
-          ),
-          COMMON_EXISTENCE_LABELS.YES,
-          1,
-        ),
-      ],
-      [
-        "AMED申請資料作成支援",
-        returnIfEquals_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            "AMED申請資料作成支援",
-          ),
-          COMMON_EXISTENCE_LABELS.YES,
-          1,
-        ),
-      ],
-      [
-        "特定臨床研究法申請資料作成支援",
-        returnIfEquals_(
-          TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE,
-          TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL,
-          FUNCTION_FORMULAS.FACILITIES,
-        ),
-      ],
-      [
-        "キックオフミーティング準備・実行",
-        returnIfEquals_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            "キックオフミーティング",
-          ),
-          COMMON_EXISTENCE_LABELS.YES,
-          1,
-        ),
-      ],
-      ["SOP一式、CTR登録案、TMF管理", sop],
-      ["事務局運営（試験開始前）", clinical_trials_office],
-      [office_irb_str, office_irb],
-      ["薬剤対応", drug_support],
-      [
-        "モニタリング準備業務（関連資料作成）",
-        returnIfGreaterThan_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            "1例あたりの実地モニタリング回数",
-          ),
-          0,
-          1,
-        ),
-      ],
-      ["EDCライセンス・データベースセットアップ", 1],
-      ["業務分析・DM計画書の作成・CTR登録案の作成", 1],
-      ["DB作成・eCRF作成・バリデーション", 1],
-      ["バリデーション報告書", 1],
-      [set_accounts, dm_irb],
-      ["入力の手引作成", 1],
-      [
-        "外部監査費用",
-        returnIfGreaterThan_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            "監査対象施設数",
-          ),
-          0,
-          1,
-        ),
-      ],
-      [
-        ITEMS_SHEET.ITEMNAMES.PREPARE_FEE,
-        returnIfEquals_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            QUOTATION_REQUEST_SHEET.ITEMNAMES.PREPARE_FEE,
-          ),
-          COMMON_EXISTENCE_LABELS.YES,
-          FUNCTION_FORMULAS.FACILITIES,
-        ),
-      ],
-      [
-        "保険料",
-        returnIfGreaterThan_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            QUOTATION_REQUEST_SHEET.ITEMNAMES.INSURANCE_FEE,
-          ),
-          0,
-          1,
-        ),
-      ],
-      [
-        "治験薬管理（中央）",
-        returnIfEquals_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            "治験薬管理",
-          ),
-          COMMON_EXISTENCE_LABELS.YES,
-          1,
-        ),
-      ],
-    ];
+
+    const set_items_list = buildSetupSetItems_(
+      this.array_quotation_request,
+      clinical_trials_office,
+    );
+
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
   set_closing_items_(input_values) {

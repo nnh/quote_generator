@@ -84,7 +84,7 @@ function calculateSetupAndClosingMonths(array_quotation_request, get_s_p) {
   // 医師主導治験または特定臨床研究の場合
   if (
     trial_type === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED ||
-    trial_type === TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL_TRIAL
+    trial_type === TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL
   ) {
     setup_month = 6;
     closing_month = 6;

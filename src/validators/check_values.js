@@ -146,7 +146,7 @@ function check_output_values() {
     itemname: "特定臨床研究法申請資料作成支援",
     value: getValueIfMatch_(
       get_quotation_request_value_(array_quotation_request, "試験種別"),
-      TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL_TRIAL,
+      TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL,
       facilities_value,
       0,
     ),
