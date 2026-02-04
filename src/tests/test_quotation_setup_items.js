@@ -1,4 +1,18 @@
 function test_createSetupItemsList() {
+  // 事務局運営
+  const targetQuotationRequestValueAndExpectedValues_clinical_trials_office =
+    getClinicalTrialsOfficeTestArray_();
+  targetQuotationRequestValueAndExpectedValues_clinical_trials_office.forEach(
+    (obj) => {
+      test_trialTypeConfigCommon_(
+        "事務局運営",
+        test_createSetupItemsList_trialType_clinical_trials_office_,
+        test_expectedValue_setup_clinical_trials_office_,
+        obj,
+        obj,
+      );
+    },
+  );
   // PMDA
   const targetQuotationRequestValueAndExpectedValues_pmda = [
     ["あり", 1],
@@ -127,7 +141,45 @@ function test_createSetupItemsList() {
     createSetupItemsList_,
   );
 }
-
+// 事務局運営
+// 試験種別が医師主導治験の場合は期待値1
+// 調整事務局設置の有無「あり」の場合は期待値1
+// 原資が企業原資の場合は期待値1
+// それ以外は期待値""
+function test_createSetupItemsList_trialType_clinical_trials_office_(obj) {
+  const office_value = obj.office_value;
+  const cofficient_value = obj.funding_source;
+  const temp_array_quotation_request =
+    createTestQuotationRequestArrayWithColumn_(
+      null,
+      "AQ",
+      "調整事務局設置の有無",
+      office_value,
+    );
+  const array_quotation_request = createTestQuotationRequestArrayWithColumn_(
+    temp_array_quotation_request,
+    "AN",
+    "原資",
+    cofficient_value,
+  );
+  const officeFlag = test_get_clinical_trials_office_flg_(obj);
+  const items = createSetupItemsList_(array_quotation_request, officeFlag);
+  const actualClinicalTrialsOffice = items.get("事務局運営（試験開始前）");
+  return actualClinicalTrialsOffice;
+}
+function test_expectedValue_setup_clinical_trials_office_(trialType, obj) {
+  const office_value = obj.office_value;
+  const cofficient_value = obj.funding_source;
+  if (trialType === "医師主導治験") {
+    return 1;
+  } else if (office_value === "あり") {
+    return 1;
+  } else if (cofficient_value === "営利企業原資（製薬企業等）") {
+    return 1;
+  } else {
+    return 0;
+  }
+}
 /**
  * getSetupTrialTypeConfig_ の単体テスト
  */
