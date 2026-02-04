@@ -31,6 +31,31 @@ class SetSheetItemValues {
     ) {
       return input_values;
     }
+    const date_list = {
+      trial_target_terms: this.trial_target_terms,
+      trial_start_date: this.trial_start_date,
+      trial_end_date: this.trial_end_date,
+      trial_target_start_date: this.trial_target_start_date,
+      trial_target_end_date: this.trial_target_end_date,
+    };
+    const context = {
+      data_list: date_list,
+      sheetname: this.sheetname,
+      clinical_trials_office_flg: this.clinical_trials_office_flg,
+      array_quotation_request: this.array_quotation_request,
+    };
+    setRegistrationTermItems_(input_values, context);
+    /*
+    const get_s_p = PropertiesService.getScriptProperties();
+    if (
+      (this.sheetname == QUOTATION_SHEET_NAMES.SETUP &&
+        this.trial_target_terms <
+          parseInt(get_s_p.getProperty("setup_term"))) ||
+      (this.sheetname == QUOTATION_SHEET_NAMES.CLOSING &&
+        this.trial_target_terms < parseInt(get_s_p.getProperty("closing_term")))
+    ) {
+      return input_values;
+    }
     const registration_month = calcRegistrationMonth_({
       trial_target_terms: this.trial_target_terms,
       trial_start_date: this.trial_start_date,
@@ -81,7 +106,7 @@ class SetSheetItemValues {
       target_items.concat(clinical_trials_office),
       this.sheetname,
       input_values,
-    );
+    );*/
   }
   getSetValues(target_items, sheetname, input_values) {
     return buildSheetValuesWithTargetItems_(

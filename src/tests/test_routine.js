@@ -397,50 +397,6 @@ class RoutineTest {
         : console.log("!!! testResults do not match expected for idx 26. !!!");
       return isMatch;
     }
-    if (idx === 15) {
-      const expectedResults = [
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        false,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-      ];
-      const isMatch =
-        testResults.length === expectedResults.length &&
-        testResults.every((v, i) => v === expectedResults[i]);
-      isMatch
-        ? console.log("***  CRBがなんかおかしいから別途確認 idx 15. ***")
-        : console.log("!!! testResults do not match expected for idx 15. !!!");
-      return isMatch;
-    }
     if (idx === 30) {
       const expectedResults = [
         true,
