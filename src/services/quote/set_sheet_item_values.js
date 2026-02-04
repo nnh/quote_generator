@@ -133,18 +133,36 @@ class SetSheetItemValues {
     ];
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
+  /**
+   * SETUP期間の消費量を計算し、残期間を次年度へ繰り越すための処理
+   *
+   * - Script Properties に保存されている setup_term（SETUPの残期間）を取得する
+   * - trial_target_terms（当年度で消費可能な期間）分だけ SETUP期間を消費する
+   * - 消費後に残った SETUP期間は、指定したプロパティ名で保存し、
+   *   次年度以降に繰り越される
+   * - 実際の消費量と残量の計算ロジックは calculateSetupTermResult_ に委譲する
+   *
+   * @param {string} property_name
+   *   消費後の SETUP期間（残期間）を保存する Script Properties のキー
+   *
+   * @return {number}
+   *   当年度で消費された SETUP期間
+   */
   set_setup_term_(property_name) {
-    const get_s_p = PropertiesService.getScriptProperties();
-    get_s_p.setProperty(property_name, 0);
-    const tempTerm = parseInt(get_s_p.getProperty("setup_term"));
-    const targetTerm = tempTerm - this.trial_target_terms;
-    if (targetTerm > 0) {
-      get_s_p.setProperty(property_name, targetTerm);
-      return this.trial_target_terms;
-    } else {
-      return tempTerm;
-    }
+    const properties = PropertiesService.getScriptProperties();
+
+    const setupTerm = parseInt(properties.getProperty("setup_term"), 10) || 0;
+
+    const { consumed, remaining } = calculateSetupTermResult_(
+      setupTerm,
+      this.trial_target_terms,
+    );
+    // 残った SETUP期間は次年度に繰り越す
+    properties.setProperty(property_name, remaining);
+
+    return consumed;
   }
+
   set_setup_clinical_trials_office() {
     if (!this.clinical_trials_office_flg) {
       return "";
@@ -166,109 +184,18 @@ class SetSheetItemValues {
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
   set_closing_items_(input_values) {
-    const get_s_p = PropertiesService.getScriptProperties();
-    if (this.sheetname != QUOTATION_SHEET_NAMES.CLOSING) {
+    if (this.sheetname !== QUOTATION_SHEET_NAMES.CLOSING) {
       return input_values;
     }
-    // csrの作成支援は医師主導治験ならば必須
-    let csr_count = returnIfEquals_(
-      get_quotation_request_value_(
-        this.array_quotation_request,
-        "研究結果報告書作成支援",
-      ),
-      COMMON_EXISTENCE_LABELS.YES,
-      1,
-    );
-    // 医師主導治験のみ算定または名称が異なる項目に対応する
-    let csr = "研究結果報告書の作成";
-    let final_analysis = "最終解析プログラム作成、解析実施（シングル）";
-    let final_analysis_table_count = get_quotation_request_value_(
-      this.array_quotation_request,
-      "統計解析に必要な図表数",
-    );
-    let clinical_conference = "";
-    let closing_meeting = "";
-    let pmda_support = "";
-    let audit_support = "";
-    if (
-      get_s_p.getProperty("trial_type_value") ===
-      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
-    ) {
-      csr = "CSRの作成支援";
-      csr_count = 1;
-      final_analysis = "最終解析プログラム作成、解析実施（ダブル）";
-      audit_support = 1;
-      // 医師主導治験で症例検討会ありの場合症例検討会資料作成に1をセット、ミーティング1回追加
-      if (
-        returnIfEquals_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            "症例検討会",
-          ),
-          COMMON_EXISTENCE_LABELS.YES,
-          1,
-        ) > 0
-      ) {
-        clinical_conference = 1;
-        closing_meeting = 1;
-      }
-      // 医師主導治験で統計解析に必要な帳票数が50未満であれば50をセットしtrialシートのコメントに追加
-      if (final_analysis_table_count > 0 && final_analysis_table_count < 50) {
-        final_analysis_table_count = 50;
-        set_trial_comment_("統計解析に必要な帳票数を50表と想定しております。");
-      }
-    }
+    // 事務局運営
     const clinical_trials_office = this.clinical_trials_office_flg ? 1 : "";
-    const set_items_list = [
-      ["症例検討会準備・実行", closing_meeting],
-      ["データクリーニング", 1],
-      ["事務局運営（試験終了時）", clinical_trials_office],
-      ["PMDA対応、照会事項対応", pmda_support],
-      ["監査対応", audit_support],
-      ["データベース固定作業、クロージング", 1],
-      ["症例検討会資料作成", clinical_conference],
-      [
-        "統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成",
-        returnIfGreaterThan_(final_analysis_table_count, 0, 1),
-      ],
-      [
-        final_analysis,
-        returnIfGreaterThan_(
-          final_analysis_table_count,
-          0,
-          final_analysis_table_count,
-        ),
-      ],
-      [
-        "最終解析報告書作成（出力結果＋表紙）",
-        returnIfGreaterThan_(final_analysis_table_count, 0, 1),
-      ],
-      [csr, csr_count],
-      [
-        ITEMS_SHEET.ITEMNAMES.REPORT_FEE,
-        returnIfEquals_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE,
-          ),
-          COMMON_EXISTENCE_LABELS.YES,
-          FUNCTION_FORMULAS.NUMBER_OF_CASES,
-        ),
-      ],
-      [
-        "外部監査費用",
-        returnIfGreaterThan_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            "監査対象施設数",
-          ),
-          0,
-          1,
-        ),
-      ],
-    ];
+    const set_items_list = buildClosingSetItems_(
+      this.array_quotation_request,
+      clinical_trials_office,
+    );
     return this.getSetValues(set_items_list, this.sheetname, input_values);
   }
+
   set_registration_items_(input_values) {
     if (
       this.sheetname == QUOTATION_SHEET_NAMES.SETUP ||

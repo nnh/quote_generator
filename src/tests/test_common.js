@@ -158,3 +158,178 @@ function getTrialTypeListForTest_() {
     "先進",
   ];
 }
+/**
+ * Quotation Request の値に応じて ItemsMap/List が正しく生成されるかをテストする
+ * （Setup / Closing 共通）
+ *
+ * @param {Array<Array>} targetQuotationRequestValueAndExpectedValues
+ *        [[quotation_request_item_value, expectedValue], ...]
+ * @param {string} quotation_request_itemName Quotation Request側の項目名
+ * @param {string} fy_itemName Setup / Closing シート側の項目名
+ * @param {string} colName Quotation Requestの列名
+ * @param {Function} createItemsFunc Items生成関数（例: createSetupItemsList_ / createClosingItemsMap_）
+ * @param {boolean|number|string} clinical_trials_office
+ */
+function test_createItemsByQuotationRequest_(
+  targetQuotationRequestValueAndExpectedValues,
+  quotation_request_itemName,
+  fy_itemName,
+  colName,
+  createItemsFunc,
+  clinical_trials_office = 0,
+) {
+  targetQuotationRequestValueAndExpectedValues.forEach(
+    ([quotation_request_item_value, expectedValue]) => {
+      const array_quotation_request =
+        createTestQuotationRequestArrayWithColumn_(
+          null,
+          colName,
+          quotation_request_itemName,
+          quotation_request_item_value,
+        );
+
+      const actualItems = createItemsFunc(
+        array_quotation_request,
+        clinical_trials_office,
+      );
+
+      const actualValue =
+        actualItems instanceof Map
+          ? actualItems.get(fy_itemName)
+          : actualItems.find(([name]) => name === fy_itemName)?.[1];
+
+      if (actualValue !== expectedValue) {
+        throw new Error(
+          `${createItemsFunc.name} ${quotation_request_itemName}:${quotation_request_item_value} ` +
+            `expected ${expectedValue}, but got ${actualValue}`,
+        );
+      }
+    },
+  );
+
+  console.log(
+    `[PASS] ${createItemsFunc.name} for ${quotation_request_itemName}`,
+  );
+}
+/**
+ * 固定値項目が正しく設定されているかを検証する共通テスト関数
+ *
+ * @param {string} testTargetName テスト対象名（ログ・エラー用）
+ * @param {Array<[string, number|string]>} fixedValueTestArray
+ *        [FY項目名, 期待値] の配列
+ * @param {Function} createItemsListFunc
+ *        createSetupItemsList_ / createClosingItemsList_ など
+ * @param {number|boolean|string} clinical_trials_office
+ */
+function test_fixedValueItems_(
+  testTargetName,
+  fixedValueTestArray,
+  createItemsListFunc,
+  clinical_trials_office = 0,
+) {
+  const array_quotation_request = createTestQuotationRequestArrayWithColumn_(
+    null,
+    "A",
+    "タイムスタンプ",
+    "2000/01/01",
+  );
+
+  const items = createItemsListFunc(
+    array_quotation_request,
+    clinical_trials_office,
+  );
+
+  fixedValueTestArray.forEach(([fy_itemName, expectedValue]) => {
+    const actualValue = items.get(fy_itemName);
+    if (actualValue !== expectedValue) {
+      throw new Error(
+        `${testTargetName} fixed value test ${fy_itemName} expected ${expectedValue}, but got ${actualValue}`,
+      );
+    }
+  });
+
+  console.log(`[PASS] ${testTargetName} fixed value test`);
+}
+/**
+ * 試験種別ごとの設定取得関数をテストする共通関数
+ *
+ * @param {string} testName テスト名（ログ用）
+ * @param {Function} getActualConfigFn 実処理の設定取得関数
+ * @param {Function} getExpectedConfigFn 試験種別から期待値を返す関数
+ */
+function test_trialTypeConfigCommon_(
+  testName,
+  getActualConfigFn,
+  getExpectedConfigFn,
+  expectedOptions = {},
+  actualOptions = {},
+) {
+  const sp = PropertiesService.getScriptProperties();
+  const originalTrialType = sp.getProperty("trial_type_value");
+
+  const trialTypes = getTrialTypeListForTest_();
+
+  try {
+    trialTypes.forEach((trialType) => {
+      sp.setProperty("trial_type_value", trialType);
+
+      const actual = getActualConfigFn(actualOptions);
+      const expected = getExpectedConfigFn(trialType, expectedOptions);
+
+      assertEquals_(actual, expected, `${testName} (${trialType})`);
+    });
+  } finally {
+    // ScriptProperties を元に戻す
+    if (originalTrialType === null) {
+      sp.deleteProperty("trial_type_value");
+    } else {
+      sp.setProperty("trial_type_value", originalTrialType);
+    }
+  }
+}
+/**
+ * 2つの配列の全組み合わせを生成する
+ * @param {Array} array1
+ * @param {Array} array2
+ * @return {Array<Array>} 全組み合わせの配列
+ */
+function createAllCombinations_(array1, array2) {
+  return array1.flatMap((v1) => array2.map((v2) => [v1, v2]));
+}
+/**
+ * 事務局関連条件の全組み合わせ（テスト用）
+ *
+ * @returns {Array<Object>}
+ */
+function getClinicalTrialsOfficeTestArray_() {
+  const fundSources = [
+    "営利企業原資（製薬企業等）",
+    "公的資金（税金由来）",
+    "",
+  ];
+
+  const officeFlags = ["あり", "なし", ""];
+
+  return createAllCombinations_(fundSources, officeFlags).map(
+    ([fundSource, officeFlag]) => ({
+      funding_source: fundSource,
+      office_value: officeFlag,
+    }),
+  );
+}
+
+function test_get_clinical_trials_office_flg_(obj) {
+  const trialType =
+    PropertiesService.getScriptProperties().getProperty("trial_type_value");
+  const office_value = obj.office_value;
+  const cofficient_value = obj.funding_source;
+  if (trialType === "医師主導治験") {
+    return 1;
+  } else if (office_value === "あり") {
+    return 1;
+  } else if (cofficient_value === "営利企業原資（製薬企業等）") {
+    return 1;
+  } else {
+    return 0;
+  }
+}
