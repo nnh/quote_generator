@@ -22,7 +22,7 @@ function hasReportSupport_(array_quotation_request) {
   return (
     get_quotation_request_value_(
       array_quotation_request,
-      "研究結果報告書作成支援",
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT,
     ) === COMMON_EXISTENCE_LABELS.YES
   );
 }

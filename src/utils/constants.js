@@ -50,6 +50,9 @@ const QUOTATION_REQUEST_SHEET = {
     EFFICACY_SAFETY_COMMITTEE_OFFICE_EXISTENCE: "効安事務局設置",
     CRB_APPLICATION: "CRB申請",
     DRUG_TRANSPORTATION: "治験薬運搬",
+    RESEARCH_RESULT_REPORT_SUPPORT: "研究結果報告書作成支援",
+    PMDA_CONSULTATION_SUPPORT: "PMDA相談資料作成支援",
+    AMED_APPLICATION_SUPPORT: "AMED申請資料作成支援",
   },
 };
 
@@ -76,6 +79,7 @@ const ITEMS_SHEET = {
     INSURANCE_FEE: "保険料",
     ESSENTIAL_DOCUMENTS_MONITORING: "開始前モニタリング・必須文書確認",
     MONITORING_COUNT_PER_CASE: "症例モニタリング・SAE対応",
+    EXTERNAL_AUDIT_FEE: "外部監査費用",
     AUDIT_TARGET_FACILITIES: "施設監査費用",
     CENTRAL_MONITORING: "ロジカルチェック、マニュアルチェック、クエリ対応",
     CLINICAL_TRIALS_OFFICE_SETUP: "事務局運営（試験開始前）",
@@ -87,6 +91,13 @@ const ITEMS_SHEET = {
     CRB_APPLICATION_FIRST_YEAR: "名古屋医療センターCRB申請費用(初年度)",
     CRB_APPLICATION_AFTER_SECOND_YEAR:
       "名古屋医療センターCRB申請費用(2年目以降)",
+    DATABASE_MANAGEMENT_FEE: "データベース管理料",
+    PROJECT_MANAGEMENT: "プロジェクト管理",
+    DATA_CLEANING: "データクリーニング",
+    STATISTICAL_ANALYSIS_PLAN:
+      "統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成",
+    PMDA_CONSULTATION_SUPPORT: "PMDA相談資料作成支援",
+    AMED_APPLICATION_SUPPORT: "AMED申請資料作成支援",
   },
   UNITS: {
     PER_CASE: "件",
@@ -142,6 +153,9 @@ const QUOTATION_SHEET_NAMES = {
   TRIAL: "Trial",
   ITEMS: "Items",
   QUOTATION_REQUEST: "Quotation Request",
+  PRICE: "Price",
+  PRICE_LOGIC_COMPANY: "PriceLogicCompany",
+  PRICE_LOGIC: "PriceLogic",
 };
 const SHEET_PREFIX = {
   QUOTE: `${QUOTATION_SHEET_NAMES.QUOTE}_`,

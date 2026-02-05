@@ -76,7 +76,7 @@ function createSetupItemsList_(
   const pmda_support = returnIfEquals_(
     get_quotation_request_value_(
       array_quotation_request,
-      "PMDA相談資料作成支援",
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.PMDA_CONSULTATION_SUPPORT,
     ),
     COMMON_EXISTENCE_LABELS.YES,
     1,
@@ -85,7 +85,7 @@ function createSetupItemsList_(
   const amed_support = returnIfEquals_(
     get_quotation_request_value_(
       array_quotation_request,
-      "AMED申請資料作成支援",
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.AMED_APPLICATION_SUPPORT,
     ),
     COMMON_EXISTENCE_LABELS.YES,
     1,
@@ -103,14 +103,17 @@ function createSetupItemsList_(
   const monitoring_prep = returnIfGreaterThan_(
     get_quotation_request_value_(
       array_quotation_request,
-      "1例あたりの実地モニタリング回数",
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.MONITORING_COUNT_PER_CASE,
     ),
     0,
     1,
   );
 
   const audit_fee = returnIfGreaterThan_(
-    get_quotation_request_value_(array_quotation_request, "監査対象施設数"),
+    get_quotation_request_value_(
+      array_quotation_request,
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.AUDIT_TARGET_FACILITIES,
+    ),
     0,
     1,
   );
@@ -142,12 +145,15 @@ function createSetupItemsList_(
   return new Map([
     ["プロトコルレビュー・作成支援", 1],
     ["検討会実施（TV会議等）", 4],
-    ["PMDA相談資料作成支援", pmda_support],
-    ["AMED申請資料作成支援", amed_support],
+    [ITEMS_SHEET.ITEMNAMES.PMDA_CONSULTATION_SUPPORT, pmda_support],
+    [ITEMS_SHEET.ITEMNAMES.AMED_APPLICATION_SUPPORT, amed_support],
     ["特定臨床研究法申請資料作成支援", specified_clinical_support],
     ["キックオフミーティング準備・実行", kickoff_meeting],
     ["SOP一式、CTR登録案、TMF管理", sop],
-    ["事務局運営（試験開始前）", clinical_trials_office],
+    [
+      ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_SETUP,
+      clinical_trials_office,
+    ],
     [office_irb_str, office_irb],
     ["薬剤対応", drug_support],
     ["モニタリング準備業務（関連資料作成）", monitoring_prep],
@@ -157,9 +163,9 @@ function createSetupItemsList_(
     ["バリデーション報告書", 1],
     [set_accounts, dm_irb],
     ["入力の手引作成", 1],
-    ["外部監査費用", audit_fee],
+    [ITEMS_SHEET.ITEMNAMES.EXTERNAL_AUDIT_FEE, audit_fee],
     [ITEMS_SHEET.ITEMNAMES.PREPARE_FEE, prepare_fee],
-    ["保険料", insurance_fee],
+    [ITEMS_SHEET.ITEMNAMES.INSURANCE_FEE, insurance_fee],
     ["治験薬管理（中央）", drug_management],
   ]);
 }

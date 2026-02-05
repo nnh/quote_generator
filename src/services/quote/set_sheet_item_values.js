@@ -70,40 +70,42 @@ class SetSheetItemValues {
   setSheetValues(sheetname, target_values) {
     setTargetCountValues_(sheetname, this.target_col, target_values);
   }
-  set_all_sheet_exclude_setup_(input_values) {
-    const get_s_p = PropertiesService.getScriptProperties();
-    if (this.sheetname == QUOTATION_SHEET_NAMES.SETUP) {
-      const dummy = this.set_setup_term_("reg1_setup_database_management");
+  set_nonSetup_term_items_(input_values) {
+    const scriptProperties = PropertiesService.getScriptProperties();
+
+    if (this.sheetname === QUOTATION_SHEET_NAMES.SETUP) {
+      this.set_setup_term_("reg1_setup_database_management");
     }
+
+    const setupTerm = Number(scriptProperties.getProperty("setup_term"));
     if (
-      this.sheetname == QUOTATION_SHEET_NAMES.SETUP &&
-      this.trial_target_terms <= parseInt(get_s_p.getProperty("setup_term"))
+      shouldSkipDatabaseManagement_(
+        this.sheetname,
+        this.trial_target_terms,
+        setupTerm,
+      )
     ) {
       return input_values;
     }
-    let databaseManagementTerm =
-      this.trial_target_terms < 12 ? this.trial_target_terms : 12;
-    if (this.sheetname == QUOTATION_SHEET_NAMES.SETUP) {
-      databaseManagementTerm =
-        databaseManagementTerm - parseInt(get_s_p.getProperty("setup_term"));
-    }
-    if (this.sheetname === QUOTATION_SHEET_NAMES.REGISTRATION_1) {
-      databaseManagementTerm =
-        databaseManagementTerm -
-        parseInt(get_s_p.getProperty("reg1_setup_database_management"));
-    }
-    const set_items_list = [["データベース管理料", databaseManagementTerm]];
-    return this.getSetValues(set_items_list, this.sheetname, input_values);
-  }
-  set_all_sheet_common_items_(input_values) {
-    const set_items_list = [
-      [
-        "プロジェクト管理",
-        this.trial_target_terms < 12 ? this.trial_target_terms : 12,
-      ],
+
+    const databaseManagementTerm = calculateDatabaseManagementTerm_(
+      this.sheetname,
+      this.trial_target_terms,
+      scriptProperties,
+    );
+
+    const setItemsList = [
+      [ITEMS_SHEET.ITEMNAMES.DATABASE_MANAGEMENT_FEE, databaseManagementTerm],
     ];
-    return this.getSetValues(set_items_list, this.sheetname, input_values);
+
+    return this.getSetValues(setItemsList, this.sheetname, input_values);
   }
+
+  set_all_sheet_common_items_(input_values) {
+    const setItemsList = buildCommonSetItems_(this.trial_target_terms);
+    return this.getSetValues(setItemsList, this.sheetname, input_values);
+  }
+
   /**
    * SETUP期間の消費量を計算し、残期間を次年度へ繰り越すための処理
    *
@@ -193,7 +195,9 @@ class SetSheetItemValues {
       "中間解析に必要な図表数",
     );
 
-    const dataCleaningBefore = this.getTargetItemCount("データクリーニング");
+    const dataCleaningBefore = this.getTargetItemCount(
+      ITEMS_SHEET.ITEMNAMES.DATA_CLEANING,
+    );
 
     const setItems = buildInterimAnalysisItems_({
       trialType,

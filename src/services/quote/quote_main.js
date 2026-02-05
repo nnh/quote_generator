@@ -69,7 +69,7 @@ function applyQuotationToSheet_(sheetName, array_quotation_request) {
   values = setter.set_registration_term_items_(values);
   values = setter.set_registration_items_(values);
   values = setter.set_closing_items_(values);
-  values = setter.set_all_sheet_exclude_setup_(values);
+  values = setter.set_nonSetup_term_items_(values);
   values = setter.set_all_sheet_common_items_(values);
   setter.setSheetValues(sheetName, values);
 }

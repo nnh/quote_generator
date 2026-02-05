@@ -79,14 +79,14 @@ function createClosingItemsList_(
 
   const auditFacilityCount = get_quotation_request_value_(
     array_quotation_request,
-    "監査対象施設数",
+    QUOTATION_REQUEST_SHEET.ITEMNAMES.AUDIT_TARGET_FACILITIES,
   );
 
   /* ===== CSR / 症例検討会関連 ===== */
   let csrCount = returnIfEquals_(
     get_quotation_request_value_(
       array_quotation_request,
-      "研究結果報告書作成支援",
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT,
     ),
     COMMON_EXISTENCE_LABELS.YES,
     1,
@@ -115,14 +115,14 @@ function createClosingItemsList_(
   /* ===== Map構築 ===== */
   return new Map([
     ["症例検討会準備・実行", closingMeeting],
-    ["データクリーニング", 1],
+    [ITEMS_SHEET.ITEMNAMES.DATA_CLEANING, 1],
     ["事務局運営（試験終了時）", clinicalTrialsOffice],
     ["PMDA対応、照会事項対応", ""],
     ["監査対応", config.auditSupport],
     ["データベース固定作業、クロージング", 1],
     ["症例検討会資料作成", clinicalConference],
     [
-      "統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成",
+      ITEMS_SHEET.ITEMNAMES.STATISTICAL_ANALYSIS_PLAN,
       returnIfGreaterThan_(finalAnalysisTableCount, 0, 1),
     ],
     [
@@ -135,6 +135,9 @@ function createClosingItemsList_(
     ],
     [config.csrLabel, csrCount],
     [ITEMS_SHEET.ITEMNAMES.REPORT_FEE, reportFeeEnabled],
-    ["外部監査費用", returnIfGreaterThan_(auditFacilityCount, 0, 1)],
+    [
+      ITEMS_SHEET.ITEMNAMES.EXTERNAL_AUDIT_FEE,
+      returnIfGreaterThan_(auditFacilityCount, 0, 1),
+    ],
   ]);
 }

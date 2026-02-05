@@ -19,10 +19,10 @@ function buildInterimAnalysisItems_({
       : "中間解析プログラム作成、解析実施（シングル）";
 
   return [
-    ["統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成", 1],
+    [ITEMS_SHEET.ITEMNAMES.STATISTICAL_ANALYSIS_PLAN, 1],
     [analysisItem, interimTableCount],
     ["中間解析報告書作成（出力結果＋表紙）", 1],
-    ["データクリーニング", dataCleaning],
+    [ITEMS_SHEET.ITEMNAMES.DATA_CLEANING, dataCleaning],
   ];
 }
 /**

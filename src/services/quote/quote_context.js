@@ -2,9 +2,6 @@
  * SetSheetItemValues の初期化処理をまとめた関数
  * @param {SetSheetItemValues} ctx
  */
-//function initSetSheetItemValues_(ctx) {
-//  ctx.initTrialDates_();
-//}
 function initTargetColumn_() {
   const const_count_col = TOTAL_AND_PHASE_SHEET.COLUMNS.COUNT;
   return getColumnString_(const_count_col);
