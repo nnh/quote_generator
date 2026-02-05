@@ -1,4 +1,4 @@
-function buildRegistrationSetItems_(context) {
+function buildRegistrationTermItems_(context) {
   const registrationSetItems = setRegistrationTermItems_(context);
   return convertItemsMapToList_(registrationSetItems);
 }

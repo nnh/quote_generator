@@ -1,5 +1,282 @@
+function test_setRegistrationTermItems() {
+  // ==============================
+  // setRegistrationTermItems_ テストケース一覧
+  // ==============================
+  // --- 共通前提 ---
+  // ・calcRegistrationMonthFromDates_ は正しい月数を返す
+  // ・returnIfEquals_ は一致時に itemName、不一致時に "" を返す
+  // ・buildClinicalTrialsOfficeItems_ は仕様通りの配列を返す
+  const registration1_sheetName = getRegistration1SheetNameForTest_();
+  // ===============================
+  // setRegistrationTermItems_ テストケース一覧
+  // ===============================
+  // --- 正常系 ---
+  // 1. 最小構成（必須項目のみ）
+  // - context に date_list が存在する
+  // - date_list に必要な日付項目がすべて揃っている
+  // - clinical_trials_office_flg = false
+  // - 安全性管理事務局・効安事務局ともに「設置・委託する」以外
+  // => 結果に CENTRAL_MONITORING のみが含まれる
+  runSetRegistrationTermItemsTest_({
+    testName: "最小構成（必須項目のみ）",
+    context: {
+      sheetname: registration1_sheetName,
+      array_quotation_request: createTestQuotationRequestArrayWithColumn_(
+        null,
+        "A",
+        "タイムスタンプ",
+        "2000/01/01",
+      ),
+      clinical_trials_office_flg: false,
+      date_list: {
+        trial_target_terms: 12,
+        trial_start_date: "2020/04/01",
+        trial_end_date: "2026/03/31",
+        trial_target_start_date: "2024/04/01",
+        trial_target_end_date: "2025/03/31",
+      },
+    },
+    expected: new Map([[ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING, 12]]),
+  });
+
+  // 2. 安全性管理事務局のみ追加されるケース
+  // - SAFETY_MANAGEMENT_OFFICE_EXISTENCE = "設置・委託する"
+  // - EFFICACY_SAFETY_COMMITTEE_OFFICE_EXISTENCE != "設置・委託する"
+  // => CENTRAL_MONITORING + SAFETY_MANAGEMENT_OFFICE
+  const temp_case2_array_quotation_request =
+    createTestQuotationRequestArrayWithColumn_(
+      null,
+      "S",
+      "効安事務局設置",
+      "設置しない・または委託しない",
+    );
+  const case2_array_quotation_request =
+    createTestQuotationRequestArrayWithColumn_(
+      temp_case2_array_quotation_request,
+      "T",
+      "安全性管理事務局設置",
+      "設置・委託する",
+    );
+  runSetRegistrationTermItemsTest_({
+    testName: "安全性管理事務局のみ追加されるケース",
+    context: {
+      sheetname: registration1_sheetName,
+      array_quotation_request: case2_array_quotation_request,
+      clinical_trials_office_flg: false,
+      date_list: {
+        trial_target_terms: 12,
+        trial_start_date: "2020/04/01",
+        trial_end_date: "2026/03/31",
+        trial_target_start_date: "2024/04/01",
+        trial_target_end_date: "2025/03/31",
+      },
+    },
+    expected: new Map([
+      [ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING, 12],
+      [ITEMS_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE, 12],
+    ]),
+  });
+
+  // 3. 効安事務局のみ追加されるケース
+  // - SAFETY_MANAGEMENT_OFFICE_EXISTENCE != "設置・委託する"
+  // - EFFICACY_SAFETY_COMMITTEE_OFFICE_EXISTENCE = "設置・委託する"
+  // => CENTRAL_MONITORING + EFFICACY_SAFETY_COMMITTEE_OFFICE
+  const temp_case3_array_quotation_request =
+    createTestQuotationRequestArrayWithColumn_(
+      null,
+      "S",
+      "効安事務局設置",
+      "設置・委託する",
+    );
+  const case3_array_quotation_request =
+    createTestQuotationRequestArrayWithColumn_(
+      temp_case3_array_quotation_request,
+      "T",
+      "安全性管理事務局設置",
+      "設置しない・または委託しない",
+    );
+  runSetRegistrationTermItemsTest_({
+    testName: "効安事務局のみ追加されるケース",
+    context: {
+      sheetname: registration1_sheetName,
+      array_quotation_request: case3_array_quotation_request,
+      clinical_trials_office_flg: false,
+      date_list: {
+        trial_target_terms: 12,
+        trial_start_date: "2020/04/01",
+        trial_end_date: "2026/03/31",
+        trial_target_start_date: "2024/04/01",
+        trial_target_end_date: "2025/03/31",
+      },
+    },
+    expected: new Map([
+      [ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING, 12],
+      [ITEMS_SHEET.ITEMNAMES.EFFICACY_SAFETY_COMMITTEE_OFFICE, 12],
+    ]),
+  });
+
+  // 4. 安全性管理事務局・効安事務局の両方が追加されるケース
+  // => CENTRAL_MONITORING + SAFETY_MANAGEMENT_OFFICE + EFFICACY_SAFETY_COMMITTEE_OFFICE
+  const temp_case4_array_quotation_request =
+    createTestQuotationRequestArrayWithColumn_(
+      null,
+      "S",
+      "効安事務局設置",
+      "設置・委託する",
+    );
+  const case4_array_quotation_request =
+    createTestQuotationRequestArrayWithColumn_(
+      temp_case4_array_quotation_request,
+      "T",
+      "安全性管理事務局設置",
+      "設置・委託する",
+    );
+  runSetRegistrationTermItemsTest_({
+    testName: "安全性管理事務局・効安事務局の両方が追加されるケース",
+    context: {
+      sheetname: registration1_sheetName,
+      array_quotation_request: case4_array_quotation_request,
+      clinical_trials_office_flg: false,
+      date_list: {
+        trial_target_terms: 12,
+        trial_start_date: "2020/04/01",
+        trial_end_date: "2026/03/31",
+        trial_target_start_date: "2024/04/01",
+        trial_target_end_date: "2025/03/31",
+      },
+    },
+    expected: new Map([
+      [ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING, 12],
+      [ITEMS_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE, 12],
+      [ITEMS_SHEET.ITEMNAMES.EFFICACY_SAFETY_COMMITTEE_OFFICE, 12],
+    ]),
+  });
+
+  // 5. 複合ケース（最大構成）
+  // - clinical_trials_office_flg = true
+  // - 安全性管理事務局 = 設置・委託する
+  // - 効安事務局 = 設置・委託する
+  // - REGISTRATION_1
+  // => CENTRAL_MONITORING
+  //    + SAFETY_MANAGEMENT_OFFICE
+  //    + EFFICACY_SAFETY_COMMITTEE_OFFICE
+  //    + 事務局運営（開始後）
+  const temp_case5_array_quotation_request =
+    createTestQuotationRequestArrayWithColumn_(
+      null,
+      "S",
+      "効安事務局設置",
+      "設置・委託する",
+    );
+  const case5_array_quotation_request =
+    createTestQuotationRequestArrayWithColumn_(
+      temp_case5_array_quotation_request,
+      "T",
+      "安全性管理事務局設置",
+      "設置・委託する",
+    );
+  runSetRegistrationTermItemsTest_({
+    testName: "複合ケース（最大構成）",
+    context: {
+      sheetname: registration1_sheetName,
+      array_quotation_request: case5_array_quotation_request,
+      clinical_trials_office_flg: true,
+      date_list: {
+        trial_target_terms: 12,
+        trial_start_date: "2020/04/01",
+        trial_end_date: "2026/03/31",
+        trial_target_start_date: "2024/04/01",
+        trial_target_end_date: "2025/03/31",
+      },
+    },
+    expected: new Map([
+      [ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING, 12],
+      [ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_REGISTRATION, 12],
+      [ITEMS_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE, 12],
+      [ITEMS_SHEET.ITEMNAMES.EFFICACY_SAFETY_COMMITTEE_OFFICE, 12],
+    ]),
+  });
+
+  // --- 異常系 ---
+
+  // 6. context に date_list が存在しない
+  // => Error が throw されること
+  assertThrows_({
+    testName: "date_list がない場合はエラー",
+    fn: () =>
+      setRegistrationTermItems_({
+        sheetname: registration1_sheetName,
+        array_quotation_request: createTestQuotationRequestArrayWithColumn_(
+          null,
+          "A",
+          "タイムスタンプ",
+          "2000/01/01",
+        ),
+        clinical_trials_office_flg: false,
+      }),
+    expectedMessage: "date_list",
+  });
+
+  // 7. date_list が null / undefined
+  // => Error が throw されること
+  assertThrows_({
+    testName: "date_list が null / undefined",
+    fn: () =>
+      setRegistrationTermItems_({
+        sheetname: registration1_sheetName,
+        array_quotation_request: createTestQuotationRequestArrayWithColumn_(
+          null,
+          "A",
+          "タイムスタンプ",
+          "2000/01/01",
+        ),
+        clinical_trials_office_flg: false,
+        date_list: null,
+      }),
+    expectedMessage: "date_list",
+  });
+}
+/**
+ * setRegistrationTermItems_ 用 共通テスト関数
+ *
+ * @param {Object} params
+ * @param {string} params.testName テスト名
+ * @param {Object} params.context setRegistrationTermItems_ に渡す context
+ * @param {Object} [params.scriptProperties] 事前に設定する ScriptProperties
+ * @param {Map} params.expected 期待結果
+ */
+function runSetRegistrationTermItemsTest_({
+  testName,
+  context,
+  scriptProperties = {},
+  expected,
+}) {
+  const sp = PropertiesService.getScriptProperties();
+
+  // --- ScriptProperties 退避 ---
+  const backup = {};
+  Object.keys(scriptProperties).forEach((key) => {
+    backup[key] = sp.getProperty(key);
+    sp.setProperty(key, scriptProperties[key]);
+  });
+
+  try {
+    const actual = setRegistrationTermItems_(context);
+    assertEquals_(actual, expected, testName);
+  } finally {
+    // --- ScriptProperties 復元 ---
+    Object.keys(scriptProperties).forEach((key) => {
+      if (backup[key] == null) {
+        sp.deleteProperty(key);
+      } else {
+        sp.setProperty(key, backup[key]);
+      }
+    });
+  }
+}
+
 function test_calcClinicalTrialsOfficeValues() {
-  const registration1_sheetName = "Registration_1";
+  const registration1_sheetName = getRegistration1SheetNameForTest_();
   // case1
   test_calcClinicalTrialsOfficeValues_withProperty_(
     "3",
@@ -134,4 +411,54 @@ function test_calcClinicalTrialsOfficeValues_withProperty_(
       scriptProperties.setProperty(PROPERTY_KEY, originalValue);
     }
   }
+}
+/**
+ * shouldSkipRegistrationTermItems_ の判定ロジックを検証するテスト
+ *
+ * 観点：
+ * - SETUP / CLOSING シートそれぞれで、期間が閾値未満の場合に skip されるか
+ * - 期間が閾値以上の場合に skip されないか
+ * - 対象外シートでは常に skip されないか
+ */
+function test_shouldSkipRegistrationTermItems() {
+  const setup_sheetName = getSetupSheetNameForTest_();
+  const closing_sheetName = getClosingSheetNameForTest_();
+  const REGISTRATION_SKIP_SHEET_CONFIGS = [
+    { case: 1, trialTargetTerms: 3, setupTermLimit: 6, closingTermLimit: 6 },
+    { case: 2, trialTargetTerms: 7, setupTermLimit: 6, closingTermLimit: 6 },
+    { case: 3, trialTargetTerms: 6, setupTermLimit: 6, closingTermLimit: 6 },
+  ];
+  const targetSheetsName = getTargetSheetNameForTest_();
+  targetSheetsName.forEach((sheetname) => {
+    REGISTRATION_SKIP_SHEET_CONFIGS.forEach(
+      ({
+        case: caseNo,
+        trialTargetTerms,
+        setupTermLimit,
+        closingTermLimit,
+      }) => {
+        let expected;
+        // その年度にregistration期間が存在しない場合trueを返して処理をスキップする
+        // SETUP シートの場合
+        if (sheetname === setup_sheetName) {
+          expected = trialTargetTerms < setupTermLimit ? true : false;
+        }
+        // CLOSING シートの場合
+        else if (sheetname === closing_sheetName) {
+          expected = trialTargetTerms < closingTermLimit ? true : false;
+        }
+        // その他のシートの場合
+        else {
+          expected = false;
+        }
+        const result = shouldSkipRegistrationTermItems_(
+          sheetname,
+          trialTargetTerms,
+          setupTermLimit,
+          closingTermLimit,
+        );
+        assertEquals_(result, expected, `Case ${caseNo}: ${sheetname}`);
+      },
+    );
+  });
 }

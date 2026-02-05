@@ -51,7 +51,7 @@ class SetSheetItemValues {
       clinical_trials_office_flg: this.clinical_trials_office_flg,
       array_quotation_request: this.array_quotation_request,
     };
-    const target_items = buildRegistrationSetItems_(context);
+    const target_items = buildRegistrationTermItems_(context);
     return this.getSetValues(target_items, this.sheetname, input_values);
   }
   getSetValues(target_items, sheetname, input_values) {
@@ -169,75 +169,42 @@ class SetSheetItemValues {
 
   set_registration_items_(input_values) {
     if (
-      this.sheetname == QUOTATION_SHEET_NAMES.SETUP ||
-      this.sheetname == QUOTATION_SHEET_NAMES.CLOSING
+      this.sheetname === QUOTATION_SHEET_NAMES.SETUP ||
+      this.sheetname === QUOTATION_SHEET_NAMES.CLOSING
     ) {
       return input_values;
     }
-    let crb_first_year = "";
-    let crb_after_second_year = "";
-    // CRB申請費用
-    if (this.sheetname == QUOTATION_SHEET_NAMES.REGISTRATION_1) {
-      crb_first_year = returnIfEquals_(
-        get_quotation_request_value_(this.array_quotation_request, "CRB申請"),
-        COMMON_EXISTENCE_LABELS.YES,
-        1,
-      );
-    } else {
-      crb_after_second_year = returnIfEquals_(
-        get_quotation_request_value_(this.array_quotation_request, "CRB申請"),
-        COMMON_EXISTENCE_LABELS.YES,
-        1,
-      );
-    }
-    // 開始前モニタリング・必須文書確認
-    const essential_documents_count = get_quotation_request_value_(
+
+    const setItemsList = buildRegistrationSetItems_(
       this.array_quotation_request,
-      "年間1施設あたりの必須文書実地モニタリング回数",
+      this.sheetname,
     );
-    const essential_documents = Number.isInteger(essential_documents_count)
-      ? FUNCTION_FORMULAS.FACILITIES + " * " + essential_documents_count
-      : "";
-    const set_items_list = [
-      ["名古屋医療センターCRB申請費用(初年度)", crb_first_year],
-      ["名古屋医療センターCRB申請費用(2年目以降)", crb_after_second_year],
-      [
-        "治験薬運搬",
-        returnIfEquals_(
-          get_quotation_request_value_(
-            this.array_quotation_request,
-            "治験薬運搬",
-          ),
-          COMMON_EXISTENCE_LABELS.YES,
-          FUNCTION_FORMULAS.FACILITIES,
-        ),
-      ],
-      ["開始前モニタリング・必須文書確認", essential_documents],
-    ];
-    return this.getSetValues(set_items_list, this.sheetname, input_values);
+
+    return this.getSetValues(setItemsList, this.sheetname, input_values);
   }
+
   setInterimAnalysis() {
-    const get_s_p = PropertiesService.getScriptProperties();
-    const dataCleaning_before = this.getTargetItemCount("データクリーニング");
-    const dataCleaning = dataCleaning_before > 0 ? dataCleaning_before + 1 : 1;
-    const interimAnalysis =
-      get_s_p.getProperty("trial_type_value") ===
-      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
-        ? "中間解析プログラム作成、解析実施（ダブル）"
-        : "中間解析プログラム作成、解析実施（シングル）";
+    const scriptProperties = PropertiesService.getScriptProperties();
+
+    const trialType = scriptProperties.getProperty("trial_type_value");
+
     const interimTableCount = get_quotation_request_value_(
       this.array_quotation_request,
       "中間解析に必要な図表数",
     );
-    const set_items_list = [
-      ["統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成", 1],
-      [interimAnalysis, interimTableCount],
-      ["中間解析報告書作成（出力結果＋表紙）", 1],
-      ["データクリーニング", dataCleaning],
-    ];
-    const array_count = this.getSetValues(set_items_list, this.sheetname, null);
-    this.setSheetValues(this.sheetname, array_count);
+
+    const dataCleaningBefore = this.getTargetItemCount("データクリーニング");
+
+    const setItems = buildInterimAnalysisItems_({
+      trialType,
+      interimTableCount,
+      dataCleaningBefore,
+    });
+
+    const values = this.getSetValues(setItems, this.sheetname, null);
+    this.setSheetValues(this.sheetname, values);
   }
+
   /**
    * itemnameの「回数」を取得する。
    * @param {string} 対象の項目名

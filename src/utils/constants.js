@@ -42,8 +42,14 @@ const QUOTATION_REQUEST_SHEET = {
     REPORT_FEE: "症例最終報告書提出毎の支払",
     COEFFICIENT: ITEM_LABELS.FUNDING_SOURCE_LABEL,
     MONITORING_COUNT_PER_CASE: "1例あたりの実地モニタリング回数",
+    ESSENTIAL_DOCUMENTS_MONITORING_COUNT_PER_FACILITY:
+      "年間1施設あたりの必須文書実地モニタリング回数",
     AUDIT_TARGET_FACILITIES: "監査対象施設数",
     ADJUSTMENT_OFFICE_EXISTENCE: "調整事務局設置の有無",
+    SAFETY_MANAGEMENT_OFFICE_EXISTENCE: "安全性管理事務局設置",
+    EFFICACY_SAFETY_COMMITTEE_OFFICE_EXISTENCE: "効安事務局設置",
+    CRB_APPLICATION: "CRB申請",
+    DRUG_TRANSPORTATION: "治験薬運搬",
   },
 };
 
@@ -68,8 +74,19 @@ const ITEMS_SHEET = {
     REGISTRATION_FEE: "症例登録",
     REPORT_FEE: "症例報告",
     INSURANCE_FEE: "保険料",
+    ESSENTIAL_DOCUMENTS_MONITORING: "開始前モニタリング・必須文書確認",
     MONITORING_COUNT_PER_CASE: "症例モニタリング・SAE対応",
     AUDIT_TARGET_FACILITIES: "施設監査費用",
+    CENTRAL_MONITORING: "ロジカルチェック、マニュアルチェック、クエリ対応",
+    CLINICAL_TRIALS_OFFICE_SETUP: "事務局運営（試験開始前）",
+    CLINICAL_TRIALS_OFFICE_REGISTRATION:
+      "事務局運営（試験開始後から試験終了まで）",
+    SAFETY_MANAGEMENT_OFFICE: "安全性管理事務局業務",
+    EFFICACY_SAFETY_COMMITTEE_OFFICE: "効果安全性評価委員会事務局業務",
+    DRUG_TRANSPORTATION: "治験薬運搬",
+    CRB_APPLICATION_FIRST_YEAR: "名古屋医療センターCRB申請費用(初年度)",
+    CRB_APPLICATION_AFTER_SECOND_YEAR:
+      "名古屋医療センターCRB申請費用(2年目以降)",
   },
   UNITS: {
     PER_CASE: "件",
