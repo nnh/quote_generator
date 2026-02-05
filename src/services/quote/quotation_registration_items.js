@@ -1,52 +1,75 @@
-function setRegistrationTermItems_(input_values, context) {
-  const date_list = context.date_list || context;
-  const sheetname = context.sheetname;
-  const clinical_trials_office_flg = context.clinical_trials_office_flg;
-  const registration_month = calcRegistrationMonth_({
-    trial_target_terms: date_list.trial_target_terms,
-    trial_start_date: date_list.trial_start_date,
-    trial_end_date: date_list.trial_end_date,
-    trial_target_start_date: date_list.trial_target_start_date,
-    trial_target_end_date: date_list.trial_target_end_date,
+function buildRegistrationSetItems_(context) {
+  const registrationSetItems = setRegistrationTermItems_(context);
+  return convertItemsMapToList_(registrationSetItems);
+}
+function calcRegistrationMonthFromDates_(dates) {
+  return calcRegistrationMonth_({
+    trial_target_terms: dates.trial_target_terms,
+    trial_start_date: dates.trial_start_date,
+    trial_end_date: dates.trial_end_date,
+    trial_target_start_date: dates.trial_target_start_date,
+    trial_target_end_date: dates.trial_target_end_date,
   });
-  // 事務局運営
-  const { setup_clinical_trials_office, registration_clinical_trials_office } =
-    calcClinicalTrialsOfficeValues_({
-      clinicalTrialsOfficeFlg: clinical_trials_office_flg,
-      registrationMonth: registration_month,
-      sheetname,
-    });
+}
 
-  const central_monitoring = "ロジカルチェック、マニュアルチェック、クエリ対応";
-  // 安全性管理、効安、事務局運営
-  const ankan = returnIfEquals_(
-    get_quotation_request_value_(
-      array_quotation_request,
-      "安全性管理事務局設置",
-    ),
-    "設置・委託する",
-    "安全性管理事務局業務",
-  );
-  const kouan = returnIfEquals_(
-    get_quotation_request_value_(array_quotation_request, "効安事務局設置"),
-    "設置・委託する",
-    "効果安全性評価委員会事務局業務",
-  );
-  const clinical_trials_office = [
-    ["事務局運営（試験開始前）", setup_clinical_trials_office],
-    [
-      "事務局運営（試験開始後から試験終了まで）",
-      registration_clinical_trials_office,
-    ],
-  ].filter((x) => x[1] > 0);
-  const target_items = [central_monitoring, ankan, kouan]
-    .filter((x) => x != "")
-    .map((x) => [x, registration_month]);
-  return this.getSetValues(
-    target_items.concat(clinical_trials_office),
+function setRegistrationTermItems_(context) {
+  const {
     sheetname,
-    input_values,
-  );
+    array_quotation_request,
+    clinical_trials_office_flg,
+    date_list,
+  } = context;
+
+  if (!date_list) {
+    throw new Error(
+      "setRegistrationTermItems_: context.date_list is required. " +
+        "Date fields must not be placed directly on context.",
+    );
+  }
+  const registrationMonth = calcRegistrationMonthFromDates_(date_list);
+
+  const CONDITIONAL_ITEMS = [
+    {
+      requestItemName:
+        QUOTATION_REQUEST_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE_EXISTENCE,
+      expectedValue: "設置・委託する",
+      itemName: ITEMS_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE,
+    },
+    {
+      requestItemName:
+        QUOTATION_REQUEST_SHEET.ITEMNAMES
+          .EFFICACY_SAFETY_COMMITTEE_OFFICE_EXISTENCE,
+      expectedValue: "設置・委託する",
+      itemName: ITEMS_SHEET.ITEMNAMES.EFFICACY_SAFETY_COMMITTEE_OFFICE,
+    },
+  ];
+  const conditional_items = CONDITIONAL_ITEMS.map(
+    ({ requestItemName, expectedValue, itemName }) =>
+      returnIfEquals_(
+        get_quotation_request_value_(array_quotation_request, requestItemName),
+        expectedValue,
+        itemName,
+      ),
+  )
+    .filter(Boolean)
+    .map((itemName) => [itemName, registrationMonth]);
+  const base_items = [
+    [ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING, registrationMonth],
+  ];
+
+  const clinical_trials_office_items = buildClinicalTrialsOfficeItems_({
+    clinicalTrialsOfficeFlg: clinical_trials_office_flg,
+    registrationMonth,
+    sheetname,
+  });
+
+  const result = new Map([
+    ...base_items,
+    ...conditional_items,
+    ...clinical_trials_office_items,
+  ]);
+
+  return result;
 }
 /**
  * 事務局運営に関する Setup / Registration の値を計算する
@@ -81,4 +104,47 @@ function calcClinicalTrialsOfficeValues_(params) {
     setupOffice,
     registrationOffice,
   };
+}
+function buildClinicalTrialsOfficeItems_({
+  clinicalTrialsOfficeFlg,
+  registrationMonth,
+  sheetname,
+}) {
+  const { setupOffice, registrationOffice } = calcClinicalTrialsOfficeValues_({
+    clinicalTrialsOfficeFlg,
+    registrationMonth,
+    sheetname,
+  });
+
+  return [
+    [ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_SETUP, setupOffice],
+    [
+      ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_REGISTRATION,
+      registrationOffice,
+    ],
+  ].filter(([, value]) => value > 0);
+}
+/**
+ * 対象シート・期間条件から処理をスキップすべきか判定する
+ * @param {string} sheetname
+ * @param {number} trialTargetTerms
+ * @param {number} setupTermLimit
+ * @param {number} closingTermLimit
+ * @return {boolean} true の場合は処理をスキップ
+ */
+function shouldSkipRegistrationTermItems_(
+  sheetname,
+  trialTargetTerms,
+  setupTermLimit,
+  closingTermLimit,
+) {
+  if (
+    (sheetname === QUOTATION_SHEET_NAMES.SETUP &&
+      trialTargetTerms < setupTermLimit) ||
+    (sheetname === QUOTATION_SHEET_NAMES.CLOSING &&
+      trialTargetTerms < closingTermLimit)
+  ) {
+    return true;
+  }
+  return false;
 }

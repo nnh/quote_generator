@@ -21,16 +21,23 @@ class SetSheetItemValues {
     );
   }
   set_registration_term_items_(input_values) {
-    const get_s_p = PropertiesService.getScriptProperties();
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const setupTermLimit = Number(scriptProperties.getProperty("setup_term"));
+    const closingTermLimit = Number(
+      scriptProperties.getProperty("closing_term"),
+    );
+
     if (
-      (this.sheetname == QUOTATION_SHEET_NAMES.SETUP &&
-        this.trial_target_terms <
-          parseInt(get_s_p.getProperty("setup_term"))) ||
-      (this.sheetname == QUOTATION_SHEET_NAMES.CLOSING &&
-        this.trial_target_terms < parseInt(get_s_p.getProperty("closing_term")))
+      shouldSkipRegistrationTermItems_(
+        this.sheetname,
+        this.trial_target_terms,
+        setupTermLimit,
+        closingTermLimit,
+      )
     ) {
       return input_values;
     }
+
     const date_list = {
       trial_target_terms: this.trial_target_terms,
       trial_start_date: this.trial_start_date,
@@ -39,74 +46,13 @@ class SetSheetItemValues {
       trial_target_end_date: this.trial_target_end_date,
     };
     const context = {
-      data_list: date_list,
+      date_list: date_list,
       sheetname: this.sheetname,
       clinical_trials_office_flg: this.clinical_trials_office_flg,
       array_quotation_request: this.array_quotation_request,
     };
-    setRegistrationTermItems_(input_values, context);
-    /*
-    const get_s_p = PropertiesService.getScriptProperties();
-    if (
-      (this.sheetname == QUOTATION_SHEET_NAMES.SETUP &&
-        this.trial_target_terms <
-          parseInt(get_s_p.getProperty("setup_term"))) ||
-      (this.sheetname == QUOTATION_SHEET_NAMES.CLOSING &&
-        this.trial_target_terms < parseInt(get_s_p.getProperty("closing_term")))
-    ) {
-      return input_values;
-    }
-    const registration_month = calcRegistrationMonth_({
-      trial_target_terms: this.trial_target_terms,
-      trial_start_date: this.trial_start_date,
-      trial_end_date: this.trial_end_date,
-      trial_target_start_date: this.trial_target_start_date,
-      trial_target_end_date: this.trial_target_end_date,
-    });
-    // 事務局運営
-    let setup_clinical_trials_office = 0;
-    let registration_clinical_trials_office = 0;
-    if (this.clinical_trials_office_flg) {
-      registration_clinical_trials_office = registration_month;
-      if (this.sheetname === QUOTATION_SHEET_NAMES.REGISTRATION_1) {
-        setup_clinical_trials_office =
-          Number(get_s_p.getProperty("reg1_setup_clinical_trials_office")) || 0;
-      }
-    }
-    const central_monitoring =
-      "ロジカルチェック、マニュアルチェック、クエリ対応";
-    // 安全性管理、効安、事務局運営
-    const ankan = returnIfEquals_(
-      get_quotation_request_value_(
-        this.array_quotation_request,
-        "安全性管理事務局設置",
-      ),
-      "設置・委託する",
-      "安全性管理事務局業務",
-    );
-    const kouan = returnIfEquals_(
-      get_quotation_request_value_(
-        this.array_quotation_request,
-        "効安事務局設置",
-      ),
-      "設置・委託する",
-      "効果安全性評価委員会事務局業務",
-    );
-    const clinical_trials_office = [
-      ["事務局運営（試験開始前）", setup_clinical_trials_office],
-      [
-        "事務局運営（試験開始後から試験終了まで）",
-        registration_clinical_trials_office,
-      ],
-    ].filter((x) => x[1] > 0);
-    const target_items = [central_monitoring, ankan, kouan]
-      .filter((x) => x != "")
-      .map((x) => [x, registration_month]);
-    return this.getSetValues(
-      target_items.concat(clinical_trials_office),
-      this.sheetname,
-      input_values,
-    );*/
+    const target_items = buildRegistrationSetItems_(context);
+    return this.getSetValues(target_items, this.sheetname, input_values);
   }
   getSetValues(target_items, sheetname, input_values) {
     return buildSheetValuesWithTargetItems_(

@@ -126,14 +126,49 @@ class TrialDatesBackupForTest_ {
 }
 /**
  * 実際の値と期待値が一致するか検証し、結果をログ出力する
- * @param {any} actual - 実際の値
- * @param {any} expected - 期待値
- * @param {string} testName - テスト名
- * @return {boolean} 一致していればtrue
+ * - Map / Object / Array / primitive に対応
+ * - Map と Object は key 順にソートして比較
+ *
+ * @param {any} actual
+ * @param {any} expected
+ * @param {string} testName
+ * @return {boolean}
  */
 function assertEquals_(actual, expected, testName) {
-  const actualStr = JSON.stringify(actual);
-  const expectedStr = JSON.stringify(expected);
+  const normalize = (value) => {
+    // null / undefined / primitive
+    if (value === null || typeof value !== "object") {
+      return value;
+    }
+
+    // Map → ソート済み Object
+    if (value instanceof Map) {
+      const obj = {};
+      Array.from(value.entries())
+        .sort(([a], [b]) => String(a).localeCompare(String(b)))
+        .forEach(([k, v]) => {
+          obj[k] = normalize(v);
+        });
+      return obj;
+    }
+
+    // Array → 中身を normalize（順序は保持）
+    if (Array.isArray(value)) {
+      return value.map(normalize);
+    }
+
+    // Object → key ソートして normalize
+    const sortedObj = {};
+    Object.keys(value)
+      .sort()
+      .forEach((key) => {
+        sortedObj[key] = normalize(value[key]);
+      });
+    return sortedObj;
+  };
+
+  const actualStr = JSON.stringify(normalize(actual));
+  const expectedStr = JSON.stringify(normalize(expected));
 
   if (actualStr === expectedStr) {
     console.log(`[PASS] ${testName}`);
@@ -145,19 +180,7 @@ function assertEquals_(actual, expected, testName) {
     return false;
   }
 }
-/**
- * 【テスト用】
- * 試験種別の一覧を返す
- */
-function getTrialTypeListForTest_() {
-  return [
-    "医師主導治験",
-    "特定臨床研究",
-    "観察研究・レジストリ",
-    "介入研究（特定臨床研究以外）",
-    "先進",
-  ];
-}
+
 /**
  * Quotation Request の値に応じて ItemsMap/List が正しく生成されるかをテストする
  * （Setup / Closing 共通）
@@ -296,40 +319,30 @@ function test_trialTypeConfigCommon_(
 function createAllCombinations_(array1, array2) {
   return array1.flatMap((v1) => array2.map((v2) => [v1, v2]));
 }
+
 /**
- * 事務局関連条件の全組み合わせ（テスト用）
+ * 指定した関数が Error を throw することを検証する
  *
- * @returns {Array<Object>}
+ * @param {Object} params
+ * @param {string} params.testName テスト名
+ * @param {Function} params.fn 実行対象関数
+ * @param {string} [params.expectedMessage] エラーメッセージ（部分一致）
  */
-function getClinicalTrialsOfficeTestArray_() {
-  const fundSources = [
-    "営利企業原資（製薬企業等）",
-    "公的資金（税金由来）",
-    "",
-  ];
+function assertThrows_(params) {
+  const { testName, fn, expectedMessage } = params;
 
-  const officeFlags = ["あり", "なし", ""];
-
-  return createAllCombinations_(fundSources, officeFlags).map(
-    ([fundSource, officeFlag]) => ({
-      funding_source: fundSource,
-      office_value: officeFlag,
-    }),
-  );
-}
-
-function test_get_clinical_trials_office_flg_(obj) {
-  const trialType =
-    PropertiesService.getScriptProperties().getProperty("trial_type_value");
-  const office_value = obj.office_value;
-  const cofficient_value = obj.funding_source;
-  if (trialType === "医師主導治験") {
-    return 1;
-  } else if (office_value === "あり") {
-    return 1;
-  } else if (cofficient_value === "営利企業原資（製薬企業等）") {
-    return 1;
-  } else {
-    return 0;
+  try {
+    fn();
+    console.error(`[FAIL] ${testName}`);
+    console.error("  Expected: Error to be thrown, but no error occurred");
+  } catch (e) {
+    if (expectedMessage && !String(e.message).includes(expectedMessage)) {
+      console.error(`[FAIL] ${testName}`);
+      console.error(`  Error message mismatch`);
+      console.error(`  Actual:   ${e.message}`);
+      console.error(`  Expected: ${expectedMessage}`);
+    } else {
+      console.log(`[PASS] ${testName}`);
+    }
   }
 }
