@@ -9,25 +9,6 @@ const TRIAL_TERM_KEYS = {
   CLOSING: "closing",
   SETUP_TO_CLOSING: "setupToClosing",
 };
-/**
- * 試験開始日を基準に setup 期間を計算する
- *
- * @param {Moment} trialStart 試験開始日（月初に正規化済み）
- * @param {number} setupTermMonths setup期間（月数）
- *
- * @return {Object}
- * @return {Moment} return.setupStart setup開始日
- * @return {Moment} return.setupEnd setup終了日（年度末）
- */
-function calculateSetupPeriod_(trialStart, setupTermMonths) {
-  const setupStart = trialStart.clone().subtract(setupTermMonths, "months");
-  const setupEnd = getFiscalYearEnd_(setupStart);
-
-  return {
-    setupStart,
-    setupEnd,
-  };
-}
 
 /**
  * Registration / Observation 期間を計算する
@@ -101,31 +82,6 @@ function calculateRegistrationPeriods_(
 }
 
 /**
- * 試験終了日を基準に closing 期間を計算する
- *
- * @param {Moment} trialEnd 試験終了日（月末に正規化済み）
- * @param {number} closingTermMonths closing期間（月数）
- *
- * @return {Object}
- * @return {Moment} return.closingStart closing開始日（年度初）
- * @return {Moment} return.closingEnd closing終了日
- */
-function calculateClosingPeriod_(trialEnd, closingTermMonths) {
-  const closingEnd = trialEnd
-    .clone()
-    .add(1, "days")
-    .add(closingTermMonths, "months")
-    .subtract(1, "days");
-
-  const closingStart = getFiscalYearStart_(closingEnd);
-
-  return {
-    closingStart,
-    closingEnd,
-  };
-}
-
-/**
  * 試験開始日・終了日を基準に、setup / registration / observation / closing
  * 各期間の日付を計算し、表示・出力用の構造にまとめて返す。
  *
@@ -164,17 +120,19 @@ function calculateTrialDates_(
   closingTermMonths,
 ) {
   // 試験開始日・終了日
-  const trialStart = Moment.moment(input_trial_start_date).startOf("month");
-  const trialEnd = Moment.moment(input_trial_end_date).endOf("month");
+  const { trialStart, trialEnd } = buildTrialMonthRangeWithMoment_(
+    input_trial_start_date,
+    input_trial_end_date,
+  );
 
   // setup
-  const { setupStart, setupEnd } = calculateSetupPeriod_(
+  const { setupStart, setupEnd } = calculateSetupPeriodWithMoment_(
     trialStart,
     setupTermMonths,
   );
 
   // closing
-  const { closingStart, closingEnd } = calculateClosingPeriod_(
+  const { closingStart, closingEnd } = calculateClosingPeriodWithMoment_(
     trialEnd,
     closingTermMonths,
   );
@@ -229,25 +187,6 @@ function convertTermPeriodsToArray_(termPeriods) {
     termPeriods[TRIAL_TERM_KEYS.CLOSING],
     termPeriods[TRIAL_TERM_KEYS.SETUP_TO_CLOSING],
   ];
-}
-/**
- * 指定日が属する日本年度の年度末（3/31）を返す
- * @param {Moment} date
- * @return {Moment}
- */
-function getFiscalYearEnd_(date) {
-  const fiscalYear = date.clone().subtract(3, "months").year();
-  return Moment.moment([fiscalYear + 1, 2, 31]);
-}
-
-/**
- * 指定日が属する日本年度の年度初（4/1）を返す
- * @param {Moment} date
- * @return {Moment}
- */
-function getFiscalYearStart_(date) {
-  const fiscalYear = date.clone().subtract(3, "months").year();
-  return Moment.moment([fiscalYear, 3, 1]);
 }
 
 /**

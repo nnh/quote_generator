@@ -98,46 +98,6 @@ function getTrialTerm_(sheetname) {
 }
 
 /**
- * 試験日付に関する情報を初期化する
- * Moment 依存あり
- * @param {Array|undefined} trial_term_values
- * @return {{
- *   trial_target_start_date: Moment.Moment,
- *   trial_target_end_date: Moment.Moment,
- *   trial_start_date: Moment.Moment,
- *   trial_end_date: Moment.Moment
- * }}
- */
-/*function initSetSheetItemTrialDates_(trial_term_values) {
-  const get_s_p = PropertiesService.getScriptProperties();
-
-  const trial_target_start_date = Moment.moment(
-    trial_term_values
-      ? trial_term_values[TRIAL_SHEET.COLUMNS.TRIAL_START - 1]
-      : undefined,
-  );
-
-  const trial_target_end_date = Moment.moment(
-    trial_term_values
-      ? trial_term_values[TRIAL_SHEET.COLUMNS.TRIAL_END - 1]
-      : undefined,
-  );
-
-  const trial_start_date = Moment.moment(
-    get_s_p.getProperty("trial_start_date"),
-  );
-
-  const trial_end_date = Moment.moment(get_s_p.getProperty("trial_end_date"));
-
-  return {
-    trial_target_start_date,
-    trial_target_end_date,
-    trial_start_date,
-    trial_end_date,
-  };
-}
-*/
-/**
  * 試験日付に関するプロパティ値を取得する
  *
  * @return {{
@@ -153,44 +113,36 @@ function getTrialDateProperties_() {
     trial_end_date: properties.getProperty("trial_end_date"),
   };
 }
+
 /**
- * 試験日付情報を生成する（pure / Moment依存あり）
+ * 試験日付情報を生成する（pure / Moment非依存）
  *
  * @param {Array|undefined} trial_term_values
- *   試験期間シートの該当行
  * @param {{
  *   trial_start_date: string|null,
  *   trial_end_date: string|null
  * }} props
- *   試験日付に関するプロパティ値
  * @return {{
- *   trial_target_start_date: Moment.Moment,
- *   trial_target_end_date: Moment.Moment,
- *   trial_start_date: Moment.Moment,
- *   trial_end_date: Moment.Moment
+ *   trial_target_start_date: Date|null,
+ *   trial_target_end_date: Date|null,
+ *   trial_start_date: Date|null,
+ *   trial_end_date: Date|null
  * }}
  */
-function buildTrialDates_(trial_term_values, props) {
-  const trial_target_start_date = Moment.moment(
-    trial_term_values
-      ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_START]
-      : undefined,
-  );
-
-  const trial_target_end_date = Moment.moment(
-    trial_term_values
-      ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_END]
-      : undefined,
-  );
-
-  const trial_start_date = Moment.moment(props.trial_start_date);
-  const trial_end_date = Moment.moment(props.trial_end_date);
-
+function buildTrialDatesPure_(trial_term_values, props) {
   return {
-    trial_target_start_date,
-    trial_target_end_date,
-    trial_start_date,
-    trial_end_date,
+    trial_target_start_date: toDate_(
+      trial_term_values
+        ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_START]
+        : undefined,
+    ),
+    trial_target_end_date: toDate_(
+      trial_term_values
+        ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_END]
+        : undefined,
+    ),
+    trial_start_date: toDate_(props.trial_start_date),
+    trial_end_date: toDate_(props.trial_end_date),
   };
 }
 /**
@@ -198,13 +150,78 @@ function buildTrialDates_(trial_term_values, props) {
  *
  * @param {Array|undefined} trial_term_values
  * @return {{
- *   trial_target_start_date: Moment.Moment,
- *   trial_target_end_date: Moment.Moment,
- *   trial_start_date: Moment.Moment,
- *   trial_end_date: Moment.Moment
+ *   trial_target_start_date: Moment.Moment|null,
+ *   trial_target_end_date: Moment.Moment|null,
+ *   trial_start_date: Moment.Moment|null,
+ *   trial_end_date: Moment.Moment|null
  * }}
  */
 function initSetSheetItemTrialDates_(trial_term_values) {
   const props = getTrialDateProperties_();
-  return buildTrialDates_(trial_term_values, props);
+
+  // pure な Date 生成
+  const dates = buildTrialDatesPure_(trial_term_values, props);
+
+  // Moment への変換はここだけ
+  return {
+    trial_target_start_date: toMoment_(dates.trial_target_start_date),
+    trial_target_end_date: toMoment_(dates.trial_target_end_date),
+    trial_start_date: toMoment_(dates.trial_start_date),
+    trial_end_date: toMoment_(dates.trial_end_date),
+  };
 }
+///**
+// * 試験日付情報を生成する（pure / Moment依存あり）
+// *
+// * @param {Array|undefined} trial_term_values
+// *   試験期間シートの該当行
+// * @param {{
+// *   trial_start_date: string|null,
+// *   trial_end_date: string|null
+// * }} props
+// *   試験日付に関するプロパティ値
+// * @return {{
+// *   trial_target_start_date: Moment.Moment,
+// *   trial_target_end_date: Moment.Moment,
+// *   trial_start_date: Moment.Moment,
+// *   trial_end_date: Moment.Moment
+// * }}
+// */
+//function buildTrialDates_(trial_term_values, props) {
+//  const trial_target_start_date = toMoment_(
+//    trial_term_values
+//      ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_START]
+//      : undefined,
+//  );
+//
+//  const trial_target_end_date = toMoment_(
+//    trial_term_values
+//      ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_END]
+//      : undefined,
+//  );
+//
+//  const trial_start_date = toMoment_(props.trial_start_date);
+//  const trial_end_date = toMoment_(props.trial_end_date);
+//
+//  return {
+//    trial_target_start_date,
+//    trial_target_end_date,
+//    trial_start_date,
+//    trial_end_date,
+//  };
+//}
+///**
+// * 試験日付に関する情報を初期化する
+// *
+// * @param {Array|undefined} trial_term_values
+// * @return {{
+// *   trial_target_start_date: Moment.Moment,
+// *   trial_target_end_date: Moment.Moment,
+// *   trial_start_date: Moment.Moment,
+// *   trial_end_date: Moment.Moment
+// * }}
+// */
+//function initSetSheetItemTrialDates_(trial_term_values) {
+//  const props = getTrialDateProperties_();
+//  return buildTrialDates_(trial_term_values, props);
+//}

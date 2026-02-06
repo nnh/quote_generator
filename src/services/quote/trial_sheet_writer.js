@@ -338,16 +338,14 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     const result = dispatchTrialField_(key, quotationRequestValue, context);
     sheet.trial.getRange(row, 2).setValue(result);
   }
-  // 発行年月日
+  // 発行年月日に今日の日付を入れる
   const date_of_issue = get_row_num_matched_value_(
     sheet.trial,
     1,
     "発行年月日",
   );
   if (date_of_issue > 0) {
-    sheet.trial
-      .getRange(date_of_issue, 2)
-      .setValue(Moment.moment().format("YYYY/MM/DD"));
+    sheet.trial.getRange(date_of_issue, 2).setValue(formatTodayYmd_());
   }
   const itemSheet = sheet.items;
   applyItemPrices_(array_quotation_request, itemSheet);

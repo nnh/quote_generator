@@ -180,3 +180,50 @@ function test_buildTrialDates() {
     );
   });
 }
+function test_buildTrialDatesPure() {
+  const cases = [
+    {
+      name: "すべて有効な日付",
+      trial_term_values: (() => {
+        const values = [];
+        values[TRIAL_SHEET.COLUMNS.TRIAL_START - 1] = "2023-04-01";
+        values[TRIAL_SHEET.COLUMNS.TRIAL_END - 1] = "2024-03-31";
+        return values;
+      })(),
+      props: {
+        trial_start_date: "2022-01-01",
+        trial_end_date: "2025-12-31",
+      },
+      expect: {
+        trial_target_start_date: new Date("2023-04-01"),
+        trial_target_end_date: new Date("2024-03-31"),
+        trial_start_date: new Date("2022-01-01"),
+        trial_end_date: new Date("2025-12-31"),
+      },
+    },
+    {
+      name: "trial_term_values が undefined",
+      trial_term_values: undefined,
+      props: {
+        trial_start_date: "2022-01-01",
+        trial_end_date: "2024-12-31",
+      },
+      expect: {
+        trial_target_start_date: null,
+        trial_target_end_date: null,
+        trial_start_date: new Date("2022-01-01"),
+        trial_end_date: new Date("2024-12-31"),
+      },
+    },
+  ];
+
+  cases.forEach((c) => {
+    const actualValue = buildTrialDatesPure_(c.trial_term_values, c.props);
+    const expectedValue = c.expect;
+    assertEquals_(
+      actualValue,
+      expectedValue,
+      `buildTrialDates_ should return correct dates for case: ${c.name}`,
+    );
+  });
+}
