@@ -37,5 +37,5 @@ function testCalculateSetupTermResult() {
     { consumed: 5, remaining: 0 },
     "setup_term == trial_target_terms の場合",
   );
-  console.log("testCalculateSetupTermResult passed");
+  console.log("[PASS] testCalculateSetupTermResult");
 }

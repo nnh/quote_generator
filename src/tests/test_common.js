@@ -174,10 +174,9 @@ function assertEquals_(actual, expected, testName) {
     console.log(`[PASS] ${testName}`);
     return true;
   } else {
-    console.error(`[FAIL] ${testName}`);
-    console.error(`  Actual:   ${actualStr}`);
-    console.error(`  Expected: ${expectedStr}`);
-    return false;
+    const failMsg = `[FAIL] ${testName}\n  Actual:   ${actualStr}\n  Expected: ${expectedStr}`;
+    //console.error(failMsg);
+    throw new Error(`${testName} failed\n${failMsg}`);
   }
 }
 
