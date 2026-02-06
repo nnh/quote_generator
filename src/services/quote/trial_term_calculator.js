@@ -11,77 +11,6 @@ const TRIAL_TERM_KEYS = {
 };
 
 /**
- * Registration / Observation 期間を計算する
- * @param {Moment} setupEnd setup終了日
- * @param {Moment} closingStart closing開始日
- * @param {Moment} trialStart 試験開始日
- * @param {Moment} trialEnd 試験終了日
- * @return {Object} registration / observation 情報
- */
-function calculateRegistrationPeriods_(
-  setupEnd,
-  closingStart,
-  trialStart,
-  trialEnd,
-) {
-  // setup終了日〜closing開始日（月単位）
-  const diffSetupEndToClosingStart = closingStart.diff(setupEnd, "months");
-
-  // registration_1
-  const registration1Start =
-    diffSetupEndToClosingStart > 0 ? setupEnd.clone().add(1, "days") : null;
-
-  const registration1End = registration1Start
-    ? registration1Start.clone().add(1, "years").subtract(1, "days")
-    : null;
-
-  // registration_1終了日〜closing開始日（月単位）
-  const diffReg1EndToClosingStart = registration1End
-    ? closingStart.diff(registration1End, "months")
-    : 0;
-
-  // observation_2
-  const observation2End =
-    diffReg1EndToClosingStart > 0
-      ? closingStart.clone().subtract(1, "days")
-      : null;
-
-  const observation2Start = observation2End
-    ? closingStart.clone().subtract(1, "years")
-    : null;
-
-  // registration_2
-  const diffReg1EndToObs2Start = observation2Start
-    ? observation2Start.diff(registration1End, "months")
-    : 0;
-
-  const registration2End =
-    diffReg1EndToObs2Start > 0
-      ? observation2Start.clone().subtract(1, "days")
-      : null;
-
-  const registration2Start = registration2End
-    ? registration1End.clone().add(1, "days")
-    : null;
-
-  // registration年数計算用
-  const registrationStart = registration1Start ?? trialStart.clone();
-
-  const registrationEnd =
-    observation2End ?? registration2End ?? registration1End ?? trialEnd.clone();
-
-  return {
-    registration1Start,
-    registration1End,
-    registration2Start,
-    registration2End,
-    observation2Start,
-    observation2End,
-    registrationYears: get_years_(registrationStart, registrationEnd),
-  };
-}
-
-/**
  * 試験開始日・終了日を基準に、setup / registration / observation / closing
  * 各期間の日付を計算し、表示・出力用の構造にまとめて返す。
  *
@@ -138,30 +67,20 @@ function calculateTrialDates_(
   );
 
   // registration / observation
-  const registrationInfo = calculateRegistrationPeriods_(
+  const registrationInfo = calculateRegistrationPeriodsWithMoment_(
     setupEnd,
     closingStart,
     trialStart,
     trialEnd,
   );
 
-  const termPeriods = {
-    [TRIAL_TERM_KEYS.SETUP]: [setupStart, setupEnd],
-    [TRIAL_TERM_KEYS.REGISTRATION_1]: [
-      registrationInfo.registration1Start,
-      registrationInfo.registration1End,
-    ],
-    [TRIAL_TERM_KEYS.REGISTRATION_2]: [
-      registrationInfo.registration2Start,
-      registrationInfo.registration2End,
-    ],
-    [TRIAL_TERM_KEYS.OBSERVATION_2]: [
-      registrationInfo.observation2Start,
-      registrationInfo.observation2End,
-    ],
-    [TRIAL_TERM_KEYS.CLOSING]: [closingStart, closingEnd],
-    [TRIAL_TERM_KEYS.SETUP_TO_CLOSING]: [setupStart, closingEnd],
-  };
+  const termPeriods = buildTermPeriodsWithMoment_({
+    setupStart,
+    setupEnd,
+    closingStart,
+    closingEnd,
+    registrationInfo,
+  });
 
   return {
     trialStart,
