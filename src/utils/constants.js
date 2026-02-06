@@ -108,9 +108,14 @@ const ITEMS_SHEET = {
 const TRIAL_SHEET = {
   NAME: "trial",
   COLUMNS: {
+    SHEET_NAME: 1,
+    TRIAL_YEARS: 3,
     TRIAL_START: 4,
     TRIAL_END: 5,
-    TRIAL_YEARS: 3,
+    TRIAL_MONTHS: 6,
+  },
+  COLIDX: {
+    DUMMY: -1,
   },
   COLNAMES: {
     VALUE: "B",
@@ -130,6 +135,10 @@ const TRIAL_SHEET = {
     CRF: "CRF項目数",
   },
 };
+// 列インデックスの生成
+Object.keys(TRIAL_SHEET.COLUMNS).forEach((key) => {
+  TRIAL_SHEET.COLIDX[key] = TRIAL_SHEET.COLUMNS[key] - 1;
+});
 
 const ORG = {
   NMC: "nmc",
