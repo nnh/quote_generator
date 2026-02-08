@@ -28,12 +28,8 @@ function get_total_amount(target) {
  */
 class SetTestValues {
   constructor() {
-    this.trialYearsStartRow = parseInt(
-      PropertiesService.getScriptProperties().getProperty("trial_setup_row"),
-    );
-    this.trialYearsStartCol = parseInt(
-      PropertiesService.getScriptProperties().getProperty("trial_start_col"),
-    );
+    this.trialYearsStartRow = TRIAL_SHEET.ROWS.TRIAL_SETUP;
+    this.trialYearsStartCol = TRIAL_SHEET.COLUMNS.TRIAL_START;
     this.trialYearsDiscountCol = 7;
     this.trialYearsDiscountRateCol = 8;
     this.const_itemsDiscount = 1100000;
@@ -137,28 +133,11 @@ class SetTestValues {
       .getValue();
   }
   getTrialYearsItemsName() {
+    const trialSetupRow = TRIAL_SHEET.ROWS.TRIAL_SETUP;
+    const trialClosingRow = TRIAL_SHEET.ROWS.TRIAL_CLOSING;
     return SpreadsheetApp.getActiveSpreadsheet()
       .getSheetByName("Trial")
-      .getRange(
-        parseInt(
-          PropertiesService.getScriptProperties().getProperty(
-            "trial_setup_row",
-          ),
-        ),
-        1,
-        parseInt(
-          PropertiesService.getScriptProperties().getProperty(
-            "trial_closing_row",
-          ),
-        ) -
-          parseInt(
-            PropertiesService.getScriptProperties().getProperty(
-              "trial_setup_row",
-            ),
-          ) +
-          1,
-        1,
-      )
+      .getRange(trialSetupRow, 1, trialClosingRow - trialSetupRow + 1, 1)
       .getValues()
       .flat();
   }
@@ -204,8 +183,8 @@ function checkAmountByYearSheet_(sheetName, discountRate) {
   const targetSheet =
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   const GetRowCol = new GetTargetRowCol();
-  const sumRow = GetRowCol.getTargetRow(targetSheet, 2, "合計");
-  const sumCol = GetRowCol.getTargetCol(targetSheet, 4, "金額");
+  const sumRow = GetRowCol.getTargetRow(targetSheet, 2, ITEM_LABELS.SUM);
+  const sumCol = GetRowCol.getTargetCol(targetSheet, 4, ITEM_LABELS.AMMOUNT);
   const sumValue = targetSheet.getRange(sumRow, sumCol).getValue();
   const discountValue = targetSheet.getRange(sumRow + 1, sumCol).getValue();
   const test1 = Math.trunc(sumValue * (1 - discountRate));
@@ -236,37 +215,37 @@ function checkQuoteSum_() {
   const totalGoukeiRow = GetRowCol.getTargetRow(
     ss.getSheetByName("Total"),
     2,
-    "合計",
+    ITEM_LABELS.SUM,
   );
   const total2GoukeiRow = GetRowCol.getTargetRow(
     ss.getSheetByName("Total2"),
     2,
-    "合計",
+    ITEM_LABELS.SUM,
   );
   const total3GoukeiRow = GetRowCol.getTargetRow(
     ss.getSheetByName("Total3"),
     2,
-    "合計",
+    ITEM_LABELS.SUM,
   );
   const quoteGoukeiCol = GetRowCol.getTargetCol(
     ss.getSheetByName("Quote"),
     11,
-    "金額",
+    ITEM_LABELS.AMMOUNT,
   );
   const totalGoukeiCol = GetRowCol.getTargetCol(
     ss.getSheetByName("Total"),
     4,
-    "金額",
+    ITEM_LABELS.AMMOUNT,
   );
   const total2GoukeiCol = GetRowCol.getTargetCol(
     ss.getSheetByName("Total2"),
     4,
-    "合計",
+    ITEM_LABELS.SUM,
   );
   const total3GoukeiCol = GetRowCol.getTargetCol(
     ss.getSheetByName("Total3"),
     3,
-    "合計",
+    ITEM_LABELS.SUM,
   );
   const checkAmount = [
     ss

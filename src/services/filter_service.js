@@ -2,7 +2,13 @@
  * Show/hide filters.
  */
 class FilterVisibleHidden {
-  constructor(excludeSheets = ["Price", "PriceLogicCompany", "PriceLogic"]) {
+  constructor(
+    excludeSheets = [
+      QUOTATION_SHEET_NAMES.PRICE,
+      QUOTATION_SHEET_NAMES.PRICE_LOGIC_COMPANY,
+      QUOTATION_SHEET_NAMES.PRICE_LOGIC,
+    ],
+  ) {
     this.ss = SpreadsheetApp.getActiveSpreadsheet();
     this.sheets = this.ss
       .getSheets()
@@ -32,10 +38,10 @@ class FilterVisibleHidden {
       if (criteria) this.setFilterCriteria(filter, criteria);
     });
   }
-  filterVisible() {
+  resetFilterVisibility() {
     this.applyFilter();
   }
-  filterHidden() {
+  hideFilterVisibility() {
     this.applyFilter(this.createFilterCriteria());
   }
 }

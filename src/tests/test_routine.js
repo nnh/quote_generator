@@ -13,10 +13,10 @@ class RoutineTest {
       .getRange(1, 1, 2, quotation_request_last_col)
       .getValues();
     const interimCount =
-      get_quotation_request_value(
+      get_quotation_request_value_(
         array_quotation_request,
         "中間解析業務の依頼",
-      ) == "あり"
+      ) == COMMON_EXISTENCE_LABELS.YES
         ? 1
         : "";
     this.setTestInterimValues(sheets.setup, interimCount);
@@ -397,6 +397,7 @@ class RoutineTest {
         : console.log("!!! testResults do not match expected for idx 26. !!!");
       return isMatch;
     }
+
     const res = testResults.every((x) => x);
     res
       ? console.log("*** test ok. ***")
@@ -414,7 +415,7 @@ class RoutineTest {
     return res;
   }
   routineTestInit() {
-    filtervisible();
+    resetFilterVisibility();
     const temp_init = this.routineTestDiscountInit();
     const targetSheetsName = temp_init.targetSheetsName;
     const setVal = temp_init.setVal;
@@ -441,7 +442,7 @@ class RoutineTest {
       .getValues();
     const tableCount =
       interimValue != ""
-        ? get_quotation_request_value(
+        ? get_quotation_request_value_(
             array_quotation_request,
             "中間解析に必要な図表数",
           )
@@ -530,16 +531,7 @@ function routineTest_individual() {
     : console.log("!!! test NG !!!");
 }
 function clearSheetsForTest() {
-  const targetSheetsName = [
-    "Setup",
-    "Registration_1",
-    "Registration_2",
-    "Interim_1",
-    "Observation_1",
-    "Interim_2",
-    "Observation_2",
-    "Closing",
-  ];
+  const targetSheetsName = getTargetSheetNameForTest_();
   targetSheetsName.forEach((x) => {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x);
     sheet.getRange("F6:F94").clearContent();

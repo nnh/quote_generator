@@ -10,9 +10,8 @@ class Add_del_columns {
     this.term_row = 2;
     this.dummy_str = "***dummy***";
 
-    const props = PropertiesService.getScriptProperties();
-    this.setupName = props.getProperty("setup_sheet_name");
-    this.closingName = props.getProperty("closing_sheet_name");
+    this.setupName = QUOTATION_SHEET_NAMES.SETUP;
+    this.closingName = QUOTATION_SHEET_NAMES.CLOSING;
     this._cachedHeader = null;
   }
   /**
