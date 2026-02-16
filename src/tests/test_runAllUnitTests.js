@@ -28,6 +28,17 @@ function runAllUnitTests_quote() {
   test_buildTrialTermResult();
   test_getTrialTermSheetValues();
   test_buildTrialDatesPure();
+  // quote_main.js
+  console.warn("!!! quote_main.jsのテストは未実装");
+  // set_sheet_item_values.js
+  console.warn("!!! set_sheet_item_values.jsのテストは未実装");
+  // sheet_value_builder.js
+  test_buildSheetValuesWithTargetItems();
+  test_convertItemsMapToList();
+  // trial_comment_manager.js
+  testTrial_comment_manager();
+  // trial_condition.js
+  testDecideSetupClosingTerm();
 
   console.log("All unit tests executed.");
 }

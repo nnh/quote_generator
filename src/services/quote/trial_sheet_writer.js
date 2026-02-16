@@ -1,19 +1,8 @@
 /**
  * Trial / Items シート生成・価格設定・コメント操作
- * - set_trial_sheet_
- * - set_items_price_
  */
-
 function handleQuotationType_(value) {
   return value === "正式見積" ? "御見積書" : "御参考見積書";
-}
-function handleNumberOfCases_(value, scriptProperties) {
-  scriptProperties.setProperty(SCRIPT_PROPERTY_KEYS.NUMBER_OF_CASES, value);
-  return;
-}
-function handleFacilities_(value, scriptProperties) {
-  scriptProperties.setProperty(SCRIPT_PROPERTY_KEYS.FACILITIES_VALUE, value);
-  return;
 }
 /**
  * 見積係数を正規化する
@@ -30,6 +19,16 @@ function normalizeCoefficient_(coefficientValue) {
   return coefficientValue === commercialCoefficient ? 1.5 : 1;
 }
 /**
+ * CRF数をCDISC加算用の式に変換する
+ *
+ * @param {string|number} crfCount
+ * @return {string}
+ */
+function buildCdiscCrfFormula_(crfCount) {
+  const crfValue = typeof crfCount === "number" ? crfCount : `"${crfCount}"`;
+  return `=${crfValue}*${CDISC_ADDITION}`;
+}
+/**
  * CRF項目数を CDISC対応有無に応じて調整し、コメントを更新する
  *
  * @param {string|number} crfCount CRF項目数（元の値）
@@ -38,8 +37,10 @@ function normalizeCoefficient_(coefficientValue) {
  */
 function handleCrfWithCdisc_(crfCount, arrayQuotationRequest) {
   const isCdiscEnabled =
-    get_quotation_request_value_(arrayQuotationRequest, "CDISC対応") ===
-    COMMON_EXISTENCE_LABELS.YES;
+    get_quotation_request_value_(
+      arrayQuotationRequest,
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.CDISC_SUPPORT,
+    ) === COMMON_EXISTENCE_LABELS.YES;
 
   if (!isCdiscEnabled) {
     return crfCount;
@@ -56,8 +57,7 @@ function handleCrfWithCdisc_(crfCount, arrayQuotationRequest) {
   );
 
   // CRF数を式に変換
-  const crfValue = typeof crfCount === "number" ? crfCount : `"${crfCount}"`;
-  return `=${crfValue}*${CDISC_ADDITION}`;
+  return buildCdiscCrfFormula_(crfCount);
 }
 /**
  * 見積用スプレッドシート名をリネームする
@@ -71,16 +71,6 @@ function handleCrfWithCdisc_(crfCount, arrayQuotationRequest) {
 function renameSpreadsheetWithAcronym_(acronym) {
   const today = Utilities.formatDate(new Date(), "JST", "yyyyMMdd");
   SpreadsheetApp.getActiveSpreadsheet().rename(`Quote ${acronym} ${today}`);
-  return;
-}
-/**
- * 試験種別をスクリプトプロパティに保存する
- * @param {string} trialType 試験種別
- * @return {void}
- */
-function setTrialTypeProperty_(trialType) {
-  const sp = PropertiesService.getScriptProperties();
-  sp.setProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE, trialType);
   return;
 }
 /**
@@ -208,8 +198,8 @@ function writeTrialDatesToSheet_(
  * @return {void}
  */
 function handleTrialType_(trialType, array_quotation_request, sheet) {
-  const get_s_p = PropertiesService.getScriptProperties();
-  setTrialTypeProperty_(trialType);
+  const scriptProperties = PropertiesService.getScriptProperties();
+  setTrialTypeProperty_(trialType, scriptProperties);
   const trialDates = getTrialDates_(array_quotation_request);
   if (!trialDates) {
     return;
@@ -275,10 +265,10 @@ function dispatchTrialField_(key, fieldValue, context) {
     case TRIAL_SHEET.ITEMNAMES.QUOTATION_TYPE:
       return handleQuotationType_(fieldValue);
     case const_number_of_cases:
-      handleNumberOfCases_(fieldValue, sp);
+      setNumberOfCasesProperty_(fieldValue, sp);
       return fieldValue;
     case const_facilities:
-      handleFacilities_(fieldValue, sp);
+      setFacilitiesProperty_(fieldValue, sp);
       return fieldValue;
     case TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE:
       handleTrialType_(fieldValue, arrayQuotationRequest, sheet);

@@ -63,15 +63,20 @@ function getActiveTrialTermSheets_() {
  * @return {void}
  */
 function applyQuotationToSheet_(sheetName, array_quotation_request) {
-  const setter = new SetSheetItemValues(sheetName, array_quotation_request);
   let values = null;
-  values = setter.set_setup_items_(values);
-  values = setter.set_registration_term_items_(values);
-  values = setter.set_registration_items_(values);
-  values = setter.set_closing_items_(values);
-  values = setter.set_nonSetup_term_items_(values);
-  values = setter.set_all_sheet_common_items_(values);
-  setter.setSheetValues(sheetName, values);
+  const context = buildSheetContext_(sheetName, array_quotation_request);
+
+  values = applySetupItems_(context, values);
+  values = applyRegistrationTermItems_(context, values);
+  values = applyRegistrationItems_(context, values);
+  values = applyClosingItems_(context, values);
+  values = applyNonSetupItems_(context, values);
+  values = applyCommonItems_(context, values);
+  setTargetCountValues_(
+    (sheetname = sheetName),
+    (target_col = context.target_col),
+    (values = values),
+  );
 }
 
 /**

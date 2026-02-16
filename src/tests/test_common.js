@@ -396,3 +396,33 @@ function requireTestNoExistenceLabel_() {
 
   return valueNo;
 }
+/**
+ * 指定した関数を一時的に差し替えて処理を実行する
+ * エラーが発生しても必ず元に戻す
+ *
+ * @param {Object} replacements
+ *   差し替え対象
+ *   {
+ *     original: mock
+ *   }
+ * @param {Function} callback
+ *   差し替え状態で実行したい処理
+ */
+function withMockedFunctions_(replacements, callback) {
+  const originals = {};
+
+  try {
+    // 差し替え
+    Object.keys(replacements).forEach((key) => {
+      originals[key] = globalThis[key];
+      globalThis[key] = replacements[key];
+    });
+
+    return callback();
+  } finally {
+    // 必ず復元
+    Object.keys(originals).forEach((key) => {
+      globalThis[key] = originals[key];
+    });
+  }
+}
