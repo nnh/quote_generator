@@ -32,14 +32,14 @@ function setRegistrationTermItems_(context) {
     {
       requestItemName:
         QUOTATION_REQUEST_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE_EXISTENCE,
-      expectedValue: "設置・委託する",
+      expectedValue: SETUP_OR_OUTSOURCE_EXISTENCE_LABELS.YES,
       itemName: ITEMS_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE,
     },
     {
       requestItemName:
         QUOTATION_REQUEST_SHEET.ITEMNAMES
           .EFFICACY_SAFETY_COMMITTEE_OFFICE_EXISTENCE,
-      expectedValue: "設置・委託する",
+      expectedValue: SETUP_OR_OUTSOURCE_EXISTENCE_LABELS.YES,
       itemName: ITEMS_SHEET.ITEMNAMES.EFFICACY_SAFETY_COMMITTEE_OFFICE,
     },
   ];
@@ -95,7 +95,9 @@ function calcClinicalTrialsOfficeValues_(params) {
     if (sheetname === QUOTATION_SHEET_NAMES.REGISTRATION_1) {
       setupOffice =
         Number(
-          scriptProperties.getProperty("reg1_setup_clinical_trials_office"),
+          scriptProperties.getProperty(
+            SCRIPT_PROPERTY_KEYS.REG1_SETUP_CLINICAL_TRIALS_OFFICE,
+          ),
         ) || 0;
     }
   }

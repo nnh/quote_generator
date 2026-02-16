@@ -7,14 +7,14 @@ function test_initTargetColumn() {
     "initTargetColumn should return 'F'",
   );
 }
-function test_initClinicalTrialsOfficeFlg() {
+function test_isClinicalTrialsOfficeRequired() {
   const trialTypeList = getTrialTypeListForTest_();
   trialTypeList.forEach((trialTypePropertyValue) =>
-    test_initClinicalTrialsOfficeFlg_withProperty_(trialTypePropertyValue),
+    test_isClinicalTrialsOfficeRequired_withProperty_(trialTypePropertyValue),
   );
 }
 /**
- * initClinicalTrialsOfficeFlg_ のテスト用共通関数
+ * isClinicalTrialsOfficeRequired_ のテスト用共通関数
  *
  * @param {string|null} trialTypePropertyValue
  *   Script Properties に設定する trial_type_value（null の場合は未設定）
@@ -25,13 +25,37 @@ function test_initClinicalTrialsOfficeFlg() {
  * @param {string} testname
  *   テスト名
  */
-function test_initClinicalTrialsOfficeFlg_withProperty_(
+function test_isClinicalTrialsOfficeRequired_withProperty_(
   trialTypePropertyValue,
 ) {
   const scriptProperties = PropertiesService.getScriptProperties();
-  const PROPERTY_KEY = "trial_type_value";
+  const PROPERTY_KEY = SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE;
+  if (!PROPERTY_KEY) {
+    throw new Error("SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE is not defined");
+  }
+  if (!QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL) {
+    throw new Error("QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL is not defined");
+  }
 
   const originalValue = scriptProperties.getProperty(PROPERTY_KEY);
+  const value_yes = requireTestYesExistenceLabel_();
+  const value_no = requireTestNoExistenceLabel_();
+  const quotation_request_funding_source =
+    QUOTATION_REQUEST_SHEET.ITEMNAMES.FUNDING_SOURCE;
+  if (!quotation_request_funding_source) {
+    throw new Error(
+      "QUOTATION_REQUEST_SHEET.ITEMNAMES.FUNDING_SOURCE is not defined",
+    );
+  }
+  const quotation_request_adjustment_office_existence =
+    QUOTATION_REQUEST_SHEET.ITEMNAMES.ADJUSTMENT_OFFICE_EXISTENCE;
+  if (!quotation_request_adjustment_office_existence) {
+    throw new Error(
+      "QUOTATION_REQUEST_SHEET.ITEMNAMES.ADJUSTMENT_OFFICE_EXISTENCE is not defined",
+    );
+  }
+  const investigatorInitiatedTrialType =
+    requireTestInvestigatorInitiatedTrialType_();
 
   try {
     // --- テスト用プロパティを設定 ---
@@ -40,44 +64,46 @@ function test_initClinicalTrialsOfficeFlg_withProperty_(
     } else {
       scriptProperties.setProperty(PROPERTY_KEY, trialTypePropertyValue);
     }
-    ["公的資金（税金由来）", "営利企業原資（製薬企業等）", ""].forEach(
-      (fundingSource) => {
-        const temp_array_quotation_request =
+    [
+      "公的資金（税金由来）",
+      QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL,
+      "",
+    ].forEach((fundingSource) => {
+      const temp_array_quotation_request =
+        createTestQuotationRequestArrayWithColumn_(
+          null,
+          "AN",
+          quotation_request_funding_source,
+          fundingSource,
+        );
+      [value_yes, value_no, ""].forEach((officeExistence) => {
+        const array_quotation_request =
           createTestQuotationRequestArrayWithColumn_(
-            null,
-            "AN",
-            "原資",
-            fundingSource,
+            temp_array_quotation_request,
+            "AQ",
+            quotation_request_adjustment_office_existence,
+            officeExistence,
           );
-        ["あり", "なし", ""].forEach((officeExistence) => {
-          const array_quotation_request =
-            createTestQuotationRequestArrayWithColumn_(
-              temp_array_quotation_request,
-              "AQ",
-              "調整事務局設置の有無",
-              officeExistence,
-            );
-          let expectedValue = false;
-          if (trialTypePropertyValue === "医師主導治験") {
-            expectedValue = true;
-          }
-          if (fundingSource === "営利企業原資（製薬企業等）") {
-            expectedValue = true;
-          }
-          if (officeExistence === "あり") {
-            expectedValue = true;
-          }
-          const actualValue = initClinicalTrialsOfficeFlg_(
-            array_quotation_request,
-          );
-          assertEquals_(
-            expectedValue,
-            actualValue,
-            `initClinicalTrialsOfficeFlg should return ${expectedValue} for trialType: ${trialTypePropertyValue}, fundingSource: ${fundingSource}, officeExistence: ${officeExistence}`,
-          );
-        });
-      },
-    );
+        let expectedValue = false;
+        if (trialTypePropertyValue === investigatorInitiatedTrialType) {
+          expectedValue = true;
+        }
+        if (fundingSource === QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL) {
+          expectedValue = true;
+        }
+        if (officeExistence === value_yes) {
+          expectedValue = true;
+        }
+        const actualValue = isClinicalTrialsOfficeRequired_(
+          array_quotation_request,
+        );
+        assertEquals_(
+          expectedValue,
+          actualValue,
+          `initClinicalTrialsOfficeFlg should return ${expectedValue} for trialType: ${trialTypePropertyValue}, fundingSource: ${fundingSource}, officeExistence: ${officeExistence}`,
+        );
+      });
+    });
   } finally {
     // --- プロパティを必ず元に戻す ---
     if (originalValue === null) {
@@ -88,8 +114,12 @@ function test_initClinicalTrialsOfficeFlg_withProperty_(
   }
 }
 function test_getTrialValues_forTestQuoteContext_() {
+  const trialSheetName = TRIAL_SHEET.NAME;
+  if (!trialSheetName) {
+    throw new Error("TRIAL_SHEET.NAME is not defined");
+  }
   const targetRange = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName("Trial")
+    .getSheetByName(trialSheetName)
     .getRange("A32:H39");
   return targetRange.getValues();
 }
@@ -130,56 +160,7 @@ function test_getTrialTermSheetValues() {
     "getTrialTermSheetValues should return correct values from Trial sheet",
   );
 }
-/**
- * buildTrialDates_ の統合テスト
- */
-function test_buildTrialDates() {
-  const cases = [
-    {
-      name: "すべて有効な日付",
-      trial_term_values: (() => {
-        const values = [];
-        values[TRIAL_SHEET.COLUMNS.TRIAL_START - 1] = "2023-04-01";
-        values[TRIAL_SHEET.COLUMNS.TRIAL_END - 1] = "2024-03-31";
-        return values;
-      })(),
-      props: {
-        trial_start_date: "2022-01-01",
-        trial_end_date: "2025-12-31",
-      },
-      expect: {
-        trial_target_start_date: Moment.moment("2023-04-01"),
-        trial_target_end_date: Moment.moment("2024-03-31"),
-        trial_start_date: Moment.moment("2022-01-01"),
-        trial_end_date: Moment.moment("2025-12-31"),
-      },
-    },
-    {
-      name: "trial_term_values が undefined",
-      trial_term_values: undefined,
-      props: {
-        trial_start_date: "2022-01-01",
-        trial_end_date: "2024-12-31",
-      },
-      expect: {
-        trial_target_start_date: Moment.moment(undefined),
-        trial_target_end_date: Moment.moment(undefined),
-        trial_start_date: Moment.moment("2022-01-01"),
-        trial_end_date: Moment.moment("2024-12-31"),
-      },
-    },
-  ];
 
-  cases.forEach((c) => {
-    const actualValue = buildTrialDates_(c.trial_term_values, c.props);
-    const expectedValue = c.expect;
-    assertEquals_(
-      actualValue,
-      expectedValue,
-      `buildTrialDates_ should return correct dates for case: ${c.name}`,
-    );
-  });
-}
 function test_buildTrialDatesPure() {
   const cases = [
     {
@@ -223,7 +204,7 @@ function test_buildTrialDatesPure() {
     assertEquals_(
       actualValue,
       expectedValue,
-      `buildTrialDates_ should return correct dates for case: ${c.name}`,
+      `test_buildTrialDatesPure_ should return correct dates for case: ${c.name}`,
     );
   });
 }

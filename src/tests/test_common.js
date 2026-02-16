@@ -345,3 +345,54 @@ function assertThrows_(params) {
     }
   }
 }
+/**
+ * 医師主導治験の定数が定義されていることを確認する
+ * @return {string} 医師主導治験の定数値
+ */
+function requireTestInvestigatorInitiatedTrialType_() {
+  const investigatorInitiated = TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
+
+  if (!investigatorInitiated) {
+    throw new Error(
+      "Test precondition failed: TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED is not defined.",
+    );
+  }
+
+  return investigatorInitiated;
+}
+/**
+ * 特定臨床研究の定数が定義されていることを確認する
+ * @return {string} 特定臨床研究の定数値
+ */
+function requireTestSpecifiedClinicalTrialType_() {
+  const specifiedClinicalResearch = TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL;
+
+  if (!specifiedClinicalResearch) {
+    throw new Error(
+      "Test precondition failed: TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL is not defined.",
+    );
+  }
+  return specifiedClinicalResearch;
+}
+function requireTestYesExistenceLabel_() {
+  const valueYes = COMMON_EXISTENCE_LABELS.YES;
+
+  if (!valueYes) {
+    throw new Error(
+      "Test precondition failed: COMMON_EXISTENCE_LABELS.YES is not defined.",
+    );
+  }
+
+  return valueYes;
+}
+function requireTestNoExistenceLabel_() {
+  const valueNo = COMMON_EXISTENCE_LABELS.NO;
+
+  if (!valueNo) {
+    throw new Error(
+      "Test precondition failed: COMMON_EXISTENCE_LABELS.NO is not defined.",
+    );
+  }
+
+  return valueNo;
+}

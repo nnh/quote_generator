@@ -16,25 +16,28 @@ function getSetupTrialTypeConfig_() {
 
   const config = {
     sop: "",
-    office_irb_str: "IRB準備・承認確認",
+    office_irb_str:
+      ITEMS_SHEET.ITEMNAMES.IRB_PREPARATION_AND_APPROVAL_CONFIRMATION,
     office_irb: "",
-    set_accounts: "初期アカウント設定（施設・ユーザー）、IRB承認確認",
+    set_accounts:
+      ITEMS_SHEET.ITEMNAMES.INITIAL_ACCOUNT_SETUP_AND_IRB_APPROVAL_CONFIRMATION,
     drug_support: "",
     specified_clinical_support: "",
   };
 
   if (
-    get_s_p.getProperty("trial_type_value") ===
+    get_s_p.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
     TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
   ) {
     config.sop = 1;
-    config.office_irb_str = "IRB承認確認、施設管理";
+    config.office_irb_str =
+      ITEMS_SHEET.ITEMNAMES.IRB_APPROVAL_CONFIRMATION_AND_FACILITY_MANAGEMENT;
     config.office_irb = FUNCTION_FORMULAS.FACILITIES;
-    config.set_accounts = "初期アカウント設定（施設・ユーザー）";
+    config.set_accounts = ITEMS_SHEET.ITEMNAMES.INITIAL_ACCOUNT_SETUP;
     config.drug_support = FUNCTION_FORMULAS.FACILITIES;
   }
   if (
-    get_s_p.getProperty("trial_type_value") ===
+    get_s_p.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
     TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL
   ) {
     config.specified_clinical_support = FUNCTION_FORMULAS.FACILITIES;
@@ -94,7 +97,7 @@ function createSetupItemsList_(
   const kickoff_meeting = returnIfEquals_(
     get_quotation_request_value_(
       array_quotation_request,
-      "キックオフミーティング",
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.KICKOFF_MEETING,
     ),
     COMMON_EXISTENCE_LABELS.YES,
     1,
@@ -137,35 +140,47 @@ function createSetupItemsList_(
   );
 
   const drug_management = returnIfEquals_(
-    get_quotation_request_value_(array_quotation_request, "治験薬管理"),
+    get_quotation_request_value_(
+      array_quotation_request,
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.DRUG_MANAGEMENT_CENTRAL,
+    ),
     COMMON_EXISTENCE_LABELS.YES,
     1,
   );
 
   return new Map([
-    ["プロトコルレビュー・作成支援", 1],
-    ["検討会実施（TV会議等）", 4],
+    [ITEMS_SHEET.ITEMNAMES.PROTOCOL_REVIEW_AND_CREATION_SUPPORT, 1],
+    [ITEMS_SHEET.ITEMNAMES.REVIEW_MEETING_EXECUTION_REMOTE, 4],
     [ITEMS_SHEET.ITEMNAMES.PMDA_CONSULTATION_SUPPORT, pmda_support],
     [ITEMS_SHEET.ITEMNAMES.AMED_APPLICATION_SUPPORT, amed_support],
-    ["特定臨床研究法申請資料作成支援", specified_clinical_support],
-    ["キックオフミーティング準備・実行", kickoff_meeting],
-    ["SOP一式、CTR登録案、TMF管理", sop],
+    [
+      ITEMS_SHEET.ITEMNAMES.SPECIFIED_CLINICAL_RESEARCH_APPLICATION_SUPPORT,
+      specified_clinical_support,
+    ],
+    [
+      ITEMS_SHEET.ITEMNAMES.KICKOFF_MEETING_PREPARATION_AND_EXECUTION,
+      kickoff_meeting,
+    ],
+    [ITEMS_SHEET.ITEMNAMES.SOP_AND_CTR_REGISTRATION_AND_TMF_MANAGEMENT, sop],
     [
       ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_SETUP,
       clinical_trials_office,
     ],
     [office_irb_str, office_irb],
-    ["薬剤対応", drug_support],
-    ["モニタリング準備業務（関連資料作成）", monitoring_prep],
-    ["EDCライセンス・データベースセットアップ", 1],
-    ["業務分析・DM計画書の作成・CTR登録案の作成", 1],
-    ["DB作成・eCRF作成・バリデーション", 1],
-    ["バリデーション報告書", 1],
+    [ITEMS_SHEET.ITEMNAMES.DRUG_SUPPORT, drug_support],
+    [ITEMS_SHEET.ITEMNAMES.MONITORING_PREPARATION, monitoring_prep],
+    [ITEMS_SHEET.ITEMNAMES.EDC_LICENSE_AND_DATABASE_SETUP, 1],
+    [
+      ITEMS_SHEET.ITEMNAMES.BUSINESS_ANALYSIS_DM_PLAN_AND_CTR_REGISTRATION_PLAN,
+      1,
+    ],
+    [ITEMS_SHEET.ITEMNAMES.DB_CREATION_ECRF_CREATION_AND_VALIDATION, 1],
+    [ITEMS_SHEET.ITEMNAMES.VALIDATION_REPORT, 1],
     [set_accounts, dm_irb],
-    ["入力の手引作成", 1],
+    [ITEMS_SHEET.ITEMNAMES.INPUT_GUIDE_CREATION, 1],
     [ITEMS_SHEET.ITEMNAMES.EXTERNAL_AUDIT_FEE, audit_fee],
     [ITEMS_SHEET.ITEMNAMES.PREPARE_FEE, prepare_fee],
     [ITEMS_SHEET.ITEMNAMES.INSURANCE_FEE, insurance_fee],
-    ["治験薬管理（中央）", drug_management],
+    [ITEMS_SHEET.ITEMNAMES.DRUG_MANAGEMENT_CENTRAL, drug_management],
   ]);
 }

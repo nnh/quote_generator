@@ -59,8 +59,8 @@ function decideSetupClosingTerm_(isSpecialTrial, hasReportSupport) {
  */
 function saveSetupClosingTerm_(setupTerm, closingTerm) {
   const sp = PropertiesService.getScriptProperties();
-  sp.setProperty("setup_term", String(setupTerm));
-  sp.setProperty("closing_term", String(closingTerm));
+  sp.setProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM, String(setupTerm));
+  sp.setProperty(SCRIPT_PROPERTY_KEYS.CLOSING_TERM, String(closingTerm));
 }
 
 /**

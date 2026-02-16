@@ -8,11 +8,11 @@ function handleQuotationType_(value) {
   return value === "正式見積" ? "御見積書" : "御参考見積書";
 }
 function handleNumberOfCases_(value, scriptProperties) {
-  scriptProperties.setProperty("number_of_cases", value);
+  scriptProperties.setProperty(SCRIPT_PROPERTY_KEYS.NUMBER_OF_CASES, value);
   return;
 }
 function handleFacilities_(value, scriptProperties) {
-  scriptProperties.setProperty("facilities_value", value);
+  scriptProperties.setProperty(SCRIPT_PROPERTY_KEYS.FACILITIES_VALUE, value);
   return;
 }
 /**
@@ -80,7 +80,7 @@ function renameSpreadsheetWithAcronym_(acronym) {
  */
 function setTrialTypeProperty_(trialType) {
   const sp = PropertiesService.getScriptProperties();
-  sp.setProperty("trial_type_value", trialType);
+  sp.setProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE, trialType);
   return;
 }
 /**

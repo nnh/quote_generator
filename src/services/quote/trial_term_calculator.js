@@ -119,8 +119,12 @@ function get_trial_start_end_date_(
   input_trial_end_date,
 ) {
   const sp = PropertiesService.getScriptProperties();
-  const setupTermMonths = Number(sp.getProperty("setup_term"));
-  const closingTermMonths = Number(sp.getProperty("closing_term"));
+  const setupTermMonths = Number(
+    sp.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
+  );
+  const closingTermMonths = Number(
+    sp.getProperty(SCRIPT_PROPERTY_KEYS.CLOSING_TERM),
+  );
 
   const dates = calculateTrialDates_(
     input_trial_start_date,
@@ -129,9 +133,15 @@ function get_trial_start_end_date_(
     closingTermMonths,
   );
 
-  sp.setProperty("trial_start_date", dates.trialStart.format());
-  sp.setProperty("trial_end_date", dates.trialEnd.format());
-  sp.setProperty("registration_years", dates.registrationYears);
+  sp.setProperty(
+    SCRIPT_PROPERTY_KEYS.TRIAL_START_DATE,
+    dates.trialStart.format(),
+  );
+  sp.setProperty(SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE, dates.trialEnd.format());
+  sp.setProperty(
+    SCRIPT_PROPERTY_KEYS.REGISTRATION_YEARS,
+    dates.registrationYears,
+  );
 
   return dates.sheetDateArray;
 }

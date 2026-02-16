@@ -39,8 +39,12 @@ function calculateDatabaseManagementTerm_(
   return calculateDatabaseManagementTermPure_(
     sheetName,
     trialTargetTerms,
-    Number(scriptProperties.getProperty("setup_term")),
-    Number(scriptProperties.getProperty("reg1_setup_database_management")),
+    Number(scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM)),
+    Number(
+      scriptProperties.getProperty(
+        SCRIPT_PROPERTY_KEYS.REG1_SETUP_DATABASE_MANAGEMENT,
+      ),
+    ),
   );
 }
 function shouldSkipDatabaseManagement_(sheetName, trialTargetTerms, setupTerm) {
