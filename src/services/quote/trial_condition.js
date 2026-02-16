@@ -1,6 +1,5 @@
 /**
  * 試験条件・件数判定ロジック
- * - get_setup_closing_term_
  * - get_count
  * - get_count_more_than
  */
@@ -65,22 +64,21 @@ function saveSetupClosingTerm_(setupTerm, closingTerm) {
 
 /**
  * 試験種別からSetup、Closing期間の判定を行いスクリプトプロパティに格納する
- * @param {string} temp_str 試験種別
- * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+ * @param {string} trialType 試験種別
+ * @param {Array.<string>} quotationRequest quotation_requestシートの1〜2行目の値
  * @return {void}
  * @example
- *   get_setup_closing_term_(temp_str, array_quotation_request);
+ *   applySetupClosingTerm_(trialType, quotationRequest);
  */
-function get_setup_closing_term_(temp_str, array_quotation_request) {
-  const isSpecialTrial = isSpecialTrial_(temp_str);
-  const hasReportSupport = hasReportSupport_(array_quotation_request);
-
-  const { setupTerm, closingTerm } = decideSetupClosingTerm_(
-    isSpecialTrial,
-    hasReportSupport,
+function applySetupClosingTerm_(trialType, quotationRequest) {
+  const { setupTerm, closingTerm } = calculateSetupClosingTerm_(
+    trialType,
+    quotationRequest,
   );
+
   saveSetupClosingTerm_(setupTerm, closingTerm);
 }
+
 /**
  * 値が一致する場合に指定値を返す
  */

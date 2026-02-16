@@ -1,7 +1,7 @@
 /**
  * 開始日〜終了日に含まれる業務上の月数を返す
  * ※ start_date は必ず月初、end_date は必ず月末に正規化済みであること
- * ※ 正規化は get_trial_start_end_date_() 側で行う前提
+ * ※ 正規化は buildTrialDateArray_() 側で行う前提
  */
 function get_months_(start_date, end_date) {
   // start_date / end_date が null, undefined, "" の場合は null を返す

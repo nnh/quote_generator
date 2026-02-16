@@ -1,15 +1,15 @@
 function test_trialSheetWriter() {
-  test_handleQuotationType_();
+  test_convertQuotationTypeLabel_();
   test_normalizeCoefficient_();
   test_buildCdiscCrfFormula_();
 }
-function test_handleQuotationType_() {
-  const actualFormal = handleQuotationType_("正式見積");
+function test_convertQuotationTypeLabel_() {
+  const actualFormal = convertQuotationTypeLabel_("正式見積");
   const expectedFormal = "御見積書";
 
   assertEquals_(actualFormal, expectedFormal, "正式見積なら御見積書になること");
 
-  const actualOther = handleQuotationType_("あああ");
+  const actualOther = convertQuotationTypeLabel_("あああ");
   const expectedOther = "御参考見積書";
 
   assertEquals_(

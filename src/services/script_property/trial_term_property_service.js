@@ -37,3 +37,16 @@ function setTrialTypeProperty_(trialType, scriptProperties) {
     scriptProperties,
   );
 }
+/**
+ * Setup / Closing期間をスクリプトプロパティに保存する
+ * @param {number} setupTerm Setup期間（月数）
+ * @param {number} closingTerm Closing期間（月数）
+ * @return {void}
+ */
+function saveSetupClosingTerm_(setupTerm, closingTerm) {
+  const props = PropertiesService.getScriptProperties();
+
+  props.setProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM, setupTerm);
+
+  props.setProperty(SCRIPT_PROPERTY_KEYS.CLOSING_TERM, closingTerm);
+}

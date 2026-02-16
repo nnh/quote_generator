@@ -114,10 +114,7 @@ function convertTermPeriodsToArray_(termPeriods) {
  * @param {number} input_trial_end_date 試験終了日のセル値
  * @return {Array.<Array>} 各シートの開始日・終了日の二次元配列
  */
-function get_trial_start_end_date_(
-  input_trial_start_date,
-  input_trial_end_date,
-) {
+function buildTrialDateArray_(input_trial_start_date, input_trial_end_date) {
   const sp = PropertiesService.getScriptProperties();
   const setupTermMonths = Number(
     sp.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
@@ -182,4 +179,16 @@ function calcRegistrationMonth_({
   }
 
   return "";
+}
+/**
+ * Setup / Closing期間を決定する
+ * @param {string} trialType 試験種別
+ * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+ * @return {{setupTerm: number, closingTerm: number}} Setup / Closing期間（月数）
+ */
+function calculateSetupClosingTerm_(trialType, quotationRequest) {
+  const isSpecialTrial = isSpecialTrial_(trialType);
+  const hasReportSupport = hasReportSupport_(quotationRequest);
+
+  return decideSetupClosingTerm_(isSpecialTrial, hasReportSupport);
 }
