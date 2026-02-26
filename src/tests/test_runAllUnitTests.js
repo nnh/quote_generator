@@ -2,7 +2,7 @@ function runAllUnitTests_quote() {
   console.warn("!!! analysis_service.jsのテストは未実装");
   // quotation_target_item_applier.js
   testApplyTargetItemsToValues();
-  // calculate_setup_term.js
+  // quotation_setup_term_calculator.js
   testCalculateSetupTermResult();
   // quotation_imbalance_distribution_calculator.js
   execAllImbalanceTests();
