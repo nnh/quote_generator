@@ -155,42 +155,54 @@ function normalizeClosingPeriodResultForTest_(result) {
     closingEnd: result.closingEnd.format("YYYY-MM-DD"),
   };
 }
-
 /**
  * hasPositiveMonthDiffWithMoment_ の単体テスト
  *
  * 「to が from より月単位で後かどうか」を正しく判定できるかを確認する。
  *
- * 確認観点：
- * - 同一月内の日付差は false になること
- * - 1か月以上後の日付は true になること
- * - 過去方向の日付は false になること
+ * Moment依存ロジックから Dateベース実装へ移行する過程において、
+ * 以下の互換性を維持できているかを検証する：
+ *
+ * - Moment 同士の比較が従来通り動作すること
+ * - 同一月内の差分は false になること
+ * - 1か月以上先は true になること
+ * - 過去方向は false になること
+ * - Date オブジェクト入力でも動作すること
+ * - Moment と Date が混在しても動作すること
+ *
+ * @return {void}
  */
 function test_hasPositiveMonthDiffWithMoment() {
   const cases = [
     {
-      // 同一月内（4月1日 → 4月30日）
-      // diff("months") は 0 になるため false を期待
       name: "same month should be false",
       from: Moment.moment("2024-04-01"),
       to: Moment.moment("2024-04-30"),
       expected: false,
     },
     {
-      // 翌月（4月 → 5月）
-      // diff("months") > 0 となるため true を期待
       name: "next month should be true",
       from: Moment.moment("2024-04-01"),
       to: Moment.moment("2024-05-01"),
       expected: true,
     },
     {
-      // 逆転ケース（5月 → 4月）
-      // diff("months") は負になるため false を期待
       name: "earlier month should be false",
       from: Moment.moment("2024-05-01"),
       to: Moment.moment("2024-04-30"),
       expected: false,
+    },
+    {
+      name: "Date input should still work",
+      from: new Date("2024-04-01"),
+      to: new Date("2024-05-01"),
+      expected: true,
+    },
+    {
+      name: "Moment + Date mix should work",
+      from: Moment.moment("2024-04-01"),
+      to: new Date("2024-05-01"),
+      expected: true,
     },
   ];
 
@@ -492,4 +504,41 @@ function test_calculateRegistrationYearsWithMoment() {
     4,
     "calculateRegistrationYears: trialStart → trialEnd",
   );
+}
+/**
+ * determineRegistrationStartWithMoment_ の互換性テスト
+ *
+ * registration1Start が存在すればそれを返し、
+ * 無ければ trialStart のコピーを返すことを確認する。
+ */
+function test_determineRegistrationStartWithMoment() {
+  const trialStart = Moment.moment("2024-04-01");
+
+  const cases = [
+    {
+      name: "registration1Start is used when present",
+      reg1: Moment.moment("2024-03-01"),
+      trial: trialStart,
+      expected: "2024-03-01",
+    },
+    {
+      name: "trialStart is cloned when reg1 is null",
+      reg1: null,
+      trial: trialStart,
+      expected: "2024-04-01",
+    },
+    {
+      name: "Date input works",
+      reg1: null,
+      trial: new Date("2024-04-01"),
+      expected: "2024-04-01",
+    },
+  ];
+
+  cases.forEach(({ name, reg1, trial, expected }) => {
+    const actual = determineRegistrationStartWithMoment_(reg1, trial);
+    const actualStr = toMoment_(actual).format("YYYY-MM-DD");
+
+    assertEquals_(actualStr, expected, name);
+  });
 }

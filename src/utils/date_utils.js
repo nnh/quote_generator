@@ -114,3 +114,38 @@ function startOfMonth_(date) {
 function endOfMonth_(date) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0);
 }
+/**
+ * 2つの日付の月差が正（to が from より後）かを判定する
+ *
+ * @param {Date} from
+ * @param {Date} to
+ * @return {boolean}
+ */
+function hasPositiveMonthDiff_(from, to) {
+  const monthDiff =
+    (to.getFullYear() - from.getFullYear()) * 12 +
+    (to.getMonth() - from.getMonth());
+
+  return monthDiff > 0;
+}
+/**
+ * Date / Moment 互換オブジェクトを安全にコピーする
+ *
+ * @param {Date|Object|null} value
+ * @return {Date|Object|null}
+ */
+function cloneDateLike_(value) {
+  if (!value) return value;
+
+  // Moment互換なら clone を使う
+  if (typeof value.clone === "function") {
+    return value.clone();
+  }
+
+  // Dateなら新規生成
+  if (value instanceof Date) {
+    return new Date(value.getTime());
+  }
+
+  throw new Error("Unsupported date-like object");
+}

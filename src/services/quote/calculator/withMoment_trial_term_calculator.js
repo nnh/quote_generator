@@ -207,15 +207,14 @@ function calculateRegistrationPeriodsWithMoment_(
   };
 }
 /**
- * 2つの日付の月差が正（to が from より後）かを判定する
- * ※ Moment 依存あり
- *
- * @param {Moment} from
- * @param {Moment} to
- * @return {boolean}
+ * Moment互換ラッパー（移行用）
+ * @deprecated Moment除去後は削除
  */
 function hasPositiveMonthDiffWithMoment_(from, to) {
-  return to.diff(from, "months") > 0;
+  const fromDate = from.toDate ? from.toDate() : from;
+  const toDate = to.toDate ? to.toDate() : to;
+
+  return hasPositiveMonthDiff_(fromDate, toDate);
 }
 /**
  * Registration 年数計算用の開始日を決定する
@@ -224,7 +223,7 @@ function hasPositiveMonthDiffWithMoment_(from, to) {
  * @return {Moment}
  */
 function determineRegistrationStartWithMoment_(registration1Start, trialStart) {
-  return registration1Start ?? trialStart.clone();
+  return registration1Start ?? cloneDateLike_(trialStart);
 }
 /**
  * Registration 年数計算用の終了日を決定する
