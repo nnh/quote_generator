@@ -128,24 +128,21 @@ function hasPositiveMonthDiff_(from, to) {
 
   return monthDiff > 0;
 }
+
 /**
- * Date / Moment 互換オブジェクトを安全にコピーする
+ * Date / Moment 互換値を Date に正規化する
  *
- * @param {Date|Object|null} value
- * @return {Date|Object|null}
+ * Moment オブジェクトが渡された場合は toDate() を呼び出し、
+ * Date の場合はそのまま返す。
+ *
+ * Moment依存をロジック層へ持ち込まないための境界関数。
+ *
+ * @param {Date|Object|null|undefined} v
+ *   Date または Moment互換オブジェクト（toDate を持つ）
+ *
+ * @return {Date|null|undefined}
+ *   Date に変換された値（null / undefined はそのまま返す）
  */
-function cloneDateLike_(value) {
-  if (!value) return value;
-
-  // Moment互換なら clone を使う
-  if (typeof value.clone === "function") {
-    return value.clone();
-  }
-
-  // Dateなら新規生成
-  if (value instanceof Date) {
-    return new Date(value.getTime());
-  }
-
-  throw new Error("Unsupported date-like object");
+function normalizeDate_(v) {
+  return v?.toDate?.() ?? v;
 }

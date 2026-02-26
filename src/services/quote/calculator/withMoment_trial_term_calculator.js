@@ -79,7 +79,12 @@ function calculateClosingPeriodWithMoment_(trialEnd, closingTermMonths) {
  * }}
  */
 function calculateRegistration1WithMoment_(setupEnd, closingStart) {
-  if (!hasPositiveMonthDiffWithMoment_(setupEnd, closingStart)) {
+  if (
+    !hasPositiveMonthDiff_(
+      setupEnd?.toDate?.() ?? setupEnd,
+      closingStart?.toDate?.() ?? closingStart,
+    )
+  ) {
     return { start: null, end: null };
   }
 
@@ -108,7 +113,12 @@ function calculateObservation2WithMoment_(registration1End, closingStart) {
     return { start: null, end: null };
   }
 
-  if (!hasPositiveMonthDiffWithMoment_(registration1End, closingStart)) {
+  if (
+    !hasPositiveMonthDiff_(
+      registration1End?.toDate?.() ?? registration1End,
+      closingStart?.toDate?.() ?? closingStart,
+    )
+  ) {
     return { start: null, end: null };
   }
 
@@ -163,9 +173,9 @@ function calculateRegistrationPeriodsWithMoment_(
   trialEnd,
 ) {
   // setup終了日〜closing開始日（月単位）
-  const diffSetupEndToClosingStart = hasPositiveMonthDiffWithMoment_(
-    setupEnd,
-    closingStart,
+  const diffSetupEndToClosingStart = hasPositiveMonthDiff_(
+    setupEnd?.toDate?.() ?? setupEnd,
+    closingStart?.toDate?.() ?? closingStart,
   );
 
   // registration_1
@@ -187,7 +197,7 @@ function calculateRegistrationPeriodsWithMoment_(
   const registration2End = reg2.end;
 
   // registration年数計算
-  const registrationYears = calculateRegistrationYearsWithMoment_(
+  const registrationYears = calculateRegistrationDurationYears_(
     registration1Start,
     observation2End,
     registration2End,
@@ -206,60 +216,21 @@ function calculateRegistrationPeriodsWithMoment_(
     registrationYears,
   };
 }
-/**
- * Moment互換ラッパー（移行用）
- * @deprecated Moment除去後は削除
- */
-function hasPositiveMonthDiffWithMoment_(from, to) {
-  const fromDate = from.toDate ? from.toDate() : from;
-  const toDate = to.toDate ? to.toDate() : to;
 
-  return hasPositiveMonthDiff_(fromDate, toDate);
-}
-/**
- * Registration 年数計算用の開始日を決定する
- * @param {Moment|null} registration1Start
- * @param {Moment} trialStart
- * @return {Date|Object|null}
- */
-function determineRegistrationStartWithMoment_(registration1Start, trialStart) {
-  return registration1Start ?? cloneDateLike_(trialStart);
-}
-/**
- * Registration 年数計算用の終了日を決定する
- * 優先順位：
- * observation2End → registration2End → registration1End → trialEnd
- *
- * @param {Moment|null} observation2End
- * @param {Moment|null} registration2End
- * @param {Moment|null} registration1End
- * @param {Moment} trialEnd
- * @return {Date|Object|null}
- */
-function determineRegistrationEndWithMoment_(
-  observation2End,
-  registration2End,
-  registration1End,
-  trialEnd,
-) {
-  return (
-    observation2End ??
-    registration2End ??
-    registration1End ??
-    cloneDateLike_(trialEnd)
-  );
-}
 /**
  * Registration 年数を計算する
- * @param {Moment|null} registration1Start
- * @param {Moment|null} observation2End
- * @param {Moment|null} registration2End
- * @param {Moment|null} registration1End
- * @param {Moment} trialStart
- * @param {Moment} trialEnd
+ *
+ * Moment / Date の両方を受け取れる
+ *
+ * @param {Moment|null|Date} registration1Start
+ * @param {Moment|null|Date} observation2End
+ * @param {Moment|null|Date} registration2End
+ * @param {Moment|null|Date} registration1End
+ * @param {Moment|Date} trialStart
+ * @param {Moment|Date} trialEnd
  * @return {number}
  */
-function calculateRegistrationYearsWithMoment_(
+function calculateRegistrationDurationYears_(
   registration1Start,
   observation2End,
   registration2End,
@@ -267,16 +238,10 @@ function calculateRegistrationYearsWithMoment_(
   trialStart,
   trialEnd,
 ) {
-  const start = determineRegistrationStartWithMoment_(
-    registration1Start,
-    trialStart,
-  );
+  const start = normalizeDate_(registration1Start ?? trialStart);
 
-  const end = determineRegistrationEndWithMoment_(
-    observation2End,
-    registration2End,
-    registration1End,
-    trialEnd,
+  const end = normalizeDate_(
+    observation2End ?? registration2End ?? registration1End ?? trialEnd,
   );
 
   return get_years_(start, end);

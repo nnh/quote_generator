@@ -156,7 +156,7 @@ function normalizeClosingPeriodResultForTest_(result) {
   };
 }
 /**
- * hasPositiveMonthDiffWithMoment_ の単体テスト
+ * hasPositiveMonthDiff_ の単体テスト
  *
  * 「to が from より月単位で後かどうか」を正しく判定できるかを確認する。
  *
@@ -207,7 +207,10 @@ function test_hasPositiveMonthDiffWithMoment() {
   ];
 
   cases.forEach(({ name, from, to, expected }) => {
-    const actual = hasPositiveMonthDiffWithMoment_(from, to);
+    const actual = hasPositiveMonthDiff_(
+      from?.toDate?.() ?? from,
+      to?.toDate?.() ?? to,
+    );
     assertEquals_(actual, expected, name);
   });
 }
@@ -365,211 +368,169 @@ function test_calculateRegistration2WithMoment() {
     );
   })();
 }
+
 /**
- * determineRegistrationEndWithMoment_ のテスト
+ * Registration開始日の決定ロジック
+ *
+ * registration1Start があればそれを使用し、
+ * 無ければ trialStart が使用されることを確認する。
  */
-function test_determineRegistrationEndWithMoment() {
-  const trialEnd = Moment.moment("2024-12-31");
-  const registration1End = Moment.moment("2024-09-30");
-  const registration2End = Moment.moment("2024-10-31");
-  const observation2End = Moment.moment("2024-11-30");
+function test_registrationStartFallback() {
+  const trialStart = new Date("2024-04-01");
 
-  // Case 1: observation2End が最優先
-  assertEquals_(
-    determineRegistrationEndWithMoment_(
-      observation2End,
-      registration2End,
-      registration1End,
-      trialEnd,
-    ).format("YYYY-MM-DD"),
-    "2024-11-30",
-    "determineRegistrationEnd: observation2End has highest priority",
-  );
+  const cases = [
+    {
+      name: "registration1Start is used when present",
+      reg1: new Date("2024-03-01"),
+      trial: trialStart,
+      expected: "2024-03-01",
+    },
+    {
+      name: "trialStart is used when reg1 is null",
+      reg1: null,
+      trial: trialStart,
+      expected: "2024-04-01",
+    },
+  ];
 
-  // Case 2: observation2End が null → registration2End
-  assertEquals_(
-    determineRegistrationEndWithMoment_(
-      null,
-      registration2End,
-      registration1End,
-      trialEnd,
-    ).format("YYYY-MM-DD"),
-    "2024-10-31",
-    "determineRegistrationEnd: fallback to registration2End",
-  );
+  cases.forEach(({ name, reg1, trial, expected }) => {
+    const start = normalizeDate_(reg1 ?? trial);
+    const actual = start.toISOString().slice(0, 10);
 
-  // Case 3: observation2End, registration2End が null → registration1End
-  assertEquals_(
-    determineRegistrationEndWithMoment_(
-      null,
-      null,
-      registration1End,
-      trialEnd,
-    ).format("YYYY-MM-DD"),
-    "2024-09-30",
-    "determineRegistrationEnd: fallback to registration1End",
-  );
-
-  // Case 4: 全て null → trialEnd
-  assertEquals_(
-    determineRegistrationEndWithMoment_(null, null, null, trialEnd).format(
-      "YYYY-MM-DD",
-    ),
-    "2024-12-31",
-    "determineRegistrationEnd: fallback to trialEnd",
-  );
-  // Case 5: trialEnd が Date でも fallback できる
-  const trialEndDate = new Date("2024-12-31");
-
-  const result5 = determineRegistrationEndWithMoment_(
-    null,
-    null,
-    null,
-    trialEndDate,
-  );
-
-  assertEquals_(
-    result5.getTime(),
-    trialEndDate.getTime(),
-    "determineRegistrationEnd: fallback supports Date",
-  );
-
-  // Case 6: Moment + Date 混在でも優先順位が維持される
-  const observation2EndDate = new Date("2024-11-30");
-
-  const result6 = determineRegistrationEndWithMoment_(
-    observation2EndDate,
-    registration2End,
-    registration1End,
-    trialEnd,
-  );
-
-  assertEquals_(
-    result6.getTime(),
-    observation2EndDate.getTime(),
-    "determineRegistrationEnd: priority works with Date input",
-  );
+    assertEquals_(actual, expected, name);
+  });
 }
 /**
- * calculateRegistrationYearsWithMoment_ の統合テスト
+ * Registration終了日の優先順位ロジック
+ *
+ * obs2 → reg2 → reg1 → trial の順で採用されることを確認
  */
-function test_calculateRegistrationYearsWithMoment() {
-  const trialStart = Moment.moment("2021-04-01");
-  const trialEnd = Moment.moment("2025-03-31");
+function test_registrationEndFallback() {
+  const trialEnd = new Date("2025-03-31");
 
-  const registration1Start = Moment.moment("2022-04-01");
-  const registration1End = Moment.moment("2023-03-31");
+  const cases = [
+    {
+      name: "obs2End is used first",
+      obs2: new Date("2025-02-01"),
+      reg2: new Date("2025-01-01"),
+      reg1: new Date("2024-12-01"),
+      expected: "2025-02-01",
+    },
+    {
+      name: "reg2End is fallback",
+      obs2: null,
+      reg2: new Date("2025-01-01"),
+      reg1: new Date("2024-12-01"),
+      expected: "2025-01-01",
+    },
+    {
+      name: "reg1End is fallback",
+      obs2: null,
+      reg2: null,
+      reg1: new Date("2024-12-01"),
+      expected: "2024-12-01",
+    },
+    {
+      name: "trialEnd is final fallback",
+      obs2: null,
+      reg2: null,
+      reg1: null,
+      expected: "2025-03-31",
+    },
+  ];
 
-  const registration2End = Moment.moment("2023-03-31");
-  const observation2End = Moment.moment("2024-03-31");
+  cases.forEach(({ name, obs2, reg2, reg1, expected }) => {
+    const end = normalizeDate_(obs2 ?? reg2 ?? reg1 ?? trialEnd);
+    const actual = end.toISOString().slice(0, 10);
+
+    assertEquals_(actual, expected, name);
+  });
+}
+/**
+ * calculateRegistrationDurationYears_ の統合テスト
+ * （Moment非依存版）
+ */
+function test_calculateRegistrationYears() {
+  const trialStart = new Date("2021-04-01");
+  const trialEnd = new Date("2025-03-31");
+
+  const registration1Start = new Date("2022-04-01");
+  const registration1End = new Date("2023-03-31");
+
+  const registration2End = new Date("2023-03-31");
+  const observation2End = new Date("2024-03-31");
 
   /**
    * Case 1:
    * registrationStart = registration1Start
    * registrationEnd   = observation2End
-   * → 2022/04/01 - 2024/03/31 = 2 years
+   * → 2 years
    */
   assertEquals_(
-    calculateRegistrationYearsWithMoment_(
+    calculateRegistrationDurationYears_(
       registration1Start,
-      determineRegistrationEndWithMoment_(
-        observation2End,
-        registration2End,
-        registration1End,
-        trialEnd,
-      ),
+      observation2End,
+      registration2End,
+      registration1End,
+      trialStart,
+      trialEnd,
     ),
     2,
-    "calculateRegistrationYears: registration1Start → observation2End",
+    "reg1Start → obs2End",
   );
 
   /**
    * Case 2:
    * observation2End がない → registration2End
-   * → 2022/04/01 - 2024/03/31 = 1 year
+   * → 1 year
    */
   assertEquals_(
-    calculateRegistrationYearsWithMoment_(
+    calculateRegistrationDurationYears_(
       registration1Start,
-      determineRegistrationEndWithMoment_(
-        null,
-        registration2End,
-        registration1End,
-        trialEnd,
-      ),
+      null,
+      registration2End,
+      registration1End,
+      trialStart,
+      trialEnd,
     ),
     1,
-    "calculateRegistrationYears: registration1Start → registration2End",
+    "reg1Start → reg2End",
   );
 
   /**
    * Case 3:
    * registration1Start がない → trialStart
    * registrationEnd = registration1End
-   * → 2021-04-01 - 2023/03/31 = 2 year
+   * → 2 years
    */
   assertEquals_(
-    calculateRegistrationYearsWithMoment_(
+    calculateRegistrationDurationYears_(
+      null,
+      null,
+      null,
+      registration1End,
       trialStart,
-      determineRegistrationEndWithMoment_(
-        null,
-        null,
-        registration1End,
-        trialEnd,
-      ),
+      trialEnd,
     ),
     2,
-    "calculateRegistrationYears: trialStart → registration1End",
+    "trialStart → registration1End",
   );
 
   /**
    * Case 4:
    * 全部 null → trialStart ～ trialEnd
-   * → 2021/04/01 - 2025/03/31 = 4 years
+   * → 4 years
    */
   assertEquals_(
-    calculateRegistrationYearsWithMoment_(
+    calculateRegistrationDurationYears_(
+      null,
+      null,
+      null,
+      null,
       trialStart,
-      determineRegistrationEndWithMoment_(null, null, null, trialEnd),
+      trialEnd,
     ),
     4,
-    "calculateRegistrationYears: trialStart → trialEnd",
+    "trialStart → trialEnd",
   );
-}
-/**
- * determineRegistrationStartWithMoment_ の互換性テスト
- *
- * registration1Start が存在すればそれを返し、
- * 無ければ trialStart のコピーを返すことを確認する。
- */
-function test_determineRegistrationStartWithMoment() {
-  const trialStart = Moment.moment("2024-04-01");
-
-  const cases = [
-    {
-      name: "registration1Start is used when present",
-      reg1: Moment.moment("2024-03-01"),
-      trial: trialStart,
-      expected: "2024-03-01",
-    },
-    {
-      name: "trialStart is cloned when reg1 is null",
-      reg1: null,
-      trial: trialStart,
-      expected: "2024-04-01",
-    },
-    {
-      name: "Date input works",
-      reg1: null,
-      trial: new Date("2024-04-01"),
-      expected: "2024-04-01",
-    },
-  ];
-
-  cases.forEach(({ name, reg1, trial, expected }) => {
-    const actual = determineRegistrationStartWithMoment_(reg1, trial);
-    const actualStr = toMoment_(actual).format("YYYY-MM-DD");
-
-    assertEquals_(actualStr, expected, name);
-  });
 }
