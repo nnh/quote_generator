@@ -1,6 +1,6 @@
 function runAllUnitTests_quote() {
   console.warn("!!! analysis_service.jsのテストは未実装");
-  // apply_target_items.js
+  // quotation_target_item_applier.js
   testApplyTargetItemsToValues();
   // calculate_setup_term.js
   testCalculateSetupTermResult();
@@ -30,8 +30,8 @@ function runAllUnitTests_quote() {
   test_buildTrialDatesPure();
   // quote_main.js
   console.warn("!!! quote_main.jsのテストは未実装");
-  // set_sheet_item_values.js
-  console.warn("!!! set_sheet_item_values.jsのテストは未実装");
+  // quotation_sheet_item_value_writer.js
+  console.warn("!!! quotation_sheet_item_value_writer.jsのテストは未実装");
   // sheet_value_builder.js
   test_buildSheetValuesWithTargetItems();
   test_convertItemsMapToList();
