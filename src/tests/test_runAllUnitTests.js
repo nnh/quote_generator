@@ -28,8 +28,8 @@ function runAllUnitTests_quote() {
   test_buildTrialTermResult();
   test_getTrialTermSheetValues();
   test_buildTrialDatesPure();
-  // quote_main.js
-  console.warn("!!! quote_main.jsのテストは未実装");
+  // quotation_orchestrator.js
+  console.warn("!!! quotation_orchestrator.jsのテストは未実装");
   // quotation_sheet_item_value_writer.js
   console.warn("!!! quotation_sheet_item_value_writer.jsのテストは未実装");
   // sheet_value_builder.js
