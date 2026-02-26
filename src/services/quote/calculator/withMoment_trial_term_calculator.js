@@ -220,7 +220,7 @@ function hasPositiveMonthDiffWithMoment_(from, to) {
  * Registration 年数計算用の開始日を決定する
  * @param {Moment|null} registration1Start
  * @param {Moment} trialStart
- * @return {Moment}
+ * @return {Date|Object|null}
  */
 function determineRegistrationStartWithMoment_(registration1Start, trialStart) {
   return registration1Start ?? cloneDateLike_(trialStart);
@@ -234,7 +234,7 @@ function determineRegistrationStartWithMoment_(registration1Start, trialStart) {
  * @param {Moment|null} registration2End
  * @param {Moment|null} registration1End
  * @param {Moment} trialEnd
- * @return {Moment}
+ * @return {Date|Object|null}
  */
 function determineRegistrationEndWithMoment_(
   observation2End,
@@ -243,7 +243,10 @@ function determineRegistrationEndWithMoment_(
   trialEnd,
 ) {
   return (
-    observation2End ?? registration2End ?? registration1End ?? trialEnd.clone()
+    observation2End ??
+    registration2End ??
+    registration1End ??
+    cloneDateLike_(trialEnd)
   );
 }
 /**

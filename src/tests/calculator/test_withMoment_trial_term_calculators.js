@@ -418,6 +418,37 @@ function test_determineRegistrationEndWithMoment() {
     "2024-12-31",
     "determineRegistrationEnd: fallback to trialEnd",
   );
+  // Case 5: trialEnd が Date でも fallback できる
+  const trialEndDate = new Date("2024-12-31");
+
+  const result5 = determineRegistrationEndWithMoment_(
+    null,
+    null,
+    null,
+    trialEndDate,
+  );
+
+  assertEquals_(
+    result5.getTime(),
+    trialEndDate.getTime(),
+    "determineRegistrationEnd: fallback supports Date",
+  );
+
+  // Case 6: Moment + Date 混在でも優先順位が維持される
+  const observation2EndDate = new Date("2024-11-30");
+
+  const result6 = determineRegistrationEndWithMoment_(
+    observation2EndDate,
+    registration2End,
+    registration1End,
+    trialEnd,
+  );
+
+  assertEquals_(
+    result6.getTime(),
+    observation2EndDate.getTime(),
+    "determineRegistrationEnd: priority works with Date input",
+  );
 }
 /**
  * calculateRegistrationYearsWithMoment_ の統合テスト
