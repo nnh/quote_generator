@@ -8,18 +8,18 @@ function runAllUnitTests_quote() {
   execAllImbalanceTests();
   // item_price_applier.js
   testItem_price_applier();
-  // quotation_allSheet_items.js
+  // quotation_all_sheet_item_definition.js
   test_calculateDatabaseManagementTermPure();
-  //quotation_closing_items.js
+  //quotation_closing_item_definition.js
   test_getClosingTrialTypeConfig();
   test_createClosingItemsList();
-  // quotation_registration_set_items.js
+  // quotation_registration_set_item_definition.js
   test_createRegistrationItemsList();
-  // quotation_registration_term_items.js
+  // quotation_registration_term_item_definition.js
   test_setRegistrationTermItems();
   test_calcClinicalTrialsOfficeValues();
   test_shouldSkipRegistrationTermItems();
-  // quotation_setup_items.js
+  // quotation_setup_item_definition.js
   test_createSetupItemsList();
   test_getSetupTrialTypeConfig();
   // quotation_context.js
