@@ -4,13 +4,13 @@ function runAllUnitTests_quote() {
   testApplyTargetItemsToValues();
   // calculate_setup_term.js
   testCalculateSetupTermResult();
-  // imbalance_distribution.js
+  // quotation_imbalance_distribution_calculator.js
   execAllImbalanceTests();
   // item_price_applier.js
   testItem_price_applier();
   // quotation_all_sheet_item_definition.js
   test_calculateDatabaseManagementTermPure();
-  //quotation_closing_item_definition.js
+  // quotation_closing_item_definition.js
   test_getClosingTrialTypeConfig();
   test_createClosingItemsList();
   // quotation_registration_set_item_definition.js
