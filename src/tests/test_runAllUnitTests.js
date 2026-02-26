@@ -1,13 +1,13 @@
 function runAllUnitTests_quote() {
-  console.warn("!!! analysis_service.jsのテストは未実装");
+  console.warn("!!! quotation_analysis_service.jsのテストは未実装");
   // quotation_target_item_applier.js
   testApplyTargetItemsToValues();
   // quotation_setup_term_calculator.js
   testCalculateSetupTermResult();
   // quotation_imbalance_distribution_calculator.js
   execAllImbalanceTests();
-  // item_price_applier.js
-  testItem_price_applier();
+  // quotation_item_price_applier.js
+  test_quotation_item_price_applier();
   // quotation_all_sheet_item_definition.js
   test_calculateDatabaseManagementTermPure();
   // quotation_closing_item_definition.js
@@ -32,7 +32,7 @@ function runAllUnitTests_quote() {
   console.warn("!!! quotation_orchestrator.jsのテストは未実装");
   // quotation_sheet_item_value_writer.js
   console.warn("!!! quotation_sheet_item_value_writer.jsのテストは未実装");
-  // sheet_value_builder.js
+  // quotation_sheet_value_builder.js
   test_buildSheetValuesWithTargetItems();
   test_convertItemsMapToList();
   // trial_comment_manager.js

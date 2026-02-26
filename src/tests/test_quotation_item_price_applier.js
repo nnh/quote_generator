@@ -1,9 +1,9 @@
-function testItem_price_applier() {
+function test_quotation_item_price_applier() {
   testInsuranceFee_case1_();
   testInsuranceFee_case2_();
   testInsuranceFee_case3_();
   testResearchSupportFee();
-  console.log("[PASS] testItem_price_applier");
+  console.log("[PASS] test_quotation_item_price_applier");
 }
 function testInsuranceFee_(quotationRequestValue, expectedValue, testName) {
   const insuranceFeeItemName = QUOTATION_REQUEST_SHEET.ITEMNAMES.INSURANCE_FEE;
