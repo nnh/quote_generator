@@ -156,61 +156,70 @@ function normalizeClosingPeriodResultForTest_(result) {
   };
 }
 /**
- * hasPositiveMonthDiff_ の単体テスト
+ * hasPositiveMonthDiff_ の単体テスト（Moment互換）
  *
- * 「to が from より月単位で後かどうか」を正しく判定できるかを確認する。
+ * Moment の
+ *   to.diff(from, "months") > 0
+ * と同等の挙動を維持できているか確認する。
  *
- * Moment依存ロジックから Dateベース実装へ移行する過程において、
- * 以下の互換性を維持できているかを検証する：
- *
- * - Moment 同士の比較が従来通り動作すること
- * - 同一月内の差分は false になること
- * - 1か月以上先は true になること
- * - 過去方向は false になること
- * - Date オブジェクト入力でも動作すること
- * - Moment と Date が混在しても動作すること
+ * 検証観点：
+ * - 同一月内は false
+ * - 翌月でも「日未満」は false（Moment仕様）
+ * - 1ヶ月成立時のみ true
+ * - 過去方向は false
+ * - 月末 → 翌月初は false（重要）
+ * - Date入力で動作する
  *
  * @return {void}
  */
-function test_hasPositiveMonthDiffWithMoment() {
+function test_hasPositiveMonthDiff_() {
   const cases = [
     {
       name: "same month should be false",
-      from: Moment.moment("2024-04-01"),
-      to: Moment.moment("2024-04-30"),
+      from: new Date("2024-04-01"),
+      to: new Date("2024-04-30"),
       expected: false,
     },
     {
-      name: "next month should be true",
-      from: Moment.moment("2024-04-01"),
-      to: Moment.moment("2024-05-01"),
-      expected: true,
-    },
-    {
-      name: "earlier month should be false",
-      from: Moment.moment("2024-05-01"),
-      to: Moment.moment("2024-04-30"),
-      expected: false,
-    },
-    {
-      name: "Date input should still work",
+      name: "next month same day should be true",
       from: new Date("2024-04-01"),
       to: new Date("2024-05-01"),
       expected: true,
     },
     {
-      name: "Moment + Date mix should work",
-      from: Moment.moment("2024-04-01"),
-      to: new Date("2024-05-01"),
+      name: "next month but day not reached should be false (Moment behavior)",
+      from: new Date("2024-04-15"),
+      to: new Date("2024-05-14"),
+      expected: false,
+    },
+    {
+      name: "next month and day reached should be true",
+      from: new Date("2024-04-15"),
+      to: new Date("2024-05-15"),
+      expected: true,
+    },
+    {
+      name: "month end to next month start should be false (Moment critical case)",
+      from: new Date("2024-03-31"),
+      to: new Date("2024-04-01"),
+      expected: false,
+    },
+    {
+      name: "earlier month should be false",
+      from: new Date("2024-05-01"),
+      to: new Date("2024-04-30"),
+      expected: false,
+    },
+    {
+      name: "year boundary should be true",
+      from: new Date("2023-12-01"),
+      to: new Date("2024-01-01"),
       expected: true,
     },
   ];
 
   cases.forEach(({ name, from, to, expected }) => {
-    const actual = hasPositiveMonthDiff_(
-      from?.toDate?.() ?? from,
-      to?.toDate?.() ?? to,
-    );
+    const actual = hasPositiveMonthDiff_(from, to);
     assertEquals_(actual, expected, name);
   });
 }

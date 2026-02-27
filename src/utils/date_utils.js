@@ -115,16 +115,33 @@ function endOfMonth_(date) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0);
 }
 /**
- * 2つの日付の月差が正（to が from より後）かを判定する
+ * 2つの日付の月差が正かどうかを判定する（Moment互換）
  *
- * @param {Date} from
- * @param {Date} to
- * @return {boolean}
+ * Moment の
+ *   to.diff(from, "months") > 0
+ * と同等の結果を返す。
+ *
+ * ※ 年月差だけでなく「日」も考慮する。
+ *    to の日が from の日より小さい場合、
+ *    1ヶ月未満とみなして月差を -1 補正する。
+ *
+ * 例:
+ *   2024/03/31 → 2024/04/01 => false
+ *   2024/03/01 → 2024/04/01 => true
+ *
+ * @param {Date} from - 基準日
+ * @param {Date} to - 比較対象日
+ * @return {boolean} 月差が正（Moment基準で to が後）なら true
  */
 function hasPositiveMonthDiff_(from, to) {
-  const monthDiff =
+  let monthDiff =
     (to.getFullYear() - from.getFullYear()) * 12 +
     (to.getMonth() - from.getMonth());
+
+  // Moment互換の日補正
+  if (to.getDate() < from.getDate()) {
+    monthDiff -= 1;
+  }
 
   return monthDiff > 0;
 }
