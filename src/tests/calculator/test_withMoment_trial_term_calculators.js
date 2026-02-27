@@ -1,4 +1,4 @@
-function test_calculateSetupPeriodWithMoment() {
+function test_calculateSetupPeriod() {
   const testCases = [
     {
       name: "年度内 / 3ヶ月",
@@ -50,10 +50,7 @@ function test_calculateSetupPeriodWithMoment() {
   testCases.forEach((c) => {
     const trialStart = Moment.moment(c.trialStart, "YYYY-MM-DD");
 
-    const actualRaw = calculateSetupPeriodWithMoment_(
-      trialStart,
-      c.setupTermMonths,
-    );
+    const actualRaw = calculateSetupPeriod_(trialStart, c.setupTermMonths);
 
     const actual = normalizeSetupPeriodResultForTest_(actualRaw);
 
@@ -64,7 +61,7 @@ function test_calculateSetupPeriodWithMoment() {
     );
   });
 }
-function test_calculateClosingPeriodWithMoment() {
+function test_calculateClosingPeriod() {
   const testCases = [
     {
       name: "年度内 / 3ヶ月",
@@ -116,43 +113,66 @@ function test_calculateClosingPeriodWithMoment() {
   testCases.forEach((c) => {
     const trialEnd = Moment.moment(c.trialEnd, "YYYY-MM-DD");
 
-    const actualRaw = calculateClosingPeriodWithMoment_(
-      trialEnd,
-      c.closingTermMonths,
-    );
+    const actualRaw = calculateClosingPeriod_(trialEnd, c.closingTermMonths);
 
     const actual = normalizeClosingPeriodResultForTest_(actualRaw);
 
-    assertEquals_(
-      actual,
-      c.expected,
-      `calculateClosingPeriodWithMoment_: ${c.name}`,
-    );
+    assertEquals_(actual, c.expected, `calculateClosingPeriod_: ${c.name}`);
   });
 }
 
+///**
+// * setup期間の結果を比較用に正規化する
+// *
+// * @param {{setupStart: Moment, setupEnd: Moment}} result
+// * @return {{setupStart: string, setupEnd: string}}
+// */
+//function normalizeSetupPeriodResultForTest_(result) {
+//  return {
+//    setupStart: result.setupStart.format("YYYY-MM-DD"),
+//    setupEnd: result.setupEnd.format("YYYY-MM-DD"),
+//  };
+//}
 /**
- * setup期間の結果を比較用に正規化する
+ * setup期間の結果を比較用に正規化する（Moment非依存）
  *
- * @param {{setupStart: Moment, setupEnd: Moment}} result
+ * @param {{setupStart: Date|Object, setupEnd: Date|Object}} result
  * @return {{setupStart: string, setupEnd: string}}
  */
 function normalizeSetupPeriodResultForTest_(result) {
+  const start = normalizeDate_(result.setupStart);
+  const end = normalizeDate_(result.setupEnd);
+
   return {
-    setupStart: result.setupStart.format("YYYY-MM-DD"),
-    setupEnd: result.setupEnd.format("YYYY-MM-DD"),
+    setupStart: Utilities.formatDate(start, "Asia/Tokyo", "yyyy-MM-dd"),
+    setupEnd: Utilities.formatDate(end, "Asia/Tokyo", "yyyy-MM-dd"),
   };
 }
+///**
+// * closing期間の結果を比較用に正規化する
+// *
+// * @param {{closingStart: Moment, closingEnd: Moment}} result
+// * @return {{closingStart: string, closingEnd: string}}
+// */
+//function normalizeClosingPeriodResultForTest_(result) {
+//  return {
+//    closingStart: result.closingStart.format("YYYY-MM-DD"),
+//    closingEnd: result.closingEnd.format("YYYY-MM-DD"),
+//  };
+//}
 /**
- * closing期間の結果を比較用に正規化する
+ * closing期間の結果を比較用に正規化する（Moment非依存）
  *
- * @param {{closingStart: Moment, closingEnd: Moment}} result
+ * @param {{closingStart: Date|Object, closingEnd: Date|Object}} result
  * @return {{closingStart: string, closingEnd: string}}
  */
 function normalizeClosingPeriodResultForTest_(result) {
+  const start = normalizeDate_(result.closingStart);
+  const end = normalizeDate_(result.closingEnd);
+
   return {
-    closingStart: result.closingStart.format("YYYY-MM-DD"),
-    closingEnd: result.closingEnd.format("YYYY-MM-DD"),
+    closingStart: Utilities.formatDate(start, "Asia/Tokyo", "yyyy-MM-dd"),
+    closingEnd: Utilities.formatDate(end, "Asia/Tokyo", "yyyy-MM-dd"),
   };
 }
 /**

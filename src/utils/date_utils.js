@@ -67,24 +67,57 @@ function formatTodayYmd_(baseDate = new Date()) {
   const d = String(baseDate.getDate()).padStart(2, "0");
   return `${y}/${m}/${d}`;
 }
+///**
+// * 指定日が属する日本年度の年度末（3/31）を返す
+// * @param {Moment} date
+// * @return {Moment}
+// */
+//function getFiscalYearEnd_(date) {
+//  const fiscalYear = date.clone().subtract(3, "months").year();
+//  return Moment.moment([fiscalYear + 1, 2, 31]);
+//}
 /**
- * 指定日が属する日本年度の年度末（3/31）を返す
- * @param {Moment} date
- * @return {Moment}
+ * 指定日が属する日本年度の年度末（3/31）を返す（Moment非依存）
+ *
+ * @param {Date|Object} date Date または Moment互換（toDate を持つ）
+ * @return {Date}
  */
 function getFiscalYearEnd_(date) {
-  const fiscalYear = date.clone().subtract(3, "months").year();
-  return Moment.moment([fiscalYear + 1, 2, 31]);
+  const d = normalizeDate_(date);
+
+  // 3ヶ月引く（Moment互換ロジック）
+  const shifted = addMonths_(d, -3);
+
+  const fiscalYear = shifted.getFullYear();
+
+  // 翌年3/31
+  return new Date(fiscalYear + 1, 2, 31);
 }
 
+///**
+// * 指定日が属する日本年度の年度初（4/1）を返す
+// * @param {Moment} date
+// * @return {Moment}
+// */
+//function getFiscalYearStart_(date) {
+//  const fiscalYear = date.clone().subtract(3, "months").year();
+//  return Moment.moment([fiscalYear, 3, 1]);
+//}
 /**
  * 指定日が属する日本年度の年度初（4/1）を返す
- * @param {Moment} date
- * @return {Moment}
+ * @param {Date} date
+ * @return {Date}
  */
 function getFiscalYearStart_(date) {
-  const fiscalYear = date.clone().subtract(3, "months").year();
-  return Moment.moment([fiscalYear, 3, 1]);
+  if (!date) return null;
+
+  // 3ヶ月戻す
+  const shifted = addMonths_(date, -3);
+
+  const fiscalYear = shifted.getFullYear();
+
+  // 4/1 を返す
+  return new Date(fiscalYear, 3, 1);
 }
 /**
  * 指定した日付の「月初日（1日）」を返す
@@ -162,4 +195,44 @@ function hasPositiveMonthDiff_(from, to) {
  */
 function normalizeDate_(v) {
   return v?.toDate?.() ?? v;
+}
+/**
+ * 指定日から月を加減した日付を返す（Moment非依存）
+ *
+ * - 元の日付は変更しない（immutable）
+ * - 月末補正あり（例: 1/31 + 1ヶ月 → 2/29 など）
+ *
+ * @param {Date|Object} date Date または Moment互換（toDate を持つ）
+ * @param {number} months 加減する月数（負数可）
+ * @return {Date}
+ */
+function addMonths_(date, months) {
+  const d = normalizeDate_(date);
+
+  const year = d.getFullYear();
+  const month = d.getMonth() + months;
+  const day = d.getDate();
+
+  const result = new Date(year, month, 1);
+
+  // 月末補正
+  const lastDay = new Date(
+    result.getFullYear(),
+    result.getMonth() + 1,
+    0,
+  ).getDate();
+  result.setDate(Math.min(day, lastDay));
+
+  return result;
+}
+/**
+ * 指定日から指定日数を加減した日付を返す
+ * @param {Date} date
+ * @param {number} days
+ * @return {Date}
+ */
+function addDays_(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
 }

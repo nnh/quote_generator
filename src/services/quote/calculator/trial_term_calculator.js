@@ -49,23 +49,43 @@ function calculateTrialDates_(
   closingTermMonths,
 ) {
   // 試験開始日・終了日
-  const { trialStart, trialEnd } = buildTrialMonthRangeWithMoment_(
+  const { trialStart, trialEnd } = buildTrialMonthRange_(
     input_trial_start_date,
     input_trial_end_date,
   );
 
   // setup
-  const { setupStart, setupEnd } = calculateSetupPeriodWithMoment_(
+  const { setupStart, setupEnd } = calculateSetupPeriod_(
     trialStart,
     setupTermMonths,
   );
 
   // closing
-  const { closingStart, closingEnd } = calculateClosingPeriodWithMoment_(
+  const { closingStart, closingEnd } = calculateClosingPeriod_(
     trialEnd,
     closingTermMonths,
   );
+  // Moment に変換（暫定）
+  const closingStartMoment = toMoment_(closingStart);
+  const closingEndMoment = toMoment_(closingEnd);
+  const setupEndMoment = toMoment_(setupEnd);
+  const setupStartMoment = toMoment_(setupStart);
 
+  // registration / observation
+  const registrationInfo = calculateRegistrationPeriodsWithMoment_(
+    setupEndMoment,
+    closingStartMoment,
+    trialStart,
+    trialEnd,
+  );
+  const termPeriods = buildTermPeriodsWithMoment_({
+    setupStart: setupStartMoment,
+    setupEnd: setupEndMoment,
+    closingStart: closingStartMoment,
+    closingEnd: closingEndMoment,
+    registrationInfo,
+  });
+  /*
   // registration / observation
   const registrationInfo = calculateRegistrationPeriodsWithMoment_(
     setupEnd,
@@ -73,7 +93,6 @@ function calculateTrialDates_(
     trialStart,
     trialEnd,
   );
-
   const termPeriods = buildTermPeriodsWithMoment_({
     setupStart,
     setupEnd,
@@ -81,6 +100,7 @@ function calculateTrialDates_(
     closingEnd,
     registrationInfo,
   });
+*/
 
   return {
     trialStart,
