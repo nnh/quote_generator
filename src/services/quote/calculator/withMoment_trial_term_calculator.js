@@ -131,7 +131,7 @@ function calculateClosingPeriod_(trialEnd, closingTermMonths) {
  *   end: Moment|null
  * }}
  */
-function calculateRegistration1WithMoment_(setupEnd, closingStart) {
+/*function calculateRegistration1WithMoment_(setupEnd, closingStart) {
   if (
     !hasPositiveMonthDiff_(
       setupEnd?.toDate?.() ?? setupEnd,
@@ -146,6 +146,32 @@ function calculateRegistration1WithMoment_(setupEnd, closingStart) {
 
   return { start, end };
 }
+  */
+/**
+ * registration_1 期間を計算する（Moment非依存）
+ *
+ * setup 終了日と closing 開始日の月差が正の場合のみ、
+ * setup 終了日の翌日から 1 年間を registration_1 とする。
+ *
+ * @param {Date} setupEnd
+ * @param {Date} closingStart
+ * @return {{start: Date|null, end: Date|null}}
+ */
+function calculateRegistration1_(setupEnd, closingStart) {
+  if (!hasPositiveMonthDiff_(setupEnd, closingStart)) {
+    return { start: null, end: null };
+  }
+
+  const start = new Date(setupEnd);
+  start.setDate(start.getDate() + 1); // setupEnd + 1日
+
+  const end = new Date(start);
+  end.setFullYear(end.getFullYear() + 1); // 1年足す
+  end.setDate(end.getDate() - 1); // 1日引く
+
+  return { start, end };
+}
+
 /**
  * observation_2 期間を計算する
  * ※ Moment 依存あり
@@ -161,7 +187,7 @@ function calculateRegistration1WithMoment_(setupEnd, closingStart) {
  *   end: Moment|null
  * }}
  */
-function calculateObservation2WithMoment_(registration1End, closingStart) {
+/*function calculateObservation2WithMoment_(registration1End, closingStart) {
   if (!registration1End) {
     return { start: null, end: null };
   }
@@ -177,6 +203,32 @@ function calculateObservation2WithMoment_(registration1End, closingStart) {
 
   const end = closingStart.clone().subtract(1, "days");
   const start = closingStart.clone().subtract(1, "years");
+
+  return { start, end };
+}*/
+/**
+ * observation_2 期間を計算する（Moment非依存）
+ *
+ * registration_1 終了日と closing 開始日の月差が正の場合、
+ * closing 開始日の前日を終了日、
+ * closing 開始日の 1 年前を開始日とする。
+ *
+ * @param {Date|null} registration1End
+ * @param {Date} closingStart
+ * @return {{start: Date|null, end: Date|null}}
+ */
+function calculateObservation2_(registration1End, closingStart) {
+  if (!registration1End) return { start: null, end: null };
+
+  if (!hasPositiveMonthDiff_(registration1End, closingStart)) {
+    return { start: null, end: null };
+  }
+
+  const end = new Date(closingStart);
+  end.setDate(end.getDate() - 1); // closingStart の前日
+
+  const start = new Date(closingStart);
+  start.setFullYear(start.getFullYear() - 1); // 1年前
 
   return { start, end };
 }
@@ -213,10 +265,10 @@ function calculateRegistration2WithMoment_(
 
 /**
  * Registration / Observation 期間を計算する
- * @param {Moment} setupEnd setup終了日
- * @param {Moment} closingStart closing開始日
- * @param {Moment} trialStart 試験開始日
- * @param {Moment} trialEnd 試験終了日
+ * @param {Date} setupEnd setup終了日
+ * @param {Date} closingStart closing開始日
+ * @param {Date} trialStart 試験開始日
+ * @param {Date} trialEnd 試験終了日
  * @return {Object} registration / observation 情報
  */
 function calculateRegistrationPeriodsWithMoment_(
@@ -226,25 +278,29 @@ function calculateRegistrationPeriodsWithMoment_(
   trialEnd,
 ) {
   // setup終了日〜closing開始日（月単位）
-  const diffSetupEndToClosingStart = hasPositiveMonthDiff_(
-    setupEnd?.toDate?.() ?? setupEnd,
-    closingStart?.toDate?.() ?? closingStart,
-  );
+  //const diffSetupEndToClosingStart = hasPositiveMonthDiff_(
+  //  setupEnd?.toDate?.() ?? setupEnd,
+  //  closingStart?.toDate?.() ?? closingStart,
+  //);
 
   // registration_1
-  const reg1 = calculateRegistration1WithMoment_(setupEnd, closingStart);
+  const reg1 = calculateRegistration1_(setupEnd, closingStart);
   const registration1Start = reg1.start;
   const registration1End = reg1.end;
 
   // observation_2
-  const obs2 = calculateObservation2WithMoment_(registration1End, closingStart);
+  const obs2 = calculateObservation2_(registration1End, closingStart);
   const observation2Start = obs2.start;
   const observation2End = obs2.end;
 
+  // 暫定処理
+  const registration1EndMoment = toMoment_(registration1End);
+  const observation2StartMoment = toMoment_(observation2Start);
+
   // registration_2
   const reg2 = calculateRegistration2WithMoment_(
-    registration1End,
-    observation2Start,
+    registration1EndMoment,
+    observation2StartMoment,
   );
   const registration2Start = reg2.start;
   const registration2End = reg2.end;

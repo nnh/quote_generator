@@ -99,6 +99,28 @@ function getTrialDates_(array_quotation_request) {
   };
 }
 /**
+ * Date / Moment 互換値をシート表示用の文字列へフォーマットする
+ *
+ * normalizeDate_ を通すことで、
+ *   - Moment → Date に変換
+ *   - Date → そのまま
+ * として扱う。
+ *
+ * GASの setValue 用に "yyyy/MM/dd" 形式の文字列を返す。
+ *
+ * @param {Date|Object|null|undefined} date
+ *   Date または Moment互換オブジェクト（toDate を持つ）
+ *
+ * @return {string|null}
+ *   フォーマット済み日付文字列（yyyy/MM/dd）、
+ *   date が null/undefined の場合は null
+ */
+function formatToSheetDate_(date) {
+  const d = normalizeDate_(date);
+  if (!d) return null;
+  return Utilities.formatDate(d, "Asia/Tokyo", "yyyy/MM/dd");
+}
+/**
  * trialシートに試験期間配列を書き込む
  *
  * @param {Object} sheet sheetsオブジェクト
@@ -127,8 +149,8 @@ function writeTrialDatesToSheet_(
 
     const [startDate, endDate] = dates;
 
-    if (startDate) startCell.setValue(startDate.format("YYYY/MM/DD"));
-    if (endDate) endCell.setValue(endDate.format("YYYY/MM/DD"));
+    if (startDate) startCell.setValue(formatToSheetDate_(startDate));
+    if (endDate) endCell.setValue(formatToSheetDate_(endDate));
 
     const startAddr = startCell.getA1Notation();
     const endAddr = endCell.getA1Notation();

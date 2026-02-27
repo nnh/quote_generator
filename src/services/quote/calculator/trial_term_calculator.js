@@ -65,19 +65,20 @@ function calculateTrialDates_(
     trialEnd,
     closingTermMonths,
   );
+
+  // registration / observation
+  const registrationInfo = calculateRegistrationPeriodsWithMoment_(
+    setupEnd,
+    closingStart,
+    trialStart,
+    trialEnd,
+  );
   // Moment に変換（暫定）
   const closingStartMoment = toMoment_(closingStart);
   const closingEndMoment = toMoment_(closingEnd);
   const setupEndMoment = toMoment_(setupEnd);
   const setupStartMoment = toMoment_(setupStart);
 
-  // registration / observation
-  const registrationInfo = calculateRegistrationPeriodsWithMoment_(
-    setupEndMoment,
-    closingStartMoment,
-    trialStart,
-    trialEnd,
-  );
   const termPeriods = buildTermPeriodsWithMoment_({
     setupStart: setupStartMoment,
     setupEnd: setupEndMoment,

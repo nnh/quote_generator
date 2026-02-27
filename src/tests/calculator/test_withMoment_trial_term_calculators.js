@@ -244,9 +244,9 @@ function test_hasPositiveMonthDiff_() {
   });
 }
 /**
- * calculateRegistration1WithMoment_ の単体テスト
+ * calculateRegistration1_ の単体テスト
  */
-function test_calculateRegistration1WithMoment() {
+function test_calculateRegistration1() {
   const cases = [
     {
       name: "registration_1 exists when month diff is positive",
@@ -269,7 +269,7 @@ function test_calculateRegistration1WithMoment() {
   ];
 
   cases.forEach(({ name, setupEnd, closingStart, expected }) => {
-    const actual = calculateRegistration1WithMoment_(setupEnd, closingStart);
+    const actual = calculateRegistration1_(setupEnd, closingStart);
 
     const actualNormalized = {
       start: actual.start ? actual.start.format("YYYY-MM-DD") : null,
@@ -280,9 +280,9 @@ function test_calculateRegistration1WithMoment() {
   });
 }
 /**
- * calculateObservation2WithMoment_ の単体テスト
+ * calculateObservation2_ の単体テスト
  */
-function test_calculateObservation2WithMoment() {
+function test_calculateObservation2() {
   const cases = [
     {
       name: "observation_2 exists when registration1End is before closingStart",
@@ -305,10 +305,7 @@ function test_calculateObservation2WithMoment() {
   ];
 
   cases.forEach(({ name, registration1End, closingStart, expected }) => {
-    const actual = calculateObservation2WithMoment_(
-      registration1End,
-      closingStart,
-    );
+    const actual = calculateObservation2_(registration1End, closingStart);
 
     const actualNormalized = {
       start: actual.start ? actual.start.format("YYYY-MM-DD") : null,
