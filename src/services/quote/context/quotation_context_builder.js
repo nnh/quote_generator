@@ -126,7 +126,7 @@ function getTrialDateProperties_() {
 }
 
 /**
- * 試験日付情報を生成する（pure / Moment非依存）
+ * 試験日付情報を生成する
  *
  * @param {Array|undefined} trial_term_values
  * @param {{
@@ -159,27 +159,22 @@ function buildTrialDatesPure_(trial_term_values, props) {
 /**
  * 試験日付に関する情報を初期化する
  *
+ * trial_term_values と設定値をもとに、
+ * 試験対象期間および試験全体期間の開始日・終了日を
+ * Date オブジェクトとして生成する。
+ *
  * @param {Array|undefined} trial_term_values
  * @return {{
- *   trial_target_start_date: Moment.Moment|null,
- *   trial_target_end_date: Moment.Moment|null,
- *   trial_start_date: Moment.Moment|null,
- *   trial_end_date: Moment.Moment|null
+ *   trial_target_start_date: Date|null,
+ *   trial_target_end_date: Date|null,
+ *   trial_start_date: Date|null,
+ *   trial_end_date: Date|null
  * }}
  */
 function initSetSheetItemTrialDates_(trial_term_values) {
   const props = getTrialDateProperties_();
-
-  // pure な Date 生成
   const dates = buildTrialDatesPure_(trial_term_values, props);
-
-  // Moment への変換はここだけ
-  return {
-    trial_target_start_date: toMoment_(dates.trial_target_start_date),
-    trial_target_end_date: toMoment_(dates.trial_target_end_date),
-    trial_start_date: toMoment_(dates.trial_start_date),
-    trial_end_date: toMoment_(dates.trial_end_date),
-  };
+  return dates;
 }
 /**
  * シート処理用のコンテキストを生成する

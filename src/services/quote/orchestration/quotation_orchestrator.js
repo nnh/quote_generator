@@ -1,8 +1,5 @@
 /**
  * 見積処理メインエントリ
- * - quote_script_main
- * Momentライブラリの追加が必要
- * ライブラリキー：MHMchiX6c1bwSqGM1PZiW_PxhMjh3Sh48
  */
 
 /**

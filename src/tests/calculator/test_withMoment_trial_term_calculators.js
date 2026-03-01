@@ -244,14 +244,14 @@ function test_hasPositiveMonthDiff_() {
   });
 }
 /**
- * calculateRegistration1_ の単体テスト
+ * calculateRegistration1_ の単体テスト（Moment非依存）
  */
 function test_calculateRegistration1() {
   const cases = [
     {
       name: "registration_1 exists when month diff is positive",
-      setupEnd: Moment.moment("2024-03-31"),
-      closingStart: Moment.moment("2024-05-01"),
+      setupEnd: new Date("2024-03-31"),
+      closingStart: new Date("2024-05-01"),
       expected: {
         start: "2024-04-01",
         end: "2025-03-31",
@@ -259,8 +259,8 @@ function test_calculateRegistration1() {
     },
     {
       name: "registration_1 is null when month diff is zero",
-      setupEnd: Moment.moment("2024-04-30"),
-      closingStart: Moment.moment("2024-04-30"),
+      setupEnd: new Date("2024-04-30"),
+      closingStart: new Date("2024-04-30"),
       expected: {
         start: null,
         end: null,
@@ -272,22 +272,22 @@ function test_calculateRegistration1() {
     const actual = calculateRegistration1_(setupEnd, closingStart);
 
     const actualNormalized = {
-      start: actual.start ? actual.start.format("YYYY-MM-DD") : null,
-      end: actual.end ? actual.end.format("YYYY-MM-DD") : null,
+      start: formatDateForTest_(actual.start),
+      end: formatDateForTest_(actual.end),
     };
 
     assertEquals_(actualNormalized, expected, name);
   });
 }
 /**
- * calculateObservation2_ の単体テスト
+ * calculateObservation2_ の単体テスト（Moment非依存）
  */
 function test_calculateObservation2() {
   const cases = [
     {
       name: "observation_2 exists when registration1End is before closingStart",
-      registration1End: Moment.moment("2025-03-31"),
-      closingStart: Moment.moment("2026-04-01"),
+      registration1End: new Date("2025-03-31"),
+      closingStart: new Date("2026-04-01"),
       expected: {
         start: "2025-04-01",
         end: "2026-03-31",
@@ -296,7 +296,7 @@ function test_calculateObservation2() {
     {
       name: "observation_2 is null when registration1End is null",
       registration1End: null,
-      closingStart: Moment.moment("2026-04-01"),
+      closingStart: new Date("2026-04-01"),
       expected: {
         start: null,
         end: null,
@@ -308,93 +308,71 @@ function test_calculateObservation2() {
     const actual = calculateObservation2_(registration1End, closingStart);
 
     const actualNormalized = {
-      start: actual.start ? actual.start.format("YYYY-MM-DD") : null,
-      end: actual.end ? actual.end.format("YYYY-MM-DD") : null,
+      start: formatDateForTest_(actual.start),
+      end: formatDateForTest_(actual.end),
     };
 
     assertEquals_(actualNormalized, expected, name);
   });
 }
 /**
- * calculateRegistration2WithMoment_ のテスト
+ * calculateRegistration2_ のテスト（Moment非依存）
  */
-function test_calculateRegistration2WithMoment() {
+function test_calculateRegistration2() {
   // CASE 1: registration2 が発生するケース
   (function () {
-    const registration1End = Moment.moment("2024-03-31");
-    const observation2Start = Moment.moment("2024-05-01");
+    const registration1End = new Date("2024-03-31");
+    const observation2Start = new Date("2024-05-01");
 
-    const actual = calculateRegistration2WithMoment_(
-      registration1End,
-      observation2Start,
-    );
+    const actual = calculateRegistration2_(registration1End, observation2Start);
 
     const expected = {
-      start: Moment.moment("2024-04-01"),
-      end: Moment.moment("2024-04-30"),
+      start: "2024-04-01",
+      end: "2024-04-30",
     };
 
     assertEquals_(
       {
-        start: actual.start?.format("YYYY-MM-DD") ?? null,
-        end: actual.end?.format("YYYY-MM-DD") ?? null,
+        start: formatDateForTest_(actual.start),
+        end: formatDateForTest_(actual.end),
       },
-      {
-        start: expected.start.format("YYYY-MM-DD"),
-        end: expected.end.format("YYYY-MM-DD"),
-      },
-      "calculateRegistration2WithMoment_ / registration2あり",
+      expected,
+      "calculateRegistration2_ / registration2あり",
     );
   })();
 
   // CASE 2: observation2Start が null → registration2 なし
   (function () {
-    const registration1End = Moment.moment("2024-03-31");
+    const registration1End = new Date("2024-03-31");
     const observation2Start = null;
 
-    const actual = calculateRegistration2WithMoment_(
-      registration1End,
-      observation2Start,
-    );
-
-    const expected = {
-      start: null,
-      end: null,
-    };
+    const actual = calculateRegistration2_(registration1End, observation2Start);
 
     assertEquals_(
       actual,
-      expected,
-      "calculateRegistration2WithMoment_ / observation2Startなし",
+      { start: null, end: null },
+      "calculateRegistration2_ / observation2Startなし",
     );
   })();
 
   // CASE 3: 月差が 0 → registration2 なし
   (function () {
-    const registration1End = Moment.moment("2024-03-31");
-    const observation2Start = Moment.moment("2024-04-01"); // 月差 0
+    const registration1End = new Date("2024-03-31");
+    const observation2Start = new Date("2024-04-01");
 
-    const actual = calculateRegistration2WithMoment_(
-      registration1End,
-      observation2Start,
-    );
-
-    const expected = {
-      start: null,
-      end: null,
-    };
+    const actual = calculateRegistration2_(registration1End, observation2Start);
 
     assertEquals_(
-      {
-        start: actual.start,
-        end: actual.end,
-      },
-      expected,
-      "calculateRegistration2WithMoment_ / 月差0",
+      actual,
+      { start: null, end: null },
+      "calculateRegistration2_ / 月差0",
     );
   })();
 }
-
+function formatDateForTest_(d) {
+  if (!d) return null;
+  return Utilities.formatDate(d, "Asia/Tokyo", "yyyy-MM-dd");
+}
 /**
  * Registration開始日の決定ロジック
  *

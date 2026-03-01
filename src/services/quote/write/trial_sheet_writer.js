@@ -98,33 +98,33 @@ function getTrialDates_(array_quotation_request) {
     trialEndDate,
   };
 }
-/**
- * Date / Moment 互換値をシート表示用の文字列へフォーマットする
- *
- * normalizeDate_ を通すことで、
- *   - Moment → Date に変換
- *   - Date → そのまま
- * として扱う。
- *
- * GASの setValue 用に "yyyy/MM/dd" 形式の文字列を返す。
- *
- * @param {Date|Object|null|undefined} date
- *   Date または Moment互換オブジェクト（toDate を持つ）
- *
- * @return {string|null}
- *   フォーマット済み日付文字列（yyyy/MM/dd）、
- *   date が null/undefined の場合は null
- */
-function formatToSheetDate_(date) {
-  const d = normalizeDate_(date);
-  if (!d) return null;
-  return Utilities.formatDate(d, "Asia/Tokyo", "yyyy/MM/dd");
-}
+///**
+// * Date / Moment 互換値をシート表示用の文字列へフォーマットする
+// *
+// * normalizeDate_ を通すことで、
+// *   - Moment → Date に変換
+// *   - Date → そのまま
+// * として扱う。
+// *
+// * GASの setValue 用に "yyyy/MM/dd" 形式の文字列を返す。
+// *
+// * @param {Date|Object|null|undefined} date
+// *   Date または Moment互換オブジェクト（toDate を持つ）
+// *
+// * @return {string|null}
+// *   フォーマット済み日付文字列（yyyy/MM/dd）、
+// *   date が null/undefined の場合は null
+// */
+//function formatToSheetDate_(date) {
+//  const d = normalizeDate_(date);
+//  if (!d) return null;
+//  return Utilities.formatDate(d, "Asia/Tokyo", "yyyy/MM/dd");
+//}
 /**
  * trialシートに試験期間配列を書き込む
  *
  * @param {Object} sheet sheetsオブジェクト
- * @param {Array.<Array.<Moment>>} trialDateArray 試験期間配列
+ * @param {Array.<Array.<Date>>} trialDateArray 試験期間配列
  * @param {number} trialSetupRow trialSetup開始行
  * @param {number} trialStartCol trial開始列
  * @param {number} trialEndCol trial終了列
@@ -149,8 +149,8 @@ function writeTrialDatesToSheet_(
 
     const [startDate, endDate] = dates;
 
-    if (startDate) startCell.setValue(formatToSheetDate_(startDate));
-    if (endDate) endCell.setValue(formatToSheetDate_(endDate));
+    if (startDate) startCell.setValue(startDate);
+    if (endDate) endCell.setValue(endDate);
 
     const startAddr = startCell.getA1Notation();
     const endAddr = endCell.getA1Notation();

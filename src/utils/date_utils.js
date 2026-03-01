@@ -2,47 +2,47 @@
  * Date utility wrapper (Moment.js abstraction)
  * NOTE: Do not use moment directly outside this file.
  */
-const DateUtils = {
-  /**
-   * Add months to a date
-   * @param {Date|string} date
-   * @param {number} months
-   * @return {Date}
-   */
-  addMonths(date, months) {
-    return Moment.moment(date).add(months, "months").toDate();
-  },
-
-  /**
-   * Format date
-   * @param {Date|string} date
-   * @param {string} format
-   * @return {string}
-   */
-  format(date, format) {
-    return Moment.moment(date).format(format);
-  },
-
-  /**
-   * Difference in months
-   * @param {Date|string} from
-   * @param {Date|string} to
-   * @return {number}
-   */
-  diffInMonths(from, to) {
-    return Moment.moment(to).diff(Moment.moment(from), "months");
-  },
-};
-/**
- * 日付文字列を Moment に変換する
- * Moment依存をここに閉じ込める
- *
- * @param {string|undefined|null} value
- * @return {Moment.Moment}
- */
-function toMoment_(value) {
-  return Moment.moment(value);
-}
+//const DateUtils = {
+//  /**
+//   * Add months to a date
+//   * @param {Date|string} date
+//   * @param {number} months
+//   * @return {Date}
+//   */
+//  addMonths(date, months) {
+//    return Moment.moment(date).add(months, "months").toDate();
+//  },
+//
+//  /**
+//   * Format date
+//   * @param {Date|string} date
+//   * @param {string} format
+//   * @return {string}
+//   */
+//  format(date, format) {
+//    return Moment.moment(date).format(format);
+//  },
+//
+//  /**
+//   * Difference in months
+//   * @param {Date|string} from
+//   * @param {Date|string} to
+//   * @return {number}
+//   */
+//  diffInMonths(from, to) {
+//    return Moment.moment(to).diff(Moment.moment(from), "months");
+//  },
+//};
+///**
+// * 日付文字列を Moment に変換する
+// * Moment依存をここに閉じ込める
+// *
+// * @param {string|undefined|null} value
+// * @return {Moment.Moment}
+// */
+//function toMoment_(value) {
+//  return Moment.moment(value);
+//}
 /**
  * 日付文字列を Date に変換する（pure）
  *
@@ -197,7 +197,7 @@ function normalizeDate_(v) {
   return v?.toDate?.() ?? v;
 }
 /**
- * 指定日から月を加減した日付を返す（Moment非依存）
+ * 指定日から月を加減した日付を返す
  *
  * - 元の日付は変更しない（immutable）
  * - 月末補正あり（例: 1/31 + 1ヶ月 → 2/29 など）
@@ -235,4 +235,25 @@ function addDays_(date, days) {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
   return d;
+}
+/**
+ * 月差を計算（Moment diff互換）
+ * 切り捨て
+ *
+ * @param {Date|null} to
+ * @param {Date|null} from
+ * @return {number}
+ */
+function monthDiff_(to, from) {
+  if (!to || !from) return 0;
+
+  let months =
+    (to.getFullYear() - from.getFullYear()) * 12 +
+    (to.getMonth() - from.getMonth());
+
+  if (to.getDate() < from.getDate()) {
+    months--;
+  }
+
+  return months;
 }
