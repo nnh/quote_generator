@@ -114,34 +114,6 @@ function convertTermPeriodsToArray_(termPeriods) {
  * @param {number} input_trial_end_date 試験終了日のセル値
  * @return {Array.<Array>} 各シートの開始日・終了日の二次元配列
  */
-/*function buildTrialDateArray_(input_trial_start_date, input_trial_end_date) {
-  const sp = PropertiesService.getScriptProperties();
-  const setupTermMonths = Number(
-    sp.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
-  );
-  const closingTermMonths = Number(
-    sp.getProperty(SCRIPT_PROPERTY_KEYS.CLOSING_TERM),
-  );
-
-  const dates = calculateTrialDates_(
-    input_trial_start_date,
-    input_trial_end_date,
-    setupTermMonths,
-    closingTermMonths,
-  );
-
-  sp.setProperty(
-    SCRIPT_PROPERTY_KEYS.TRIAL_START_DATE,
-    dates.trialStart.format(),
-  );
-  sp.setProperty(SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE, dates.trialEnd.format());
-  sp.setProperty(
-    SCRIPT_PROPERTY_KEYS.REGISTRATION_YEARS,
-    dates.registrationYears,
-  );
-
-  return dates.sheetDateArray;
-}*/
 function buildTrialDateArray_(input_trial_start_date, input_trial_end_date) {
   const sp = PropertiesService.getScriptProperties();
   const setupTermMonths = Number(
