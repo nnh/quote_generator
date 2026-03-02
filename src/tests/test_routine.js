@@ -6,10 +6,14 @@ class RoutineTest {
     const sheets = get_sheets();
     this.routineTestInit();
     quote_script_main();
-    const quotation_request_last_col = sheets.quotation_request
+    const quotation_request_last_col = sheets[
+      normalizeSheetName_(QUOTATION_REQUEST_SHEET.NAME)
+    ]
       .getDataRange()
       .getLastColumn();
-    const array_quotation_request = sheets.quotation_request
+    const array_quotation_request = sheets[
+      normalizeSheetName_(QUOTATION_REQUEST_SHEET.NAME)
+    ]
       .getRange(1, 1, 2, quotation_request_last_col)
       .getValues();
     const interimCount =

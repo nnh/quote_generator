@@ -1,37 +1,43 @@
-function test_get_sheets_returns_required_keys() {
+function test_get_sheets_returns_all_required_sheets() {
+  resetSheetCache_();
+
   const sheets = get_sheets();
 
-  const actualKeys = Object.keys(sheets).sort();
+  const actual = Object.values(sheets)
+    .filter(Boolean)
+    .map((s) => s.getName())
+    .sort();
 
-  const expectedKeys = [
-    "trial",
-    "quotation_request",
-    "total",
-    "total_nmc",
-    "total_oscr",
-    "total2",
-    "total2_nmc",
-    "total2_oscr",
-    "total3",
-    "setup",
-    "registration_1",
-    "registration_2",
-    "interim_1",
-    "observation_1",
-    "interim_2",
-    "observation_2",
-    "closing",
-    "items",
-    "quote",
-    "check",
+  const expected = [
+    "Trial",
+    "Quotation Request",
+    "Total",
+    "Total_nmc",
+    "Total_oscr",
+    "Total2",
+    "Total2_nmc",
+    "Total2_oscr",
+    "Total3",
+    "Setup",
+    "Registration_1",
+    "Registration_2",
+    "Interim_1",
+    "Observation_1",
+    "Interim_2",
+    "Observation_2",
+    "Closing",
+    "Items",
+    "Quote",
+    "Check",
   ].sort();
 
-  assertEquals_(actualKeys, expectedKeys, "get_sheets: return keys");
+  assertEquals_(actual, expected, "get_sheets: returns all required sheets");
 }
 function test_get_target_term_sheets_returns_valid_sheets() {
-  if (_cachedSheets === null) {
-    get_sheets();
-  }
+  resetSheetCache_();
+
+  const sheets = get_sheets();
+
   const actual = get_target_term_sheets()
     .map((s) => s.getName())
     .sort();
@@ -52,4 +58,41 @@ function test_get_target_term_sheets_returns_valid_sheets() {
     expected,
     "get_target_term_sheets: contains required sheets",
   );
+}
+function test_getSheetByNameCached_can_fetch_all_required_sheets() {
+  resetSheetCache_();
+
+  const required = [
+    "Trial",
+    "Quotation Request",
+    "Total",
+    "Total2",
+    "Total3",
+    "Setup",
+    "Registration_1",
+    "Registration_2",
+    "Interim_1",
+    "Observation_1",
+    "Interim_2",
+    "Observation_2",
+    "Closing",
+    "Items",
+    "Quote",
+  ];
+
+  required.forEach((name) => {
+    const sheet = getSheetByNameCached_(name);
+
+    if (!sheet) {
+      throw new Error(`Sheet not fetched: ${name}`);
+    }
+
+    if (sheet.getName() !== name) {
+      throw new Error(
+        `Fetched mismatch: expected=${name}, actual=${sheet.getName()}`,
+      );
+    }
+  });
+
+  console.log("✅ All sheets fetched via cache.");
 }

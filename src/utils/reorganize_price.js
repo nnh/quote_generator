@@ -8,9 +8,7 @@ class CopyItemsSheet {
       initial_process();
       this.itemsSheetName = QUOTATION_SHEET_NAMES.ITEMS;
     }
-    this.itemsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      this.itemsSheetName,
-    );
+    this.itemsSheet = getSheetByNameCached_(this.itemsSheetName);
     this.itemsLastRow = this.itemsSheet
       .getRange(1, 1, this.itemsSheet.getLastRow(), 1)
       .getValues()

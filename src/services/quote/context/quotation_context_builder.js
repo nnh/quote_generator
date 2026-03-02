@@ -75,9 +75,7 @@ function buildTrialTermResult_(values, sheetname) {
  * @return {Array<Array>}
  */
 function getTrialTermSheetValues_() {
-  const trial_sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-    TRIAL_SHEET.NAME,
-  );
+  const trial_sheet = getSheetByNameCached_(TRIAL_SHEET.NAME);
 
   const startRow = TRIAL_SHEET.ROWS.TRIAL_SETUP;
   const endRow = TRIAL_SHEET.ROWS.TRIAL_CLOSING;

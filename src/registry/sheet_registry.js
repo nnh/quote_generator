@@ -1,4 +1,12 @@
+/**
+ * - シートを連想配列に格納してキャッシュする
+ * @type {Object.<string, GoogleAppsScript.Spreadsheet.Sheet>|null}
+ */
 let _cachedSheets = null;
+
+function normalizeSheetName_(name) {
+  return name.trim().toLowerCase();
+}
 
 /**
  * シートを連想配列に格納する（キャッシュあり）
@@ -25,6 +33,7 @@ function get_sheets() {
     interim_2: ss.getSheetByName(QUOTATION_SHEET_NAMES.INTERIM_2),
     observation_2: ss.getSheetByName(QUOTATION_SHEET_NAMES.OBSERVATION_2),
     closing: ss.getSheetByName(QUOTATION_SHEET_NAMES.CLOSING),
+    trial: ss.getSheetByName(QUOTATION_SHEET_NAMES.TRIAL),
     items: ss.getSheetByName(QUOTATION_SHEET_NAMES.ITEMS),
     quote: ss.getSheetByName(QUOTATION_SHEET_NAMES.QUOTE),
     check: ss.getSheetByName(VALIDATION_CHECK_SHEET_NAME),
@@ -37,17 +46,30 @@ function get_sheets() {
     sheet.total2_oscr = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2_OSCR);
   }
 
-  _cachedSheets = sheet;
-  return sheet;
+  _cachedSheets = {};
+
+  Object.values(sheet).forEach((s) => {
+    if (s) {
+      _cachedSheets[normalizeSheetName_(s.getName())] = s;
+    }
+  });
+
+  return _cachedSheets;
 }
+
 function resetSheetCache_() {
   _cachedSheets = null;
 }
+
 /**
  * Setup〜Closingのシートを配列に格納する
  * @return シートの配列
  */
 function get_target_term_sheets() {
+  if (_cachedSheets === null) {
+    get_sheets();
+  }
+
   const array_target_sheet = [
     _cachedSheets.setup,
     _cachedSheets.closing,
@@ -59,4 +81,19 @@ function get_target_term_sheets() {
     _cachedSheets.interim_2,
   ];
   return array_target_sheet;
+}
+
+function getSheetByNameCached_(sheetname) {
+  if (_cachedSheets === null) {
+    get_sheets();
+  }
+
+  const key = normalizeSheetName_(sheetname);
+  const sheet = _cachedSheets[key];
+
+  if (!sheet) {
+    throw new Error(`Sheet not found: ${sheetname}`);
+  }
+
+  return sheet;
 }

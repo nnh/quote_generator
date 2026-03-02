@@ -5,7 +5,7 @@
  * @return {Range}
  */
 function getTargetCountRange_(sheetname, target_col) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
+  const sheet = getSheetByNameCached_(sheetname);
   return sheet.getRange(target_col + ":" + target_col);
 }
 
@@ -36,7 +36,7 @@ function setTargetCountValues_(sheetname, target_col, values) {
  * @return {number}
  */
 function getTargetItemCount_(sheetname, itemname) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
+  const sheet = getSheetByNameCached_(sheetname);
   const row = get_row_num_matched_value_(
     sheet,
     TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,

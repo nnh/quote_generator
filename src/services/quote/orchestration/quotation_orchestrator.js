@@ -16,7 +16,10 @@
  *   未入力の場合は null
  */
 function loadQuotationRequest_() {
-  const sheet = _cachedSheets.quotation_request;
+  const quotationRequestSheetName = normalizeSheetName_(
+    QUOTATION_REQUEST_SHEET.NAME,
+  );
+  const sheet = _cachedSheets[quotationRequestSheetName];
   if (!sheet) {
     throw new Error("Quotation request シートが取得できません");
   }

@@ -4,9 +4,7 @@
  */
 class TrialCommentManager {
   constructor() {
-    const trialSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      TRIAL_SHEET.NAME,
-    );
+    const trialSheet = getSheetByNameCached_(TRIAL_SHEET.NAME);
     if (!trialSheet) {
       throw new Error("Trial シートが取得できません");
     }

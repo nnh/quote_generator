@@ -86,10 +86,9 @@ function writeImbalanceValues_(target, targetImbalance, scriptProps) {
   target.forEach((targetSheetAndValues, idx) => {
     if (targetSheetAndValues.length > 0) {
       targetSheetAndValues.forEach((targetSheetAndValue) => {
-        const targetSheet =
-          SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-            targetSheetAndValue[SHEET_IDX],
-          );
+        const targetSheet = getSheetByNameCached_(
+          targetSheetAndValue[SHEET_IDX],
+        );
         if (!targetSheet) {
           console.warn(`Sheet not found: ${targetSheetAndValue[SHEET_IDX]}`);
           return;

@@ -7,8 +7,10 @@ function initCheckSheet_() {
   const sheet = get_sheets();
   hideFilterVisibility();
   sheet.check.clear();
-  const array_quotation_request = sheet.quotation_request
-    .getRange(1, 1, 2, sheet.quotation_request.getDataRange().getLastColumn())
+  const quotation_request_sheet =
+    sheet[normalizeSheetName_(QUOTATION_REQUEST_SHEET.NAME)];
+  const array_quotation_request = quotation_request_sheet
+    .getRange(1, 1, 2, quotation_request_sheet.getDataRange().getLastColumn())
     .getValues();
   const facilities_value = get_quotation_request_value_(
     array_quotation_request,

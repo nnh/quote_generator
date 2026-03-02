@@ -14,8 +14,7 @@ function buildSheetValuesWithTargetItems_(
     ? input_values
     : getTargetCountValues_(sheetname, initTargetColumn_());
 
-  const target_sheet =
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname);
+  const target_sheet = getSheetByNameCached_(sheetname);
 
   const array_item = get_fy_items_(
     target_sheet,
