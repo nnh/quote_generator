@@ -5,7 +5,7 @@ let _cachedSheets = null;
  * @return シートの連想配列
  */
 function get_sheets() {
-  resetSheetCache_();
+  if (_cachedSheets) return _cachedSheets;
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
