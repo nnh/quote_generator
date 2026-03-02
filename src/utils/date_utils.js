@@ -1,49 +1,4 @@
 /**
- * Date utility wrapper (Moment.js abstraction)
- * NOTE: Do not use moment directly outside this file.
- */
-//const DateUtils = {
-//  /**
-//   * Add months to a date
-//   * @param {Date|string} date
-//   * @param {number} months
-//   * @return {Date}
-//   */
-//  addMonths(date, months) {
-//    return Moment.moment(date).add(months, "months").toDate();
-//  },
-//
-//  /**
-//   * Format date
-//   * @param {Date|string} date
-//   * @param {string} format
-//   * @return {string}
-//   */
-//  format(date, format) {
-//    return Moment.moment(date).format(format);
-//  },
-//
-//  /**
-//   * Difference in months
-//   * @param {Date|string} from
-//   * @param {Date|string} to
-//   * @return {number}
-//   */
-//  diffInMonths(from, to) {
-//    return Moment.moment(to).diff(Moment.moment(from), "months");
-//  },
-//};
-///**
-// * 日付文字列を Moment に変換する
-// * Moment依存をここに閉じ込める
-// *
-// * @param {string|undefined|null} value
-// * @return {Moment.Moment}
-// */
-//function toMoment_(value) {
-//  return Moment.moment(value);
-//}
-/**
  * 日付文字列を Date に変換する（pure）
  *
  * @param {string|undefined|null} value
@@ -67,15 +22,7 @@ function formatTodayYmd_(baseDate = new Date()) {
   const d = String(baseDate.getDate()).padStart(2, "0");
   return `${y}/${m}/${d}`;
 }
-///**
-// * 指定日が属する日本年度の年度末（3/31）を返す
-// * @param {Moment} date
-// * @return {Moment}
-// */
-//function getFiscalYearEnd_(date) {
-//  const fiscalYear = date.clone().subtract(3, "months").year();
-//  return Moment.moment([fiscalYear + 1, 2, 31]);
-//}
+
 /**
  * 指定日が属する日本年度の年度末（3/31）を返す（Moment非依存）
  *
@@ -94,15 +41,6 @@ function getFiscalYearEnd_(date) {
   return new Date(fiscalYear + 1, 2, 31);
 }
 
-///**
-// * 指定日が属する日本年度の年度初（4/1）を返す
-// * @param {Moment} date
-// * @return {Moment}
-// */
-//function getFiscalYearStart_(date) {
-//  const fiscalYear = date.clone().subtract(3, "months").year();
-//  return Moment.moment([fiscalYear, 3, 1]);
-//}
 /**
  * 指定日が属する日本年度の年度初（4/1）を返す
  * @param {Date} date
