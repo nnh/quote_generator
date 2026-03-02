@@ -61,7 +61,7 @@ function ssToPdf() {
   const const_vertical = true;
   const const_horizontal = false;
   // Setup〜Closingシートを取得
-  var target_sheets = get_target_term_sheets();
+  let target_sheets = get_target_term_sheets();
   // Quote, Total, Total2, Total3を追加
   target_sheets.push(ss.getSheetByName(QUOTATION_SHEET_NAMES.QUOTE));
   target_sheets.push(ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL));

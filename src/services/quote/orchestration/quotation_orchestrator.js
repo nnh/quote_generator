@@ -16,7 +16,10 @@
  *   未入力の場合は null
  */
 function loadQuotationRequest_() {
-  const sheet = get_sheets().quotation_request;
+  const sheet = _cachedSheets.quotation_request;
+  if (!sheet) {
+    throw new Error("Quotation request シートが取得できません");
+  }
   const lastCol = sheet.getDataRange().getLastColumn();
   const values = sheet.getRange(1, 1, 2, lastCol).getValues();
   // Quotation requestシートのA2セルが空白の場合、Quotation requestが入っていないものと判断して処理を終了する
@@ -106,7 +109,6 @@ function quote_script_main() {
   // 初回のみsetProtectionEditusersを実行
   initial_process();
   // 各種シートオブジェクトを取得
-  const sheet = get_sheets();
   // Quotation request シートの入力範囲（1〜2行目）を取得
   const array_quotation_request = loadQuotationRequest_();
   // Quotation request が未入力の場合は処理を中断
@@ -117,7 +119,7 @@ function quote_script_main() {
   // フィルタや非表示設定を初期状態に戻す
   resetFilterVisibility();
   // Trial シートに試験情報（開始日・終了日・期間など）を反映
-  set_trial_sheet_(sheet, array_quotation_request);
+  set_trial_sheet_(array_quotation_request);
   // 試験期間が存在し、見積計算の対象となる年度別シートを抽出
   const targetSheetList = getActiveTrialTermSheets_();
   // 抽出された各シートに対し、Quotation request の値を元に見積項目を設定

@@ -27,20 +27,21 @@ function buildInterimAnalysisItems_({
 }
 /**
  * アクティブシートに中間解析の項目を設定する。
+ * 現在未使用
  */
-function setInterimAnalysis_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheetName = ss.getActiveSheet().getName();
-
-  if (!get_target_term_sheets().some((s) => s.getName() === sheetName)) {
-    return;
-  }
-
-  const sheet = get_sheets();
-  const lastCol = sheet.quotation_request.getDataRange().getLastColumn();
-  const quotationRequest = sheet.quotation_request
-    .getRange(1, 1, 2, lastCol)
-    .getValues();
-
-  new SetSheetItemValues(sheetName, quotationRequest).setInterimAnalysis();
-}
+//function setInterimAnalysis_() {
+//  const ss = SpreadsheetApp.getActiveSpreadsheet();
+//  const sheetName = ss.getActiveSheet().getName();
+//
+//  if (!get_target_term_sheets().some((s) => s.getName() === sheetName)) {
+//    return;
+//  }
+//
+//  const sheet = get_sheets();
+//  const lastCol = sheet.quotation_request.getDataRange().getLastColumn();
+//  const quotationRequest = sheet.quotation_request
+//    .getRange(1, 1, 2, lastCol)
+//    .getValues();
+//
+//  new SetSheetItemValues(sheetName, quotationRequest).setInterimAnalysis();
+//}

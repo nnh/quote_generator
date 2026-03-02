@@ -39,6 +39,9 @@ function runAllUnitTests_quote() {
   testTrial_comment_manager();
   // trial_condition.js
   testDecideSetupClosingTerm();
+  // sheet_registry.js
+  test_get_sheets_returns_required_keys();
+  test_get_target_term_sheets_returns_valid_sheets();
 
   console.log("All unit tests executed.");
 }

@@ -261,15 +261,18 @@ function resolveTrialFieldValue_(key, fieldValue, context) {
 
 /**
  * quotation_requestシートの内容からtrialシート, itemsシートを設定する
- * @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
  * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
  * @return {void}
  * @example
- *   set_trial_sheet_(sheet, array_quotation_request);
+ *   set_trial_sheet_(array_quotation_request);
  */
-function set_trial_sheet_(sheet, array_quotation_request) {
+function set_trial_sheet_(array_quotation_request) {
   const const_facilities = ITEM_LABELS.FACILITIES;
   const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
+  const trialSheet = _cachedSheets.trial;
+  if (!trialSheet) {
+    throw new Error("Trial シートが取得できません");
+  }
   const trial_list = [
     [TRIAL_SHEET.ITEMNAMES.QUOTATION_TYPE, 2],
     ["見積発行先", 4],
@@ -287,7 +290,7 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     const key = trial_list[i][0];
     const row = Number(trial_list[i][1]);
     const context = {
-      sheet,
+      sheet: _cachedSheets,
       arrayQuotationRequest: array_quotation_request,
       properties: sp,
     };
@@ -301,17 +304,16 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     }
 
     const result = resolveTrialFieldValue_(key, quotationRequestValue, context);
-    sheet.trial.getRange(row, 2).setValue(result);
+    trialSheet.getRange(row, 2).setValue(result);
   }
   // 発行年月日に今日の日付を入れる
-  const date_of_issue = get_row_num_matched_value_(
-    sheet.trial,
-    1,
-    "発行年月日",
-  );
+  const date_of_issue = get_row_num_matched_value_(trialSheet, 1, "発行年月日");
   if (date_of_issue > 0) {
-    sheet.trial.getRange(date_of_issue, 2).setValue(formatTodayYmd_());
+    trialSheet.getRange(date_of_issue, 2).setValue(formatTodayYmd_());
   }
-  const itemSheet = sheet.items;
+  const itemSheet = _cachedSheets.items;
+  if (!itemSheet) {
+    throw new Error("Items シートが取得できません");
+  }
   applyItemPrices_(array_quotation_request, itemSheet);
 }

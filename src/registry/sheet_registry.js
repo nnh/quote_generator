@@ -1,10 +1,14 @@
+let _cachedSheets = null;
+
 /**
- * シートを連想配列に格納する
- * @param none
+ * シートを連想配列に格納する（キャッシュあり）
  * @return シートの連想配列
  */
 function get_sheets() {
+  resetSheetCache_();
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+
   const sheet = {
     trial: ss.getSheetByName(QUOTATION_SHEET_NAMES.TRIAL),
     quotation_request: ss.getSheetByName(
@@ -25,31 +29,34 @@ function get_sheets() {
     quote: ss.getSheetByName(QUOTATION_SHEET_NAMES.QUOTE),
     check: ss.getSheetByName(VALIDATION_CHECK_SHEET_NAME),
   };
-  const temp_sheet = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_NMC);
-  if (temp_sheet != null) {
+
+  if (ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_NMC)) {
     sheet.total_nmc = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_NMC);
     sheet.total2_nmc = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2_NMC);
     sheet.total_oscr = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_OSCR);
     sheet.total2_oscr = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2_OSCR);
   }
+
+  _cachedSheets = sheet;
   return sheet;
+}
+function resetSheetCache_() {
+  _cachedSheets = null;
 }
 /**
  * Setup〜Closingのシートを配列に格納する
- * @param none
  * @return シートの配列
  */
 function get_target_term_sheets() {
-  const sheet = get_sheets();
   const array_target_sheet = [
-    sheet.setup,
-    sheet.closing,
-    sheet.observation_2,
-    sheet.registration_2,
-    sheet.registration_1,
-    sheet.interim_1,
-    sheet.observation_1,
-    sheet.interim_2,
+    _cachedSheets.setup,
+    _cachedSheets.closing,
+    _cachedSheets.observation_2,
+    _cachedSheets.registration_2,
+    _cachedSheets.registration_1,
+    _cachedSheets.interim_1,
+    _cachedSheets.observation_1,
+    _cachedSheets.interim_2,
   ];
   return array_target_sheet;
 }

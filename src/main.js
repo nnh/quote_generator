@@ -52,4 +52,5 @@ function setProtectionEditusers() {
  */
 function initial_process() {
   setEditUsers_();
+  const dummy = get_sheets();
 }
