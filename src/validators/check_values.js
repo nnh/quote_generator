@@ -4,7 +4,6 @@ function check_output_values() {
   let output_col = 1;
   const {
     get_s_p,
-    sheet,
     array_quotation_request,
     facilities_value,
     number_of_cases_value,
@@ -14,7 +13,7 @@ function check_output_values() {
   } = initCheckSheet_();
   output_row = trial_start_end.length;
   output_col = output_col + trial_start_end[0].length;
-  sheet.check
+  _cachedSheets.check
     .getRange(output_row, output_col)
     .setFormula('=datedif(C2, D2, "M") + if(day(C2) <= day(D2), 1, 2)');
   output_col++;
@@ -22,7 +21,7 @@ function check_output_values() {
     calculateSetupAndClosingMonths(array_quotation_request, get_s_p);
   SpreadsheetApp.flush();
   // 試験月数, setup~closing月数を取得
-  const trial_months = sheet.check
+  const trial_months = _cachedSheets.check
     .getRange(output_row, trial_months_col)
     .getValue();
   // 試験月数出力
@@ -33,9 +32,9 @@ function check_output_values() {
   const total_months = tempDateList.totalMonths;
   const trial_year = tempDateList.fullYears;
   const trial_ceil_year = tempDateList.ceilYears;
-  sheet.check.getRange(output_row, output_col).setValue(total_months);
+  _cachedSheets.check.getRange(output_row, output_col).setValue(total_months);
   // 合計金額チェック
-  output_row = compareTotalAmounts_(sheet, output_row);
+  output_row = compareTotalAmounts_(output_row);
   // 個別項目チェック
   const total_checkitems = [];
   const total_ammount_checkitems = [];
@@ -559,7 +558,7 @@ function check_output_values() {
   const output_values_1 = res_total.concat(res_total_ammount);
   const output_values = output_values_1.concat(temp_check_1);
   output_row++;
-  sheet.check
+  _cachedSheets.check
     .getRange(output_row, 1, output_values.length, output_values[0].length)
     .setValues(output_values);
 }

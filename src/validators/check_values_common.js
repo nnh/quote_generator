@@ -34,6 +34,10 @@ class SetTestValues {
     this.trialYearsDiscountRateCol = 8;
     this.const_itemsDiscount = 1100000;
     this.constDiscountAllPeriodRangeAddr = "B46";
+    this.trialSheet = _cachedSheets.trial;
+    if (!this.trialSheet) {
+      throw new Error("Trial sheet not found in cache.");
+    }
   }
   setTestValue(targetRange, strValue) {
     targetRange.setValue(strValue);
@@ -44,9 +48,10 @@ class SetTestValues {
   }
   getTrialYearStartRange(idx) {
     this.idx = idx;
-    return SpreadsheetApp.getActiveSpreadsheet()
-      .getSheetByName("Trial")
-      .getRange(this.trialYearsStartRow + this.idx, this.trialYearsStartCol);
+    return this.trialSheet.getRange(
+      this.trialYearsStartRow + this.idx,
+      this.trialYearsStartCol,
+    );
   }
   setTrialYears(idx) {
     this.idx = idx;
@@ -69,30 +74,25 @@ class SetTestValues {
       ? setPrice
       : (this.const_itemsDiscount / 10) * (idx + 1);
     this.setTestValue(
-      SpreadsheetApp.getActiveSpreadsheet()
-        .getSheetByName("Trial")
-        .getRange(
-          this.trialYearsStartRow + this.idx,
-          this.trialYearsDiscountCol,
-        ),
+      this.trialSheet.getRange(
+        this.trialYearsStartRow + this.idx,
+        this.trialYearsDiscountCol,
+      ),
       setPrice_,
     );
   }
   delDiscountByYear(idx) {
     this.idx = idx;
     this.delTestValue(
-      SpreadsheetApp.getActiveSpreadsheet()
-        .getSheetByName("Trial")
-        .getRange(
-          this.trialYearsStartRow + this.idx,
-          this.trialYearsDiscountCol,
-        ),
+      this.trialSheet.getRange(
+        this.trialYearsStartRow + this.idx,
+        this.trialYearsDiscountCol,
+      ),
     );
   }
   getDiscountRateValue(idx) {
     this.idx = idx;
-    return SpreadsheetApp.getActiveSpreadsheet()
-      .getSheetByName("Trial")
+    return this.trialSheet
       .getRange(
         this.trialYearsStartRow + this.idx,
         this.trialYearsDiscountRateCol,
@@ -103,8 +103,7 @@ class SetTestValues {
     this.idx = idx;
     return (
       1 -
-      SpreadsheetApp.getActiveSpreadsheet()
-        .getSheetByName("Trial")
+      this.trialSheet
         .getRange(this.trialYearsStartRow + idx, this.trialYearsDiscountCol)
         .getValue() /
         this.const_itemsDiscount
@@ -112,22 +111,17 @@ class SetTestValues {
   }
   setDiscountAllPeriod(setPrice = 440000) {
     this.setTestValue(
-      SpreadsheetApp.getActiveSpreadsheet()
-        .getSheetByName("Trial")
-        .getRange(this.constDiscountAllPeriodRangeAddr),
+      this.trialSheet.getRange(this.constDiscountAllPeriodRangeAddr),
       setPrice,
     );
   }
   delDiscountAllPeriod() {
     this.delTestValue(
-      SpreadsheetApp.getActiveSpreadsheet()
-        .getSheetByName("Trial")
-        .getRange(this.constDiscountAllPeriodRangeAddr),
+      this.trialSheet.getRange(this.constDiscountAllPeriodRangeAddr),
     );
   }
   getDiscountRateValueAllPeriod() {
-    return SpreadsheetApp.getActiveSpreadsheet()
-      .getSheetByName("Trial")
+    return this.trialSheet
       .getRange(this.constDiscountAllPeriodRangeAddr)
       .offset(1, 0)
       .getValue();
@@ -135,8 +129,7 @@ class SetTestValues {
   getTrialYearsItemsName() {
     const trialSetupRow = TRIAL_SHEET.ROWS.TRIAL_SETUP;
     const trialClosingRow = TRIAL_SHEET.ROWS.TRIAL_CLOSING;
-    return SpreadsheetApp.getActiveSpreadsheet()
-      .getSheetByName("Trial")
+    return this.trialSheet
       .getRange(trialSetupRow, 1, trialClosingRow - trialSetupRow + 1, 1)
       .getValues()
       .flat();
@@ -205,81 +198,56 @@ function checkAmountByYearSheet_(sheetName, discountRate) {
  * @return {boolean} <array> Return True if OK, False otherwise.
  */
 function checkQuoteSum_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const GetRowCol = new GetTargetRowCol();
-  const quoteGoukeiRow = GetRowCol.getTargetRow(
-    ss.getSheetByName("Quote"),
-    3,
-    "小計",
-  );
+  const quoteGoukeiRow = GetRowCol.getTargetRow(_cachedSheets.quote, 3, "小計");
   const totalGoukeiRow = GetRowCol.getTargetRow(
-    ss.getSheetByName("Total"),
+    _cachedSheets.total,
     2,
     ITEM_LABELS.SUM,
   );
   const total2GoukeiRow = GetRowCol.getTargetRow(
-    ss.getSheetByName("Total2"),
+    _cachedSheets.total2,
     2,
     ITEM_LABELS.SUM,
   );
   const total3GoukeiRow = GetRowCol.getTargetRow(
-    ss.getSheetByName("Total3"),
+    _cachedSheets.total3,
     2,
     ITEM_LABELS.SUM,
   );
   const quoteGoukeiCol = GetRowCol.getTargetCol(
-    ss.getSheetByName("Quote"),
+    _cachedSheets.quote,
     11,
     ITEM_LABELS.AMMOUNT,
   );
   const totalGoukeiCol = GetRowCol.getTargetCol(
-    ss.getSheetByName("Total"),
+    _cachedSheets.total,
     4,
     ITEM_LABELS.AMMOUNT,
   );
   const total2GoukeiCol = GetRowCol.getTargetCol(
-    ss.getSheetByName("Total2"),
+    _cachedSheets.total2,
     4,
     ITEM_LABELS.SUM,
   );
   const total3GoukeiCol = GetRowCol.getTargetCol(
-    ss.getSheetByName("Total3"),
+    _cachedSheets.total3,
     3,
     ITEM_LABELS.SUM,
   );
   const checkAmount = [
-    ss
-      .getSheetByName("Quote")
-      .getRange(quoteGoukeiRow, quoteGoukeiCol)
-      .getValue(),
-    ss
-      .getSheetByName("Total")
-      .getRange(totalGoukeiRow, totalGoukeiCol)
-      .getValue(),
-    ss
-      .getSheetByName("Total2")
-      .getRange(total2GoukeiRow, total2GoukeiCol)
-      .getValue(),
-    ss
-      .getSheetByName("Total3")
-      .getRange(total3GoukeiRow, total3GoukeiCol)
-      .getValue(),
+    _cachedSheets.quote.getRange(quoteGoukeiRow, quoteGoukeiCol).getValue(),
+    _cachedSheets.total.getRange(totalGoukeiRow, totalGoukeiCol).getValue(),
+    _cachedSheets.total2.getRange(total2GoukeiRow, total2GoukeiCol).getValue(),
+    _cachedSheets.total3.getRange(total3GoukeiRow, total3GoukeiCol).getValue(),
   ].map((x) => (x === "" ? 0 : Math.round(x)));
   const checkDiscount = [
-    ss
-      .getSheetByName("Quote")
-      .getRange(quoteGoukeiRow + 2, quoteGoukeiCol)
-      .getValue(),
-    ss
-      .getSheetByName("Total")
-      .getRange(totalGoukeiRow + 1, totalGoukeiCol)
-      .getValue(),
-    ss
-      .getSheetByName("Total2")
+    _cachedSheets.quote.getRange(quoteGoukeiRow + 2, quoteGoukeiCol).getValue(),
+    _cachedSheets.total.getRange(totalGoukeiRow + 1, totalGoukeiCol).getValue(),
+    _cachedSheets.total2
       .getRange(total2GoukeiRow + 1, total2GoukeiCol)
       .getValue(),
-    ss
-      .getSheetByName("Total3")
+    _cachedSheets.total3
       .getRange(total3GoukeiRow + 1, total3GoukeiCol)
       .getValue(),
   ].map((x) => (x === "" ? 0 : Math.round(x)));
@@ -317,7 +285,7 @@ function getQuotationRequestValues_() {
 function setQuotationRequestValuesForTest(target_idx = -1) {
   const requestValues = getQuotationRequestValues_();
   const sheetQuotationRequest =
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Quotation Request");
+    _cachedSheets[normalizeSheetName_(QUOTATION_REQUEST_SHEET.NAME)];
   sheetQuotationRequest.clearContents();
   const target =
     target_idx > -1

@@ -4,11 +4,10 @@
 function initCheckSheet_() {
   initial_process();
   const get_s_p = PropertiesService.getScriptProperties();
-  const sheet = get_sheets();
   hideFilterVisibility();
-  sheet.check.clear();
+  _cachedSheets.check.clear();
   const quotation_request_sheet =
-    sheet[normalizeSheetName_(QUOTATION_REQUEST_SHEET.NAME)];
+    _cachedSheets[normalizeSheetName_(QUOTATION_REQUEST_SHEET.NAME)];
   const array_quotation_request = quotation_request_sheet
     .getRange(1, 1, 2, quotation_request_sheet.getDataRange().getLastColumn())
     .getValues();
@@ -21,17 +20,17 @@ function initCheckSheet_() {
     ITEM_LABELS.NUMBER_OF_CASES,
   );
   const target_total = {
-    sheet: sheet.total,
+    sheet: _cachedSheets.total,
     array_item: get_fy_items_(
-      sheet.total,
+      _cachedSheets.total,
       TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
     ),
     col: TOTAL_AND_PHASE_SHEET.COLUMNS.COUNT,
     footer: null,
   };
   const target_total_ammount = {
-    sheet: sheet.total,
-    array_item: get_fy_items_(sheet.total, 2),
+    sheet: _cachedSheets.total,
+    array_item: get_fy_items_(_cachedSheets.total, 2),
     col: 9,
     footer: "（金額）",
   };
@@ -51,12 +50,11 @@ function initCheckSheet_() {
     ],
   ];
 
-  sheet.check
+  _cachedSheets.check
     .getRange(1, 1, trial_start_end.length, trial_start_end[0].length)
     .setValues(trial_start_end);
   const res = {
     get_s_p,
-    sheet,
     array_quotation_request,
     facilities_value,
     number_of_cases_value,
@@ -113,23 +111,23 @@ function calculateTrialDurationDetails_(trialMonths, setupClosingMonths) {
     ceilYears: Math.ceil(trialMonths / 12), // 切り上げ年数
   };
 }
-function compareTotalAmounts_(sheet, output_row) {
+function compareTotalAmounts_(output_row) {
   const total_total_ammount = get_total_amount({
-    sheet: sheet.total,
+    sheet: _cachedSheets.total,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
     header_row: 4,
     total_col_itemname: ITEM_LABELS.AMMOUNT,
   });
   const total2_total_ammount = get_total_amount({
-    sheet: sheet.total2,
+    sheet: _cachedSheets.total2,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
     header_row: 4,
     total_col_itemname: ITEM_LABELS.SUM,
   });
   const total3_total_ammount = get_total_amount({
-    sheet: sheet.total3,
+    sheet: _cachedSheets.total3,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
     header_row: 3,
@@ -146,7 +144,7 @@ function compareTotalAmounts_(sheet, output_row) {
     ammount_check[0] = "NG：値が想定と異なる";
   }
   output_row++;
-  sheet.check
+  _cachedSheets.check
     .getRange(output_row, 1, 1, ammount_check.length)
     .setValues([ammount_check]);
   return output_row;
