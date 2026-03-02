@@ -20,22 +20,31 @@ function initTargetColumn_() {
  * @return {boolean}
  *   事務局業務ありなしフラグ（true: 対象, false: 非対象）
  */
-function initClinicalTrialsOfficeFlg_(array_quotation_request) {
-  const get_s_p = PropertiesService.getScriptProperties();
+function isClinicalTrialsOfficeRequired_(array_quotation_request) {
+  const scriptProperties = PropertiesService.getScriptProperties();
 
-  return (
-    get_s_p.getProperty("trial_type_value") ===
-      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED ||
+  const isInvestigatorInitiated =
+    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
+    TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
+
+  const isCommercialFunding =
     get_quotation_request_value_(
       array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.COEFFICIENT,
-    ) === QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL ||
+    ) === QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
+
+  const hasAdjustmentOffice =
     get_quotation_request_value_(
       array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.ADJUSTMENT_OFFICE_EXISTENCE,
-    ) === COMMON_EXISTENCE_LABELS.YES
-  );
+    ) === COMMON_EXISTENCE_LABELS.YES;
+
+  const isRequired =
+    isInvestigatorInitiated || isCommercialFunding || hasAdjustmentOffice;
+
+  return isRequired;
 }
+
 /**
  * 試験期間情報の配列から、指定したシート名の情報を取得する（pure）
  *
@@ -109,13 +118,15 @@ function getTrialDateProperties_() {
   const properties = PropertiesService.getScriptProperties();
 
   return {
-    trial_start_date: properties.getProperty("trial_start_date"),
-    trial_end_date: properties.getProperty("trial_end_date"),
+    trial_start_date: properties.getProperty(
+      SCRIPT_PROPERTY_KEYS.TRIAL_START_DATE,
+    ),
+    trial_end_date: properties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE),
   };
 }
 
 /**
- * 試験日付情報を生成する（pure / Moment非依存）
+ * 試験日付情報を生成する
  *
  * @param {Array|undefined} trial_term_values
  * @param {{
@@ -148,25 +159,47 @@ function buildTrialDatesPure_(trial_term_values, props) {
 /**
  * 試験日付に関する情報を初期化する
  *
+ * trial_term_values と設定値をもとに、
+ * 試験対象期間および試験全体期間の開始日・終了日を
+ * Date オブジェクトとして生成する。
+ *
  * @param {Array|undefined} trial_term_values
  * @return {{
- *   trial_target_start_date: Moment.Moment|null,
- *   trial_target_end_date: Moment.Moment|null,
- *   trial_start_date: Moment.Moment|null,
- *   trial_end_date: Moment.Moment|null
+ *   trial_target_start_date: Date|null,
+ *   trial_target_end_date: Date|null,
+ *   trial_start_date: Date|null,
+ *   trial_end_date: Date|null
  * }}
  */
 function initSetSheetItemTrialDates_(trial_term_values) {
   const props = getTrialDateProperties_();
-
-  // pure な Date 生成
   const dates = buildTrialDatesPure_(trial_term_values, props);
+  return dates;
+}
+/**
+ * シート処理用のコンテキストを生成する
+ * （SetSheetItemValues の constructor 相当）
+ */
+function buildSheetContext_(sheetname, array_quotation_request) {
+  const trialTerm = getTrialTerm_(sheetname);
+  const trialDates = initSetSheetItemTrialDates_(trialTerm.trial_term_values);
 
-  // Moment への変換はここだけ
   return {
-    trial_target_start_date: toMoment_(dates.trial_target_start_date),
-    trial_target_end_date: toMoment_(dates.trial_target_end_date),
-    trial_start_date: toMoment_(dates.trial_start_date),
-    trial_end_date: toMoment_(dates.trial_end_date),
+    sheetname,
+    array_quotation_request,
+
+    trial_target_terms: trialTerm.trial_target_terms,
+    trial_term_values: trialTerm.trial_term_values,
+
+    trial_target_start_date: trialDates.trial_target_start_date,
+    trial_target_end_date: trialDates.trial_target_end_date,
+    trial_start_date: trialDates.trial_start_date,
+    trial_end_date: trialDates.trial_end_date,
+
+    target_col: initTargetColumn_(),
+
+    clinical_trials_office_flg: isClinicalTrialsOfficeRequired_(
+      array_quotation_request,
+    ),
   };
 }

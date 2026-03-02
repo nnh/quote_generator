@@ -72,8 +72,12 @@ function processResearchSupportFee_(array_quotation_request, itemSheet) {
       ITEMS_SHEET.ITEMNAMES.REPORT_FEE,
     ],
   ];
-  const numberOfCases = Number(get_s_p.getProperty("number_of_cases"));
-  const facilities = Number(get_s_p.getProperty("facilities_value"));
+  const numberOfCases = Number(
+    get_s_p.getProperty(SCRIPT_PROPERTY_KEYS.NUMBER_OF_CASES),
+  );
+  const facilities = Number(
+    get_s_p.getProperty(SCRIPT_PROPERTY_KEYS.FACILITIES_VALUE),
+  );
   const enabledItemCount = countEnabledItems_(
     array_quotation_request,
     cost_of_cooperation_item_name,

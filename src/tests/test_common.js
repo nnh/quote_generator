@@ -345,3 +345,84 @@ function assertThrows_(params) {
     }
   }
 }
+/**
+ * 医師主導治験の定数が定義されていることを確認する
+ * @return {string} 医師主導治験の定数値
+ */
+function requireTestInvestigatorInitiatedTrialType_() {
+  const investigatorInitiated = TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
+
+  if (!investigatorInitiated) {
+    throw new Error(
+      "Test precondition failed: TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED is not defined.",
+    );
+  }
+
+  return investigatorInitiated;
+}
+/**
+ * 特定臨床研究の定数が定義されていることを確認する
+ * @return {string} 特定臨床研究の定数値
+ */
+function requireTestSpecifiedClinicalTrialType_() {
+  const specifiedClinicalResearch = TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL;
+
+  if (!specifiedClinicalResearch) {
+    throw new Error(
+      "Test precondition failed: TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL is not defined.",
+    );
+  }
+  return specifiedClinicalResearch;
+}
+function requireTestYesExistenceLabel_() {
+  const valueYes = COMMON_EXISTENCE_LABELS.YES;
+
+  if (!valueYes) {
+    throw new Error(
+      "Test precondition failed: COMMON_EXISTENCE_LABELS.YES is not defined.",
+    );
+  }
+
+  return valueYes;
+}
+function requireTestNoExistenceLabel_() {
+  const valueNo = COMMON_EXISTENCE_LABELS.NO;
+
+  if (!valueNo) {
+    throw new Error(
+      "Test precondition failed: COMMON_EXISTENCE_LABELS.NO is not defined.",
+    );
+  }
+
+  return valueNo;
+}
+/**
+ * 指定した関数を一時的に差し替えて処理を実行する
+ * エラーが発生しても必ず元に戻す
+ *
+ * @param {Object} replacements
+ *   差し替え対象
+ *   {
+ *     original: mock
+ *   }
+ * @param {Function} callback
+ *   差し替え状態で実行したい処理
+ */
+function withMockedFunctions_(replacements, callback) {
+  const originals = {};
+
+  try {
+    // 差し替え
+    Object.keys(replacements).forEach((key) => {
+      originals[key] = globalThis[key];
+      globalThis[key] = replacements[key];
+    });
+
+    return callback();
+  } finally {
+    // 必ず復元
+    Object.keys(originals).forEach((key) => {
+      globalThis[key] = originals[key];
+    });
+  }
+}

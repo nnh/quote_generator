@@ -23,20 +23,21 @@ function getClosingTrialTypeConfig_() {
   const properties = PropertiesService.getScriptProperties();
 
   const config = {
-    csrLabel: "研究結果報告書の作成",
+    csrLabel: ITEMS_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT,
     csrCount: "",
-    finalAnalysisLabel: "最終解析プログラム作成、解析実施（シングル）",
+    finalAnalysisLabel: ITEMS_SHEET.ITEMNAMES.FINAL_ANALYSIS_PROGRAM_SINGLE,
     auditSupport: "",
     enableClinicalConference: false,
   };
 
   if (
-    properties.getProperty("trial_type_value") ===
+    properties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
     TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
   ) {
-    config.csrLabel = "CSRの作成支援";
+    config.csrLabel = ITEMS_SHEET.ITEMNAMES.CSR_SUPPORT;
     config.csrCount = 1;
-    config.finalAnalysisLabel = "最終解析プログラム作成、解析実施（ダブル）";
+    config.finalAnalysisLabel =
+      ITEMS_SHEET.ITEMNAMES.FINAL_ANALYSIS_PROGRAM_DOUBLE;
     config.auditSupport = 1;
     config.enableClinicalConference = true;
   }
@@ -58,12 +59,16 @@ function createClosingItemsList_(
   /* ===== 入力値取得 ===== */
   let finalAnalysisTableCount = get_quotation_request_value_(
     array_quotation_request,
-    "統計解析に必要な図表数",
+    QUOTATION_REQUEST_SHEET.ITEMNAMES
+      .FINAL_ANALYSIS_REQUIRED_TABLE_FIGURE_COUNT,
   );
 
   const hasClinicalConference =
     returnIfEquals_(
-      get_quotation_request_value_(array_quotation_request, "症例検討会"),
+      get_quotation_request_value_(
+        array_quotation_request,
+        QUOTATION_REQUEST_SHEET.ITEMNAMES.CASE_REVIEW_MEETING,
+      ),
       COMMON_EXISTENCE_LABELS.YES,
       1,
     ) > 0;
@@ -114,13 +119,19 @@ function createClosingItemsList_(
 
   /* ===== Map構築 ===== */
   return new Map([
-    ["症例検討会準備・実行", closingMeeting],
+    [
+      ITEMS_SHEET.ITEMNAMES.CASE_REVIEW_MEETING_PREPARATION_AND_EXECUTION,
+      closingMeeting,
+    ],
     [ITEMS_SHEET.ITEMNAMES.DATA_CLEANING, 1],
-    ["事務局運営（試験終了時）", clinicalTrialsOffice],
-    ["PMDA対応、照会事項対応", ""],
-    ["監査対応", config.auditSupport],
-    ["データベース固定作業、クロージング", 1],
-    ["症例検討会資料作成", clinicalConference],
+    [
+      ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_CLOSING,
+      clinicalTrialsOffice,
+    ],
+    [ITEMS_SHEET.ITEMNAMES.PMDA_RESPONSE_AND_INQUIRY, ""],
+    [ITEMS_SHEET.ITEMNAMES.AUDIT_SUPPORT, config.auditSupport],
+    [ITEMS_SHEET.ITEMNAMES.DATABASE_FIXING_AND_CLOSING, 1],
+    [ITEMS_SHEET.ITEMNAMES.CASE_REVIEW_MEETING_MATERIALS, clinicalConference],
     [
       ITEMS_SHEET.ITEMNAMES.STATISTICAL_ANALYSIS_PLAN,
       returnIfGreaterThan_(finalAnalysisTableCount, 0, 1),
@@ -130,7 +141,7 @@ function createClosingItemsList_(
       returnIfGreaterThan_(finalAnalysisTableCount, 0, finalAnalysisTableCount),
     ],
     [
-      "最終解析報告書作成（出力結果＋表紙）",
+      ITEMS_SHEET.ITEMNAMES.FINAL_ANALYSIS_REPORT,
       returnIfGreaterThan_(finalAnalysisTableCount, 0, 1),
     ],
     [config.csrLabel, csrCount],

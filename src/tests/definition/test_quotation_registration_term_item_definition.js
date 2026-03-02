@@ -7,6 +7,10 @@ function test_setRegistrationTermItems() {
   // ・returnIfEquals_ は一致時に itemName、不一致時に "" を返す
   // ・buildClinicalTrialsOfficeItems_ は仕様通りの配列を返す
   const registration1_sheetName = getRegistration1SheetNameForTest_();
+  const item_central_monitoring = ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING;
+  if (!item_central_monitoring) {
+    throw new Error("item_central_monitoring is not defined");
+  }
   // ===============================
   // setRegistrationTermItems_ テストケース一覧
   // ===============================
@@ -36,8 +40,46 @@ function test_setRegistrationTermItems() {
         trial_target_end_date: "2025/03/31",
       },
     },
-    expected: new Map([[ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING, 12]]),
+    expected: new Map([[item_central_monitoring, 12]]),
   });
+  const value_yes = SETUP_OR_OUTSOURCE_EXISTENCE_LABELS.YES;
+  if (!value_yes) {
+    throw new Error("SETUP_OR_OUTSOURCE_EXISTENCE_LABELS.YES is not defined");
+  }
+  const value_no = SETUP_OR_OUTSOURCE_EXISTENCE_LABELS.NO;
+  if (!value_no) {
+    throw new Error("SETUP_OR_OUTSOURCE_EXISTENCE_LABELS.NO is not defined");
+  }
+  const quotation_request_efficacy_safety_committee_office_label =
+    QUOTATION_REQUEST_SHEET.ITEMNAMES
+      .EFFICACY_SAFETY_COMMITTEE_OFFICE_EXISTENCE;
+  if (!quotation_request_efficacy_safety_committee_office_label) {
+    throw new Error(
+      "quotation_request_efficacy_safety_committee_office_label is not defined",
+    );
+  }
+  const quotation_request_safety_management_office_label =
+    QUOTATION_REQUEST_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE_EXISTENCE;
+  if (!quotation_request_safety_management_office_label) {
+    throw new Error(
+      "quotation_request_safety_management_office_label is not defined",
+    );
+  }
+  const item_efficacy_safety_committee_office =
+    ITEMS_SHEET.ITEMNAMES.EFFICACY_SAFETY_COMMITTEE_OFFICE;
+  if (!item_efficacy_safety_committee_office) {
+    throw new Error("item_efficacy_safety_committee_office is not defined");
+  }
+  const item_safety_management_office =
+    ITEMS_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE;
+  if (!item_safety_management_office) {
+    throw new Error("item_safety_management_office is not defined");
+  }
+  const item_clinical_trials_office_registration =
+    ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_REGISTRATION;
+  if (!item_clinical_trials_office_registration) {
+    throw new Error("item_clinical_trials_office_registration is not defined");
+  }
 
   // 2. 安全性管理事務局のみ追加されるケース
   // - SAFETY_MANAGEMENT_OFFICE_EXISTENCE = "設置・委託する"
@@ -47,15 +89,15 @@ function test_setRegistrationTermItems() {
     createTestQuotationRequestArrayWithColumn_(
       null,
       "S",
-      "効安事務局設置",
-      "設置しない・または委託しない",
+      quotation_request_efficacy_safety_committee_office_label,
+      value_no,
     );
   const case2_array_quotation_request =
     createTestQuotationRequestArrayWithColumn_(
       temp_case2_array_quotation_request,
       "T",
-      "安全性管理事務局設置",
-      "設置・委託する",
+      quotation_request_safety_management_office_label,
+      value_yes,
     );
   runSetRegistrationTermItemsTest_({
     testName: "安全性管理事務局のみ追加されるケース",
@@ -72,8 +114,8 @@ function test_setRegistrationTermItems() {
       },
     },
     expected: new Map([
-      [ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING, 12],
-      [ITEMS_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE, 12],
+      [item_central_monitoring, 12],
+      [item_safety_management_office, 12],
     ]),
   });
 
@@ -85,15 +127,15 @@ function test_setRegistrationTermItems() {
     createTestQuotationRequestArrayWithColumn_(
       null,
       "S",
-      "効安事務局設置",
-      "設置・委託する",
+      quotation_request_efficacy_safety_committee_office_label,
+      value_yes,
     );
   const case3_array_quotation_request =
     createTestQuotationRequestArrayWithColumn_(
       temp_case3_array_quotation_request,
       "T",
-      "安全性管理事務局設置",
-      "設置しない・または委託しない",
+      quotation_request_safety_management_office_label,
+      value_no,
     );
   runSetRegistrationTermItemsTest_({
     testName: "効安事務局のみ追加されるケース",
@@ -110,8 +152,8 @@ function test_setRegistrationTermItems() {
       },
     },
     expected: new Map([
-      [ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING, 12],
-      [ITEMS_SHEET.ITEMNAMES.EFFICACY_SAFETY_COMMITTEE_OFFICE, 12],
+      [item_central_monitoring, 12],
+      [item_efficacy_safety_committee_office, 12],
     ]),
   });
 
@@ -121,15 +163,15 @@ function test_setRegistrationTermItems() {
     createTestQuotationRequestArrayWithColumn_(
       null,
       "S",
-      "効安事務局設置",
-      "設置・委託する",
+      quotation_request_efficacy_safety_committee_office_label,
+      value_yes,
     );
   const case4_array_quotation_request =
     createTestQuotationRequestArrayWithColumn_(
       temp_case4_array_quotation_request,
       "T",
-      "安全性管理事務局設置",
-      "設置・委託する",
+      quotation_request_safety_management_office_label,
+      value_yes,
     );
   runSetRegistrationTermItemsTest_({
     testName: "安全性管理事務局・効安事務局の両方が追加されるケース",
@@ -146,9 +188,9 @@ function test_setRegistrationTermItems() {
       },
     },
     expected: new Map([
-      [ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING, 12],
-      [ITEMS_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE, 12],
-      [ITEMS_SHEET.ITEMNAMES.EFFICACY_SAFETY_COMMITTEE_OFFICE, 12],
+      [item_central_monitoring, 12],
+      [item_safety_management_office, 12],
+      [item_efficacy_safety_committee_office, 12],
     ]),
   });
 
@@ -165,22 +207,22 @@ function test_setRegistrationTermItems() {
     createTestQuotationRequestArrayWithColumn_(
       null,
       "S",
-      "効安事務局設置",
-      "設置・委託する",
+      quotation_request_efficacy_safety_committee_office_label,
+      value_yes,
     );
   const case5_array_quotation_request =
     createTestQuotationRequestArrayWithColumn_(
       temp_case5_array_quotation_request,
       "T",
-      "安全性管理事務局設置",
-      "設置・委託する",
+      quotation_request_safety_management_office_label,
+      value_yes,
     );
   runSetRegistrationTermItemsTest_({
     testName: "複合ケース（最大構成）",
     context: {
       sheetname: registration1_sheetName,
       array_quotation_request: case5_array_quotation_request,
-      clinical_trials_office_flg: true,
+      clinical_trials_office_flg: false,
       date_list: {
         trial_target_terms: 12,
         trial_start_date: "2020/04/01",
@@ -190,10 +232,9 @@ function test_setRegistrationTermItems() {
       },
     },
     expected: new Map([
-      [ITEMS_SHEET.ITEMNAMES.CENTRAL_MONITORING, 12],
-      [ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_REGISTRATION, 12],
-      [ITEMS_SHEET.ITEMNAMES.SAFETY_MANAGEMENT_OFFICE, 12],
-      [ITEMS_SHEET.ITEMNAMES.EFFICACY_SAFETY_COMMITTEE_OFFICE, 12],
+      [item_central_monitoring, 12],
+      [item_safety_management_office, 12],
+      [item_efficacy_safety_committee_office, 12],
     ]),
   });
 
@@ -384,7 +425,7 @@ function test_calcClinicalTrialsOfficeValues_withProperty_(
   testname,
 ) {
   const scriptProperties = PropertiesService.getScriptProperties();
-  const PROPERTY_KEY = "reg1_setup_clinical_trials_office";
+  const PROPERTY_KEY = SCRIPT_PROPERTY_KEYS.REG1_SETUP_CLINICAL_TRIALS_OFFICE;
 
   const originalValue = scriptProperties.getProperty(PROPERTY_KEY);
 

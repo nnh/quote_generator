@@ -1,7 +1,18 @@
 function testTrial_comment_manager() {
+  const trialSheetName = TRIAL_SHEET.NAME;
+  if (!trialSheetName) {
+    throw new Error("TRIAL_SHEET.NAME is not defined");
+  }
   const trialSheet =
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Trial");
-  const commentRange = trialSheet.getRange(TRIAL_SHEET.RANGES.COMMENT);
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(trialSheetName);
+  if (!trialSheet) {
+    throw new Error(`Sheet with name ${trialSheetName} not found`);
+  }
+  const trialSheetRangeComment = TRIAL_SHEET.RANGES.COMMENT;
+  if (!trialSheetRangeComment) {
+    throw new Error("TRIAL_SHEET.RANGES.COMMENT is not defined");
+  }
+  const commentRange = trialSheet.getRange(trialSheetRangeComment);
   const test1 = testHandleCrfWithCdisc_case1_(commentRange);
   const test2 = testHandleCrfWithCdisc_case2_(commentRange);
   const test3 = testHandleCrfWithCdisc_case3_(commentRange);

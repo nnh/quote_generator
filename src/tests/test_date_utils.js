@@ -47,3 +47,123 @@ function test_monthBoundaryFunctions() {
     assertEquals_(actual.getDate(), 28, "endOfMonth_ Feb non-leap: date");
   }
 }
+/**
+ * addMonths_ のテスト
+ *
+ * - 月末補正
+ * - 負数対応
+ * - 年跨ぎ
+ * - Moment互換入力
+ */
+function test_addMonths() {
+  const cases = [
+    {
+      name: "simple add",
+      input: new Date("2024-01-15"),
+      months: 1,
+      expected: "2024-02-15",
+    },
+    {
+      name: "month end -> leap year Feb",
+      input: new Date("2024-01-31"),
+      months: 1,
+      expected: "2024-02-29",
+    },
+    {
+      name: "month end -> non leap Feb",
+      input: new Date("2023-01-31"),
+      months: 1,
+      expected: "2023-02-28",
+    },
+    {
+      name: "subtract month",
+      input: new Date("2024-03-31"),
+      months: -1,
+      expected: "2024-02-29",
+    },
+    {
+      name: "year boundary forward",
+      input: new Date("2024-10-31"),
+      months: 5,
+      expected: "2025-03-31",
+    },
+    {
+      name: "year boundary backward",
+      input: new Date("2024-03-31"),
+      months: -5,
+      expected: "2023-10-31",
+    },
+    {
+      name: "Moment-like input",
+      input: {
+        toDate: () => new Date("2024-01-31"),
+      },
+      months: 1,
+      expected: "2024-02-29",
+    },
+  ];
+
+  cases.forEach(({ name, input, months, expected }) => {
+    const result = addMonths_(input, months);
+
+    const actualStr = Utilities.formatDate(result, "Asia/Tokyo", "yyyy-MM-dd");
+
+    assertEquals_(actualStr, expected, name);
+  });
+}
+/**
+ * getFiscalYearEnd_ のテスト
+ */
+function test_getFiscalYearEnd() {
+  const cases = [
+    {
+      name: "April -> next year end",
+      input: new Date("2024-04-01"),
+      expected: "2025-03-31",
+    },
+    {
+      name: "Jan -> same year end",
+      input: new Date("2024-01-01"),
+      expected: "2024-03-31",
+    },
+    {
+      name: "4/30 -> next year end",
+      input: new Date("2024-04-30"),
+      expected: "2025-03-31",
+    },
+    {
+      name: "Moment-like input",
+      input: { toDate: () => new Date("2024-04-01") },
+      expected: "2025-03-31",
+    },
+  ];
+
+  cases.forEach(({ name, input, expected }) => {
+    const result = getFiscalYearEnd_(input);
+
+    const actualStr = Utilities.formatDate(result, "Asia/Tokyo", "yyyy-MM-dd");
+
+    assertEquals_(actualStr, expected, name);
+  });
+}
+/**
+ * getFiscalYearStart_ のテスト
+ */
+function test_getFiscalYearStart() {
+  const cases = [
+    { input: new Date("2024-03-31"), expected: new Date("2023-04-01") },
+    { input: new Date("2024-04-01"), expected: new Date("2024-04-01") },
+    { input: new Date("2024-12-15"), expected: new Date("2024-04-01") },
+    { input: new Date("2025-01-01"), expected: new Date("2024-04-01") },
+    { input: new Date("2025-04-01"), expected: new Date("2025-04-01") },
+  ];
+
+  cases.forEach(({ input, expected }, i) => {
+    const actual = getFiscalYearStart_(input);
+
+    const actualStr = `${actual.getFullYear()}-${actual.getMonth() + 1}-${actual.getDate()}`;
+    const expectedStr = `${expected.getFullYear()}-${expected.getMonth() + 1}-${expected.getDate()}`;
+
+    assertEquals_(actualStr, expectedStr, `Case ${i + 1}`);
+  });
+}

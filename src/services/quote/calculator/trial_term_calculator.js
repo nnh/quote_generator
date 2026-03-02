@@ -24,12 +24,12 @@ const TRIAL_TERM_KEYS = {
  * @param {number} closingTermMonths closing期間（月数）
  *
  * @return {Object} 計算結果オブジェクト
- * @return {Moment} return.trialStart 試験開始日（月初）
- * @return {Moment} return.trialEnd 試験終了日（月末）
+ * @return {Date} return.trialStart 試験開始日（月初）
+ * @return {Date} return.trialEnd 試験終了日（月末）
  * @return {number} return.registrationYears registration期間の年数
- * @return {Object.<string, Array.<Moment|null>>} return.termPeriods
+ * @return {Object.<string, Array.<Date|null>>} return.termPeriods
  *         期間キー（TRIAL_TERM_KEYS）をキーに持つ、開始日・終了日の配列
- * @return {Array.<Array.<Moment|null>>} return.sheetDateArray
+ * @return {Array.<Array.<Date|null>>} return.sheetDateArray
  *         シート出力用に整形した二次元配列
  *
  * @example
@@ -49,32 +49,32 @@ function calculateTrialDates_(
   closingTermMonths,
 ) {
   // 試験開始日・終了日
-  const { trialStart, trialEnd } = buildTrialMonthRangeWithMoment_(
+  const { trialStart, trialEnd } = buildTrialMonthRange_(
     input_trial_start_date,
     input_trial_end_date,
   );
 
   // setup
-  const { setupStart, setupEnd } = calculateSetupPeriodWithMoment_(
+  const { setupStart, setupEnd } = calculateSetupPeriod_(
     trialStart,
     setupTermMonths,
   );
 
   // closing
-  const { closingStart, closingEnd } = calculateClosingPeriodWithMoment_(
+  const { closingStart, closingEnd } = calculateClosingPeriod_(
     trialEnd,
     closingTermMonths,
   );
 
   // registration / observation
-  const registrationInfo = calculateRegistrationPeriodsWithMoment_(
+  const registrationInfo = calculateRegistrationPeriods_(
     setupEnd,
     closingStart,
     trialStart,
     trialEnd,
   );
 
-  const termPeriods = buildTermPeriodsWithMoment_({
+  const termPeriods = buildTermPeriods_({
     setupStart,
     setupEnd,
     closingStart,
@@ -114,13 +114,14 @@ function convertTermPeriodsToArray_(termPeriods) {
  * @param {number} input_trial_end_date 試験終了日のセル値
  * @return {Array.<Array>} 各シートの開始日・終了日の二次元配列
  */
-function get_trial_start_end_date_(
-  input_trial_start_date,
-  input_trial_end_date,
-) {
+function buildTrialDateArray_(input_trial_start_date, input_trial_end_date) {
   const sp = PropertiesService.getScriptProperties();
-  const setupTermMonths = Number(sp.getProperty("setup_term"));
-  const closingTermMonths = Number(sp.getProperty("closing_term"));
+  const setupTermMonths = Number(
+    sp.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
+  );
+  const closingTermMonths = Number(
+    sp.getProperty(SCRIPT_PROPERTY_KEYS.CLOSING_TERM),
+  );
 
   const dates = calculateTrialDates_(
     input_trial_start_date,
@@ -129,15 +130,34 @@ function get_trial_start_end_date_(
     closingTermMonths,
   );
 
-  sp.setProperty("trial_start_date", dates.trialStart.format());
-  sp.setProperty("trial_end_date", dates.trialEnd.format());
-  sp.setProperty("registration_years", dates.registrationYears);
+  sp.setProperty(
+    SCRIPT_PROPERTY_KEYS.TRIAL_START_DATE,
+    Utilities.formatDate(dates.trialStart, "Asia/Tokyo", "yyyy-MM-dd"),
+  );
+
+  sp.setProperty(
+    SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE,
+    Utilities.formatDate(dates.trialEnd, "Asia/Tokyo", "yyyy-MM-dd"),
+  );
+
+  sp.setProperty(
+    SCRIPT_PROPERTY_KEYS.REGISTRATION_YEARS,
+    dates.registrationYears,
+  );
 
   return dates.sheetDateArray;
 }
+
 /**
  * 登録月数を計算する
- * Moment 依存あり
+ *
+ * @param {Object} params
+ * @param {number} params.trial_target_terms
+ * @param {Date|Object} params.trial_start_date
+ * @param {Date|Object} params.trial_end_date
+ * @param {Date|Object} params.trial_target_start_date
+ * @param {Date|Object} params.trial_target_end_date
+ * @return {number|string}
  */
 function calcRegistrationMonth_({
   trial_target_terms,
@@ -146,30 +166,38 @@ function calcRegistrationMonth_({
   trial_target_start_date,
   trial_target_end_date,
 }) {
+  const trialStart = normalizeDate_(trial_start_date);
+  const trialEnd = normalizeDate_(trial_end_date);
+  const targetStart = normalizeDate_(trial_target_start_date);
+  const targetEnd = normalizeDate_(trial_target_end_date);
+
   if (trial_target_terms > 12) {
     return 12;
   }
 
-  if (
-    trial_start_date <= trial_target_start_date &&
-    trial_target_end_date <= trial_end_date
-  ) {
+  if (trialStart <= targetStart && targetEnd <= trialEnd) {
     return trial_target_terms;
   }
 
-  if (trial_target_start_date < trial_start_date) {
-    return trial_target_end_date
-      .clone()
-      .add(1, "days")
-      .diff(trial_start_date, "months");
+  if (targetStart < trialStart) {
+    return monthDiff_(addDays_(targetEnd, 1), trialStart);
   }
 
-  if (trial_end_date < trial_target_end_date) {
-    return trial_end_date
-      .clone()
-      .add(1, "days")
-      .diff(trial_target_start_date, "months");
+  if (trialEnd < targetEnd) {
+    return monthDiff_(addDays_(trialEnd, 1), targetStart);
   }
 
   return "";
+}
+/**
+ * Setup / Closing期間を決定する
+ * @param {string} trialType 試験種別
+ * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
+ * @return {{setupTerm: number, closingTerm: number}} Setup / Closing期間（月数）
+ */
+function calculateSetupClosingTerm_(trialType, quotationRequest) {
+  const isSpecialTrial = isSpecialTrial_(trialType);
+  const hasReportSupport = hasReportSupport_(quotationRequest);
+
+  return decideSetupClosingTerm_(isSpecialTrial, hasReportSupport);
 }

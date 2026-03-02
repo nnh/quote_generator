@@ -109,3 +109,24 @@ function get_quotation_request_value_(array_quotation_request, header_str) {
     return null;
   }
 }
+/**
+ * スクリプトプロパティを設定する共通関数
+ *
+ * - scriptProperties が渡された場合はそれを使用
+ * - 未指定の場合は ScriptProperties を取得して使用
+ *
+ * @param {string} key
+ *   設定するプロパティキー
+ *
+ * @param {string|number|boolean} value
+ *   設定する値
+ *
+ * @param {PropertiesService.Properties} [scriptProperties]
+ *   使用するプロパティオブジェクト（テスト用に外部注入可能）
+ *
+ * @return {void}
+ */
+function setScriptProperty_(key, value, scriptProperties) {
+  const sp = scriptProperties || PropertiesService.getScriptProperties();
+  sp.setProperty(key, value);
+}

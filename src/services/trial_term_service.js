@@ -1,20 +1,26 @@
 /**
  * 開始日〜終了日に含まれる業務上の月数を返す
  * ※ start_date は必ず月初、end_date は必ず月末に正規化済みであること
- * ※ 正規化は get_trial_start_end_date_() 側で行う前提
+ * ※ 正規化は buildTrialDateArray_() 側で行う前提
  */
 function get_months_(start_date, end_date) {
-  // start_date / end_date が null, undefined, "" の場合は null を返す
   if (!start_date || !end_date) return null;
 
-  // Moment.js を想定、1日引いた後に月数を計算し 1 を加える
-  return end_date.clone().subtract(1, "days").diff(start_date, "months") + 1;
+  const s = normalizeDate_(start_date);
+  const e = normalizeDate_(end_date);
+
+  // 年月差を算出
+  const months =
+    (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+
+  // 月末を含めるため +1
+  return months + 1;
 }
+
 function get_years_(start_date, end_date) {
   const months = get_months_(start_date, end_date);
   if (months === null) return null;
 
-  // 月数を年数に変換し、小数は切り上げ
   return Math.ceil(months / 12);
 }
 /**
