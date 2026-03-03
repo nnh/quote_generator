@@ -162,7 +162,6 @@ function applyRegistrationTermItems_(context, input_values) {
     date_list,
     sheetname: context.sheetname,
     clinical_trials_office_flg: context.clinical_trials_office_flg,
-    array_quotation_request: context.array_quotation_request,
   });
 
   return getSetValues_(context, target_items, input_values);

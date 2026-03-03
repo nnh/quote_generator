@@ -15,8 +15,6 @@ function initTargetColumn_() {
  * - 原資が企業である
  * - 調整事務局の有無が「あり」である
  *
- * @param {Array} array_quotation_request
- *   Quotation Request シートの1〜2行目の値配列
  * @return {boolean}
  *   事務局業務ありなしフラグ（true: 対象, false: 非対象）
  */
@@ -176,13 +174,12 @@ function initSetSheetItemTrialDates_(trial_term_values) {
  * シート処理用のコンテキストを生成する
  * （SetSheetItemValues の constructor 相当）
  */
-function buildSheetContext_(sheetname, array_quotation_request) {
+function buildSheetContext_(sheetname) {
   const trialTerm = getTrialTerm_(sheetname);
   const trialDates = initSetSheetItemTrialDates_(trialTerm.trial_term_values);
 
   return {
     sheetname,
-    array_quotation_request,
 
     trial_target_terms: trialTerm.trial_target_terms,
     trial_term_values: trialTerm.trial_term_values,

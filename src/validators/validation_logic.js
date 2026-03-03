@@ -3,14 +3,8 @@
  */
 function initCheckSheet_() {
   initial_process();
-  const get_s_p = PropertiesService.getScriptProperties();
   hideFilterVisibility();
   _cachedSheets.check.clear();
-  const quotation_request_sheet =
-    _cachedSheets[normalizeSheetName_(QUOTATION_REQUEST_SHEET.NAME)];
-  const array_quotation_request = quotation_request_sheet
-    .getRange(1, 1, 2, quotation_request_sheet.getDataRange().getLastColumn())
-    .getValues();
   const facilities_value = get_quotation_request_value_(ITEM_LABELS.FACILITIES);
   const number_of_cases_value = get_quotation_request_value_(
     ITEM_LABELS.NUMBER_OF_CASES,
@@ -44,8 +38,6 @@ function initCheckSheet_() {
     .getRange(1, 1, trial_start_end.length, trial_start_end[0].length)
     .setValues(trial_start_end);
   const res = {
-    get_s_p,
-    array_quotation_request,
     facilities_value,
     number_of_cases_value,
     target_total,
@@ -57,7 +49,7 @@ function initCheckSheet_() {
 /**
  * 検証の基準となる月数データを取得する
  */
-function calculateSetupAndClosingMonths(array_quotation_request, get_s_p) {
+function calculateSetupAndClosingMonths() {
   const trial_type = get_quotation_request_value_("試験種別");
   const has_report_support =
     get_quotation_request_value_("研究結果報告書作成支援") ===
@@ -134,12 +126,7 @@ function compareTotalAmounts_(output_row) {
     .setValues([ammount_check]);
   return output_row;
 }
-function checkQuotationOfficeOperationItems_(
-  get_s_p,
-  array_quotation_request,
-  trial_months,
-  setup_month,
-) {
+function checkQuotationOfficeOperationItems_(trial_months, setup_month) {
   let office_bef_month = 0;
   let office_count = 0;
   let temp_value = 0;
@@ -174,7 +161,6 @@ function checkQuotationOfficeOperationItems_(
 }
 
 function checkQuotationMonitoringItems_(
-  array_quotation_request,
   facilities_value,
   number_of_cases_value,
   trial_ceil_year,

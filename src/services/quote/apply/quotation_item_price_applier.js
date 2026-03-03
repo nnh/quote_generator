@@ -1,9 +1,9 @@
-function applyItemPrices_(array_quotation_request, itemSheet) {
+function applyItemPrices_(itemSheet) {
   // 保険料
   processInsuranceFee_(itemSheet);
 
   // 研究協力費、負担軽減費
-  processResearchSupportFee_(array_quotation_request, itemSheet);
+  processResearchSupportFee_(itemSheet);
 }
 /**
  * 保険料（Insurance Fee）を items シートに反映する
@@ -36,16 +36,12 @@ function processInsuranceFee_(itemSheet) {
  * 各項目について、items シート上の単位（症例／施設／その他）に応じて
  * 金額を調整し、基準単価列へ反映する。
  * 「なし」の項目については、該当行の単価をクリアする。
- *
- * @param {Array<Array<*>>} array_quotation_request
- *   見積依頼シート（例: A1:AA2）から取得した二次元配列。
- *   1行目に項目名、2行目に値が格納されている想定。
  * @param {GoogleAppsScript.Spreadsheet.Sheet} itemSheet
  *   単価を設定する対象の items シート。
  *
  * @return {void}
  */
-function processResearchSupportFee_(array_quotation_request, itemSheet) {
+function processResearchSupportFee_(itemSheet) {
   const totalPrice = get_quotation_request_value_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_SUPPORT_FEE,
   );

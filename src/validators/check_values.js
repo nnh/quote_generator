@@ -3,8 +3,6 @@ function check_output_values() {
   let output_row = 1;
   let output_col = 1;
   const {
-    get_s_p,
-    array_quotation_request,
     facilities_value,
     number_of_cases_value,
     target_total,
@@ -18,7 +16,7 @@ function check_output_values() {
     .setFormula('=datedif(C2, D2, "M") + if(day(C2) <= day(D2), 1, 2)');
   output_col++;
   const { setup_month, closing_month, setup_closing_months } =
-    calculateSetupAndClosingMonths(array_quotation_request, get_s_p);
+    calculateSetupAndClosingMonths();
   SpreadsheetApp.flush();
   // 試験月数, setup~closing月数を取得
   const trial_months = _cachedSheets.check
@@ -64,8 +62,6 @@ function check_output_values() {
   total_checkitems.push({ itemname: "プロジェクト管理", value: total_months });
   // 事務局運営
   const officeOperationItems = checkQuotationOfficeOperationItems_(
-    get_s_p,
-    array_quotation_request,
     trial_months,
     setup_month,
   );
@@ -154,7 +150,6 @@ function check_output_values() {
     value: 0,
   });
   const monitoringItems = checkQuotationMonitoringItems_(
-    array_quotation_request,
     facilities_value,
     number_of_cases_value,
     trial_ceil_year,

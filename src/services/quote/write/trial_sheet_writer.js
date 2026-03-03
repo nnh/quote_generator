@@ -224,7 +224,6 @@ function resolveTrialFieldValue_(key, fieldValue, context) {
   if (fieldValue == null) return null;
 
   const sp = context.properties;
-  const arrayQuotationRequest = context.arrayQuotationRequest;
   const sheet = context.sheet;
   const const_facilities = ITEM_LABELS.FACILITIES;
   const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
@@ -255,12 +254,11 @@ function resolveTrialFieldValue_(key, fieldValue, context) {
 
 /**
  * quotation_requestシートの内容からtrialシート, itemsシートを設定する
- * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
  * @return {void}
  * @example
- *   set_trial_sheet_(array_quotation_request);
+ *   set_trial_sheet_();
  */
-function set_trial_sheet_(array_quotation_request) {
+function set_trial_sheet_() {
   const const_facilities = ITEM_LABELS.FACILITIES;
   const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
   const trialSheet = _cachedSheets.trial;
@@ -285,7 +283,6 @@ function set_trial_sheet_(array_quotation_request) {
     const row = Number(trial_list[i][1]);
     const context = {
       sheet: _cachedSheets,
-      arrayQuotationRequest: array_quotation_request,
       properties: sp,
     };
 
@@ -306,5 +303,5 @@ function set_trial_sheet_(array_quotation_request) {
   if (!itemSheet) {
     throw new Error("Items シートが取得できません");
   }
-  applyItemPrices_(array_quotation_request, itemSheet);
+  applyItemPrices_(itemSheet);
 }

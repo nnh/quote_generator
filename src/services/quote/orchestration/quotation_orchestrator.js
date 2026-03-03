@@ -60,14 +60,12 @@ function getActiveTrialTermSheets_() {
  * - シート単位の見積計算処理を集約した関数
  *
  * @param {string} sheetName 見積を反映する年度別シート名
- * @param {Array<Array>} array_quotation_request
- *   Quotation request シート1〜2行目の値配列
  *
  * @return {void}
  */
-function applyQuotationToSheet_(sheetName, array_quotation_request) {
+function applyQuotationToSheet_(sheetName) {
   let values = null;
-  const context = buildSheetContext_(sheetName, array_quotation_request);
+  const context = buildSheetContext_(sheetName);
 
   values = applySetupItems_(context, values);
   values = applyRegistrationTermItems_(context, values);
@@ -108,24 +106,20 @@ function postProcessQuotation_() {
 function quote_script_main() {
   // 初回のみsetProtectionEditusersを実行
   initial_process();
-  // 各種シートオブジェクトを取得
-  // Quotation request シートの入力範囲（1〜2行目）を取得
-  const array_quotation_request = loadQuotationRequest_();
-  // Quotation request が未入力の場合は処理を中断
-  // （2行目A列が空白＝依頼情報なしと判断）
-  if (!array_quotation_request) return;
-
+  if (!_quotationRequestMap.has("タイムスタンプ")) {
+    throw new Error(
+      "Quotation request が未入力です。Quotation requestシートの1〜2行目に必要な情報を入力してください。",
+    );
+  }
   const SHEETNAME_IDX = 0;
   // フィルタや非表示設定を初期状態に戻す
   resetFilterVisibility();
   // Trial シートに試験情報（開始日・終了日・期間など）を反映
-  set_trial_sheet_(array_quotation_request);
+  set_trial_sheet_();
   // 試験期間が存在し、見積計算の対象となる年度別シートを抽出
   const targetSheetList = getActiveTrialTermSheets_();
   // 抽出された各シートに対し、Quotation request の値を元に見積項目を設定
-  targetSheetList.forEach((x) =>
-    applyQuotationToSheet_(x[SHEETNAME_IDX], array_quotation_request),
-  );
+  targetSheetList.forEach((x) => applyQuotationToSheet_(x[SHEETNAME_IDX]));
   // 全シート反映後に行う後処理（不均等項目・表示制御など）
   postProcessQuotation_();
 }
