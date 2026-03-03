@@ -9,10 +9,7 @@ function onOpen() {
       return;
     }
   }
-  const arr = [
-    { name: "シート保護権限設定", functionName: "setProtectionEditusers" },
-    { name: "見積項目設定", functionName: "quote_script_main" },
-  ];
+  const arr = [{ name: "見積項目設定", functionName: "quote_script_main" }];
   const arr2 = [
     { name: "フィルタ:0を非表示", functionName: "hideFilterVisibility" },
     { name: "フィルタ:全て表示", functionName: "resetFilterVisibility" },
@@ -40,18 +37,9 @@ function hideFilterVisibility() {
   new FilterVisibleHidden().hideFilterVisibility();
 }
 /**
- * シート編集可能者全員の権限を設定し、見積設定に必要なスクリプトプロパティを設定する
- * @param none
- * @return none
- */
-function setProtectionEditusers() {
-  setEditUsers_();
-}
-/**
  * Set script properties and sheet protection permissions. Wait 10 seconds after setting the script properties.
  */
 function initial_process() {
-  setEditUsers_();
   const dummy_get_sheets = get_sheets();
   const dummy_build_quotation_request_map = buildQuotationRequestMap_();
 }

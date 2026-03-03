@@ -13,6 +13,13 @@ let _cachedSheets = null;
 let _quotationRequestMap = null;
 
 /**
+ * アクティブスプレッドシートのキャッシュ
+ *
+ * @type {GoogleAppsScript.Spreadsheet.Spreadsheet|null}
+ */
+let _cachedSpreadsheet = null;
+
+/**
  * シート名を正規化する（前後の空白を削除し、小文字に変換する）
  * @param {string} name シート名
  * @returns {string} 正規化されたシート名
@@ -28,7 +35,7 @@ function normalizeSheetName_(name) {
 function get_sheets() {
   if (_cachedSheets) return _cachedSheets;
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet_();
 
   const sheet = {
     trial: ss.getSheetByName(QUOTATION_SHEET_NAMES.TRIAL),
@@ -150,4 +157,19 @@ function buildQuotationRequestMap_() {
   _quotationRequestMap = map;
 
   return map;
+}
+
+/**
+ * アクティブスプレッドシートを取得する（キャッシュ付き）
+ *
+ * 初回のみ SpreadsheetApp.getActiveSpreadsheet() を呼び、
+ * 以降はキャッシュを返す。
+ *
+ * @returns {GoogleAppsScript.Spreadsheet.Spreadsheet}
+ */
+function getSpreadsheet_() {
+  if (!_cachedSpreadsheet) {
+    _cachedSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  }
+  return _cachedSpreadsheet;
 }

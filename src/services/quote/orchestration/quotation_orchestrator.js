@@ -104,7 +104,6 @@ function postProcessQuotation_() {
  * Quotation request を元に、各年度別シートへ見積項目を反映する
  */
 function quote_script_main() {
-  // 初回のみsetProtectionEditusersを実行
   initial_process();
   if (!_quotationRequestMap.has("タイムスタンプ")) {
     throw new Error(

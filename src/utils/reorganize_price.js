@@ -222,8 +222,8 @@ class CopyItemsSheetPriceLogic extends CopyItemsSheet {
   }
 }
 function reorganizePriceSheets() {
-  const priceSheet =
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Price");
+  const ss = getSpreadsheet_();
+  const priceSheet = ss.getSheetByName("Price");
   priceSheet.getRange(priceSheet.getLastRow() + 3, 1).setValue("※1:");
   const outputStartRow = 3;
   const titleCellAddress = "B1";
@@ -236,12 +236,12 @@ function reorganizePriceSheets() {
     priceSheet.getName(),
   );
   copyItemsSheetPriceLogic.setSheetInfo(
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("PriceLogic"),
+    ss.getSheetByName("PriceLogic"),
     outputStartRow,
     titleCellAddress,
   );
   copyItemsSheetPriceLogic.setSheetInfo(
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("PriceLogicCompany"),
+    ss.getSheetByName("PriceLogicCompany"),
     outputStartRow,
     titleCellAddress,
   );

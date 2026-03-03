@@ -30,7 +30,7 @@ function buildInterimAnalysisItems_({
  * 現在未使用
  */
 //function setInterimAnalysis_() {
-//  const ss = SpreadsheetApp.getActiveSpreadsheet();
+//  const ss = getSpreadsheet_();
 //  const sheetName = ss.getActiveSheet().getName();
 //
 //  if (!get_target_term_sheets().some((s) => s.getName() === sheetName)) {

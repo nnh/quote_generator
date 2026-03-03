@@ -11,15 +11,14 @@ function create_pdf_total_book_(target_sheets, pdf_settings) {
   }
   // シートの表示非表示状態を取得
   // 非表示ならtrueになる
-  const sheets_show_hide = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheets()
-    .map((x) => {
-      let temp = {};
-      temp.sheet = x;
-      temp.isHidden = x.isSheetHidden();
-      temp.sheetName = x.getName();
-      return temp;
-    });
+  const ss = getSpreadsheet_();
+  const sheets_show_hide = ss.getSheets().map((x) => {
+    let temp = {};
+    temp.sheet = x;
+    temp.isHidden = x.isSheetHidden();
+    temp.sheetName = x.getName();
+    return temp;
+  });
   // PDF出力対象外のシートを非表示にする
   const target_sheet_names = target_sheets.map((x) => x.getName());
   const non_target_sheets = sheets_show_hide
@@ -49,14 +48,13 @@ function create_pdf_total_book_(target_sheets, pdf_settings) {
  * @return none
  */
 function ssToPdf() {
-  // 初回のみsetProtectionEditusersを実行
   initial_process();
   // フィルタ：0を非表示にする
   hideFilterVisibility();
   // Total2, Total3シートの合計0円の列を非表示に、0円以上の列を表示にする
   total2_3_show_hidden_cols();
   const output_folder = DriveApp.getRootFolder();
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet_();
   const const_page_fit = 4;
   const const_vertical = true;
   const const_horizontal = false;
@@ -126,7 +124,7 @@ function convertSpreadsheetToPdf_(
   pdf_name,
   output_folder,
 ) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet_();
   const url_base = ss.getUrl().replace(/edit.*$/, "");
   var str_id = "&id=" + ss.getId();
   if (sheet_name != null) {

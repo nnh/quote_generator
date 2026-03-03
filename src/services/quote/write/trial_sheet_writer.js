@@ -69,7 +69,8 @@ function handleCrfWithCdisc_(crfCount) {
 function renameSpreadsheetWithAcronym_(acronym) {
   if (!acronym) return;
   const today = Utilities.formatDate(new Date(), "JST", "yyyyMMdd");
-  SpreadsheetApp.getActiveSpreadsheet().rename(`Quote ${acronym} ${today}`);
+  const ss = getSpreadsheet_();
+  ss.rename(`Quote ${acronym} ${today}`);
   return;
 }
 /**

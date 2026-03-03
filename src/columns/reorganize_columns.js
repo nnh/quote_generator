@@ -100,7 +100,6 @@ function get_goukei_row(sheet) {
  * @return none
  */
 function total2_3_add_del_cols() {
-  // 初回のみsetProtectionEditusersを実行
   initial_process();
   //　フィルタを解除し全行表示する
   resetFilterVisibility();

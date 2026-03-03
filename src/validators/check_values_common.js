@@ -173,8 +173,8 @@ function isAllTrue_(target, message) {
  * @return {boolean} Return True if OK, False otherwise.
  */
 function checkAmountByYearSheet_(sheetName, discountRate) {
-  const targetSheet =
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  const ss = getSpreadsheet_();
+  const targetSheet = ss.getSheetByName(sheetName);
   const GetRowCol = new GetTargetRowCol();
   const sumRow = GetRowCol.getTargetRow(targetSheet, 2, ITEM_LABELS.SUM);
   const sumCol = GetRowCol.getTargetCol(targetSheet, 4, ITEM_LABELS.AMMOUNT);
@@ -184,7 +184,8 @@ function checkAmountByYearSheet_(sheetName, discountRate) {
   const test2 = Math.trunc(discountValue);
   const discountCheck =
     discountRate >= 0 ||
-    SpreadsheetApp.getActiveSpreadsheet()
+    ss
+      .getSheetByName(sheetName)
       .getSheetByName(sheetName)
       .getRange("B2")
       .getValue() === ""
@@ -262,14 +263,9 @@ function checkQuoteSum_() {
  * @return {string} <array> The value of "Quotation Request".
  */
 function getQuotationRequestValues_() {
-  const url = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName("wk_property")
-    .getRange("B2")
-    .getValue();
-  const sheetname = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName("wk_property")
-    .getRange("B3")
-    .getValue();
+  const ss = getSpreadsheet_();
+  const url = ss.getSheetByName("wk_property").getRange("B2").getValue();
+  const sheetname = ss.getSheetByName("wk_property").getRange("B3").getValue();
   const requestValues = SpreadsheetApp.openByUrl(url)
     .getSheetByName(sheetname)
     .getDataRange()
