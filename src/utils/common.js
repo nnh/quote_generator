@@ -16,8 +16,8 @@ function getColumnNumber_(column_name) {
       "getColumnNumber_: invalid column name format: " + column_name,
     );
   }
-
-  const sheet = SpreadsheetApp.getActiveSheet();
+  const ss = getSpreadsheet_();
+  const sheet = ss.getActiveSheet();
   const range = sheet.getRange(colStr + "1");
   return range.getColumn();
 }
@@ -36,7 +36,8 @@ function getColumnString_(column_number) {
     );
   }
 
-  const sheet = SpreadsheetApp.getActiveSheet();
+  const ss = getSpreadsheet_();
+  const sheet = ss.getActiveSheet();
   const range = sheet.getRange(1, colNum);
   const columnLetter = range.getA1Notation().replace(/\d+/g, "");
   return columnLetter;
