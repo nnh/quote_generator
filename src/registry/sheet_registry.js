@@ -4,6 +4,19 @@
  */
 let _cachedSheets = null;
 
+/**
+ * quotation_request シートの
+ * 「ヘッダー名 → 入力値」を保持するキャッシュ
+ *
+ * @type {Map<string, string|null>|null}
+ */
+let _quotationRequestMap = null;
+
+/**
+ * シート名を正規化する（前後の空白を削除し、小文字に変換する）
+ * @param {string} name シート名
+ * @returns {string} 正規化されたシート名
+ */
 function normalizeSheetName_(name) {
   return name.trim().toLowerCase();
 }
@@ -96,4 +109,45 @@ function getSheetByNameCached_(sheetname) {
   }
 
   return sheet;
+}
+
+/**
+ * quotation_request のヘッダー→値 Map を構築する
+ *
+ * @returns {Map<string, string|null>}
+ * @throws {Error} シートが取得できない場合
+ */
+function buildQuotationRequestMap_() {
+  if (_cachedSheets === null) {
+    get_sheets();
+  }
+
+  const quotationRequestSheetName = normalizeSheetName_(
+    QUOTATION_REQUEST_SHEET.NAME,
+  );
+
+  const sheet = _cachedSheets[quotationRequestSheetName];
+
+  if (!sheet) {
+    throw new Error("Quotation request シートが取得できません");
+  }
+
+  const array_quotation_request = sheet
+    .getRange(1, 1, 2, sheet.getLastColumn())
+    .getValues();
+
+  const headers = array_quotation_request[0];
+  const values = array_quotation_request[1];
+
+  const map = new Map();
+
+  headers.forEach((header, i) => {
+    if (header) {
+      map.set(header, values[i] ?? null);
+    }
+  });
+
+  _quotationRequestMap = map;
+
+  return map;
 }

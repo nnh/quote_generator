@@ -52,5 +52,6 @@ function setProtectionEditusers() {
  */
 function initial_process() {
   setEditUsers_();
-  const dummy = get_sheets();
+  const dummy_get_sheets = get_sheets();
+  const dummy_build_quotation_request_map = buildQuotationRequestMap_();
 }
