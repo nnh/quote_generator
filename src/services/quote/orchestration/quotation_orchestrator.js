@@ -91,13 +91,10 @@ function applyQuotationToSheet_(sheetName, array_quotation_request) {
  *
  * quote_script_main の最終フェーズで呼び出される
  *
- * @param {Array<Array>} array_quotation_request
- *   Quotation request シート1〜2行目の値配列
- *
  * @return {void}
  */
-function postProcessQuotation_(array_quotation_request) {
-  setImbalanceValues_(array_quotation_request);
+function postProcessQuotation_() {
+  setImbalanceValues_();
   get_target_term_sheets().forEach((sheet) =>
     sheet.getRange("B2").getValue() === ""
       ? sheet.hideSheet()
@@ -130,5 +127,5 @@ function quote_script_main() {
     applyQuotationToSheet_(x[SHEETNAME_IDX], array_quotation_request),
   );
   // 全シート反映後に行う後処理（不均等項目・表示制御など）
-  postProcessQuotation_(array_quotation_request);
+  postProcessQuotation_();
 }

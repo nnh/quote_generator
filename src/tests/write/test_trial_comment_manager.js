@@ -43,7 +43,7 @@ function testHandleCrfWithCdisc_common_(
   commentRange
     .offset(0, 0, beforeComments.length, beforeComments[0].length)
     .setValues(beforeComments);
-  const dummy = handleCrfWithCdisc_(crfCount, arrayQuotationRequest);
+  const dummy = handleCrfWithCdisc_(crfCount);
   SpreadsheetApp.flush();
   const actualCommentFormulas = commentRange.getFormulas();
   const actualCommentValues = commentRange.getValues();

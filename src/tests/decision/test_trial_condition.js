@@ -38,7 +38,7 @@ function testDecideSetupClosingTerm() {
     );
     trialTypes.forEach((type) => {
       const isSpecial = isSpecialTrial_(type);
-      const hasReportSupport = hasReportSupport_(quotationRequestData);
+      const hasReportSupport = hasReportSupport_();
       const { setupTerm, closingTerm } = decideSetupClosingTerm_(
         isSpecial,
         hasReportSupport,

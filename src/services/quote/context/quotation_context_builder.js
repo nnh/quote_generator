@@ -20,7 +20,7 @@ function initTargetColumn_() {
  * @return {boolean}
  *   事務局業務ありなしフラグ（true: 対象, false: 非対象）
  */
-function isClinicalTrialsOfficeRequired_(array_quotation_request) {
+function isClinicalTrialsOfficeRequired_() {
   const scriptProperties = PropertiesService.getScriptProperties();
 
   const isInvestigatorInitiated =
@@ -29,13 +29,11 @@ function isClinicalTrialsOfficeRequired_(array_quotation_request) {
 
   const isCommercialFunding =
     get_quotation_request_value_(
-      array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.COEFFICIENT,
     ) === QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
 
   const hasAdjustmentOffice =
     get_quotation_request_value_(
-      array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.ADJUSTMENT_OFFICE_EXISTENCE,
     ) === COMMON_EXISTENCE_LABELS.YES;
 
@@ -196,8 +194,6 @@ function buildSheetContext_(sheetname, array_quotation_request) {
 
     target_col: initTargetColumn_(),
 
-    clinical_trials_office_flg: isClinicalTrialsOfficeRequired_(
-      array_quotation_request,
-    ),
+    clinical_trials_office_flg: isClinicalTrialsOfficeRequired_(),
   };
 }

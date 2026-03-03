@@ -13,12 +13,7 @@ function calcRegistrationMonthFromDates_(dates) {
 }
 
 function setRegistrationTermItems_(context) {
-  const {
-    sheetname,
-    array_quotation_request,
-    clinical_trials_office_flg,
-    date_list,
-  } = context;
+  const { sheetname, clinical_trials_office_flg, date_list } = context;
 
   if (!date_list) {
     throw new Error(
@@ -46,7 +41,7 @@ function setRegistrationTermItems_(context) {
   const conditional_items = CONDITIONAL_ITEMS.map(
     ({ requestItemName, expectedValue, itemName }) =>
       returnIfEquals_(
-        get_quotation_request_value_(array_quotation_request, requestItemName),
+        get_quotation_request_value_(requestItemName),
         expectedValue,
         itemName,
       ),

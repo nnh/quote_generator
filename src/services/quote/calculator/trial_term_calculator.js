@@ -192,12 +192,11 @@ function calcRegistrationMonth_({
 /**
  * Setup / Closing期間を決定する
  * @param {string} trialType 試験種別
- * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
  * @return {{setupTerm: number, closingTerm: number}} Setup / Closing期間（月数）
  */
-function calculateSetupClosingTerm_(trialType, quotationRequest) {
+function calculateSetupClosingTerm_(trialType) {
   const isSpecialTrial = isSpecialTrial_(trialType);
-  const hasReportSupport = hasReportSupport_(quotationRequest);
+  const hasReportSupport = hasReportSupport_();
 
   return decideSetupClosingTerm_(isSpecialTrial, hasReportSupport);
 }

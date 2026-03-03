@@ -1,17 +1,10 @@
 /**
  * Closingシート用の項目と値のリストを生成する
- * @param {Array} array_quotation_request Quotation Requestシートの値配列
  * @param {boolean|number|string} clinical_trials_office_flg
  * @return {Array<Array>}
  */
-function buildClosingSetItems_(
-  array_quotation_request,
-  clinical_trials_office_flg,
-) {
-  const closingItemsList = createClosingItemsList_(
-    array_quotation_request,
-    clinical_trials_office_flg,
-  );
+function buildClosingSetItems_(clinical_trials_office_flg) {
+  const closingItemsList = createClosingItemsList_(clinical_trials_office_flg);
   return convertItemsMapToList_(closingItemsList);
 }
 
@@ -46,19 +39,14 @@ function getClosingTrialTypeConfig_() {
 }
 /**
  * Closingシート用の項目と値のMapを生成する
- * @param {Array} array_quotation_request Quotation Requestシートの値配列
  * @param {boolean} clinical_trials_office_flg 事務局運営フラグ
  * @return {Map<string, number|string>}
  */
-function createClosingItemsList_(
-  array_quotation_request,
-  clinical_trials_office_flg,
-) {
+function createClosingItemsList_(clinical_trials_office_flg) {
   const config = getClosingTrialTypeConfig_();
 
   /* ===== 入力値取得 ===== */
   let finalAnalysisTableCount = get_quotation_request_value_(
-    array_quotation_request,
     QUOTATION_REQUEST_SHEET.ITEMNAMES
       .FINAL_ANALYSIS_REQUIRED_TABLE_FIGURE_COUNT,
   );
@@ -66,7 +54,6 @@ function createClosingItemsList_(
   const hasClinicalConference =
     returnIfEquals_(
       get_quotation_request_value_(
-        array_quotation_request,
         QUOTATION_REQUEST_SHEET.ITEMNAMES.CASE_REVIEW_MEETING,
       ),
       COMMON_EXISTENCE_LABELS.YES,
@@ -74,23 +61,18 @@ function createClosingItemsList_(
     ) > 0;
 
   const reportFeeEnabled = returnIfEquals_(
-    get_quotation_request_value_(
-      array_quotation_request,
-      QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE,
-    ),
+    get_quotation_request_value_(QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE),
     COMMON_EXISTENCE_LABELS.YES,
     FUNCTION_FORMULAS.NUMBER_OF_CASES,
   );
 
   const auditFacilityCount = get_quotation_request_value_(
-    array_quotation_request,
     QUOTATION_REQUEST_SHEET.ITEMNAMES.AUDIT_TARGET_FACILITIES,
   );
 
   /* ===== CSR / 症例検討会関連 ===== */
   let csrCount = returnIfEquals_(
     get_quotation_request_value_(
-      array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT,
     ),
     COMMON_EXISTENCE_LABELS.YES,

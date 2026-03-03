@@ -17,10 +17,9 @@ function isSpecialTrial_(trialType) {
 /**
  * 研究結果報告書作成支援が「あり」かどうか判定する
  */
-function hasReportSupport_(array_quotation_request) {
+function hasReportSupport_() {
   return (
     get_quotation_request_value_(
-      array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT,
     ) === COMMON_EXISTENCE_LABELS.YES
   );
@@ -65,16 +64,12 @@ function saveSetupClosingTerm_(setupTerm, closingTerm) {
 /**
  * 試験種別からSetup、Closing期間の判定を行いスクリプトプロパティに格納する
  * @param {string} trialType 試験種別
- * @param {Array.<string>} quotationRequest quotation_requestシートの1〜2行目の値
  * @return {void}
  * @example
- *   applySetupClosingTerm_(trialType, quotationRequest);
+ *   applySetupClosingTerm_(trialType);
  */
-function applySetupClosingTerm_(trialType, quotationRequest) {
-  const { setupTerm, closingTerm } = calculateSetupClosingTerm_(
-    trialType,
-    quotationRequest,
-  );
+function applySetupClosingTerm_(trialType) {
+  const { setupTerm, closingTerm } = calculateSetupClosingTerm_(trialType);
 
   saveSetupClosingTerm_(setupTerm, closingTerm);
 }
