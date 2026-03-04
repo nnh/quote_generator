@@ -10,7 +10,7 @@ function initCheckSheet_() {
   const facilities_value = quotationRequestValidationContext.facilities;
   const number_of_cases_value =
     quotationRequestValidationContext.number_of_cases;
-  const target_total = {
+  const targetTotal = {
     sheet: _cachedSheets.total,
     sheetName: _cachedSheets.total.getName(),
     array_item: get_fy_items_(
@@ -20,7 +20,7 @@ function initCheckSheet_() {
     col: TOTAL_AND_PHASE_SHEET.COLUMNS.COUNT,
     footer: null,
   };
-  const target_total_ammount = {
+  const targetTotalAmount = {
     sheet: _cachedSheets.total,
     sheetName: _cachedSheets.total.getName(),
     array_item: get_fy_items_(_cachedSheets.total, 2),
@@ -46,8 +46,8 @@ function initCheckSheet_() {
   const res = {
     facilities_value,
     number_of_cases_value,
-    target_total,
-    target_total_ammount,
+    targetTotal,
+    targetTotalAmount,
     trial_start_end,
     quotationRequestValidationContext,
   };

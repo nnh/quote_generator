@@ -5,8 +5,8 @@ function check_output_values() {
   const {
     facilities_value,
     number_of_cases_value,
-    target_total,
-    target_total_ammount,
+    targetTotal,
+    targetTotalAmount,
     trial_start_end,
     quotationRequestValidationContext,
   } = initCheckSheet_();
@@ -35,7 +35,7 @@ function check_output_values() {
   // 合計金額チェック
   output_row = compareTotalAmounts_(output_row);
   // 個別項目チェック
-  const { total_checkitems, total_ammount_checkitems } = buildTotalCheckItems_({
+  const { totalCheckItems, totalAmountCheckItems } = buildTotalCheckItems_({
     quotationRequestValidationContext,
     facilities_value,
     number_of_cases_value,
@@ -46,41 +46,36 @@ function check_output_values() {
     setup_month,
     closing_month,
   });
-  const interim_count = target_total.sheet
+  const interimCount = targetTotal.sheet
     .getRange(
-      target_total.array_item["中間解析報告書作成（出力結果＋表紙）"],
-      target_total.col,
+      targetTotal.array_item["中間解析報告書作成（出力結果＋表紙）"],
+      targetTotal.col,
     )
     .getValue();
-  const closing_count = target_total.sheet
+  const closingCount = targetTotal.sheet
     .getRange(
-      target_total.array_item["データベース固定作業、クロージング"],
-      target_total.col,
+      targetTotal.array_item["データベース固定作業、クロージング"],
+      targetTotal.col,
     )
     .getValue();
 
-  const targetTotalColumnValues = target_total.sheet
-    .getRange(1, target_total.col, target_total.sheet.getLastRow(), 1)
+  const targetTotalColumnValues = targetTotal.sheet
+    .getRange(1, targetTotal.col, targetTotal.sheet.getLastRow(), 1)
     .getValues()
     .flat();
 
-  const targetTotalAmountColumnValues = target_total_ammount.sheet
-    .getRange(
-      1,
-      target_total_ammount.col,
-      target_total_ammount.sheet.getLastRow(),
-      1,
-    )
+  const targetTotalAmountColumnValues = targetTotalAmount.sheet
+    .getRange(1, targetTotalAmount.col, targetTotalAmount.sheet.getLastRow(), 1)
     .getValues()
     .flat();
 
   const output_values = evaluateCheckItems_({
-    total_checkitems,
-    total_ammount_checkitems,
-    target_total,
-    target_total_ammount,
-    interim_count,
-    closing_count,
+    totalCheckItems,
+    totalAmountCheckItems,
+    targetTotal,
+    targetTotalAmount,
+    interimCount,
+    closingCount,
     targetTotalColumnValues,
     targetTotalAmountColumnValues,
   });

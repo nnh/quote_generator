@@ -434,7 +434,7 @@ function buildTotalCheckItems_(params) {
   });
 
   return {
-    total_checkitems,
-    total_ammount_checkitems,
+    totalCheckItems: total_checkitems,
+    totalAmountCheckItems: total_ammount_checkitems,
   };
 }
