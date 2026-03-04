@@ -19,7 +19,7 @@ function buildTotalCheckItems_(params) {
   total_checkitems.push({
     itemname: pmdaName,
     value: getValueIfMatch_(
-      quotationRequestValidationContext.pmdaConsultationSupport,
+      quotationRequestValidationContext.pmdaConsultingSupport,
       COMMON_EXISTENCE_LABELS.YES,
       1,
       0,
