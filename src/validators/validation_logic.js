@@ -5,10 +5,11 @@ function initCheckSheet_() {
   initial_process();
   hideFilterVisibility();
   _cachedSheets.check.clear();
-  const facilities_value = get_quotation_request_value_(ITEM_LABELS.FACILITIES);
-  const number_of_cases_value = get_quotation_request_value_(
-    ITEM_LABELS.NUMBER_OF_CASES,
-  );
+  const quotationRequestValidationContext =
+    buildQuotationRequestValidationContext_();
+  const facilities_value = quotationRequestValidationContext.facilities;
+  const number_of_cases_value =
+    quotationRequestValidationContext.number_of_cases;
   const target_total = {
     sheet: _cachedSheets.total,
     array_item: get_fy_items_(
@@ -24,13 +25,16 @@ function initCheckSheet_() {
     col: 9,
     footer: "（金額）",
   };
+  const enrollmentStartDate =
+    quotationRequestValidationContext.enrollmentStartDate;
+  const studyEndDate = quotationRequestValidationContext.studyEndDate;
   const trial_start_end = [
     ["OK/NG", "詳細", "", ""],
     [
       "",
       "症例登録開始〜試験終了日の月数チェック（作業用）",
-      get_quotation_request_value_("症例登録開始日").toLocaleDateString("ja"),
-      get_quotation_request_value_("試験終了日").toLocaleDateString("ja"),
+      enrollmentStartDate.toLocaleDateString("ja"),
+      studyEndDate.toLocaleDateString("ja"),
     ],
   ];
 
@@ -43,16 +47,17 @@ function initCheckSheet_() {
     target_total,
     target_total_ammount,
     trial_start_end,
+    quotationRequestValidationContext,
   };
   return res;
 }
 /**
  * 検証の基準となる月数データを取得する
  */
-function calculateSetupAndClosingMonths() {
-  const trial_type = get_quotation_request_value_("試験種別");
+function calculateSetupAndClosingMonths(quotationRequestValidationContext) {
+  const trial_type = quotationRequestValidationContext.trialType;
   const has_report_support =
-    get_quotation_request_value_("研究結果報告書作成支援") ===
+    quotationRequestValidationContext.reportSupport ===
     COMMON_EXISTENCE_LABELS.YES;
 
   let setup_month = 3;
@@ -126,16 +131,20 @@ function compareTotalAmounts_(output_row) {
     .setValues([ammount_check]);
   return output_row;
 }
-function checkQuotationOfficeOperationItems_(trial_months, setup_month) {
+function checkQuotationOfficeOperationItems_(
+  trial_months,
+  setup_month,
+  quotationRequestValidationContext,
+) {
   let office_bef_month = 0;
   let office_count = 0;
   let temp_value = 0;
   if (
-    (get_quotation_request_value_("試験種別") ==
+    (quotationRequestValidationContext.trialType ===
       TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED) |
-    (get_quotation_request_value_("調整事務局設置の有無") ==
+    (quotationRequestValidationContext.coordinatingOfficeSetup ===
       COMMON_EXISTENCE_LABELS.YES) |
-    (get_quotation_request_value_(ITEM_LABELS.FUNDING_SOURCE_LABEL) ==
+    (quotationRequestValidationContext.fundingSource ===
       QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL)
   ) {
     temp_value = trial_months;
@@ -164,22 +173,19 @@ function checkQuotationMonitoringItems_(
   facilities_value,
   number_of_cases_value,
   trial_ceil_year,
+  quotationRequestValidationContext,
 ) {
   const monitoringPreparationDocumentCreation_value =
-    get_quotation_request_value_("1例あたりの実地モニタリング回数") > 0 ? 1 : 0;
+    quotationRequestValidationContext.monitoringVisitsPerCase > 0 ? 1 : 0;
   const monitoringPreparationDocumentCreation = {
     itemname: "モニタリング準備業務（関連資料作成）",
     value: monitoringPreparationDocumentCreation_value,
   };
 
   const preStudyMonitoringAndEssentialDocumentReview_value =
-    get_quotation_request_value_(
-      "年間1施設あたりの必須文書実地モニタリング回数",
-    ) > 0
+    quotationRequestValidationContext.annualRequiredDocMonitoringPerSite > 0
       ? parseInt(
-          get_quotation_request_value_(
-            "年間1施設あたりの必須文書実地モニタリング回数",
-          ),
+          quotationRequestValidationContext.annualRequiredDocMonitoringPerSite,
         ) *
         facilities_value *
         trial_ceil_year
@@ -190,10 +196,9 @@ function checkQuotationMonitoringItems_(
   };
 
   const caseMonitoringAndSAESupport_value =
-    get_quotation_request_value_("1例あたりの実地モニタリング回数") > 0
-      ? parseInt(
-          get_quotation_request_value_("1例あたりの実地モニタリング回数"),
-        ) * number_of_cases_value
+    quotationRequestValidationContext.monitoringVisitsPerCase > 0
+      ? parseInt(quotationRequestValidationContext.monitoringVisitsPerCase) *
+        number_of_cases_value
       : 0;
   const caseMonitoringAndSAESupport = {
     itemname: "症例モニタリング・SAE対応",
