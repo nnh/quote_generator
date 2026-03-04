@@ -21,7 +21,9 @@ function compareTotalSheetTotaltoVerticalTotal_() {
     .map((x) => x[goukeikingakuCol]);
   const sumGoukeikingaku = arrayGoukeikingaku.reduce((x, y) => x + y, 0);
   return [
-    sum === sumGoukeikingaku ? "OK" : "NG：値が想定と異なる",
+    sum === sumGoukeikingaku
+      ? VALIDATION_STATUS.OK
+      : buildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH),
     "Totalシートの縦計と合計金額のチェック, 縦計:" +
       +sumGoukeikingaku +
       ", 合計金額:" +
@@ -89,10 +91,11 @@ class CompareTotal2Total3SheetVerticalTotalToHorizontal {
       const compareTarget = this.getVerticalHorizontalTotal(x, goukeiRowCol);
       return this.getComparisonResultEqual(compareTarget);
     });
-    return [
-      res.every((x) => x) ? "OK" : "NG：値が想定と異なる",
+    return toStatusFromBooleanArray_(
+      res,
+      VALIDATION_MESSAGES.VALUE_MISMATCH,
       "Total2, Total3の縦計と横計のチェック",
-    ];
+    );
   }
   compareDiscountTotal() {
     // Compare the vertical totals of Total2 and 3 multiplied by the overall discount with the discounted totals of Total2 and 3.
@@ -129,10 +132,12 @@ function compareTotal2Total3SheetVerticalTotalToHorizontalTotal_() {
   return cp.compareTotal();
 }
 function compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_() {
-  const cp = new CompareTotal2Total3SheetVerticalTotalToHorizontal();
-  const res = cp.compareDiscountTotal();
-  return [
-    res.every((x) => x) ? "OK" : "NG",
+  const comparator = new CompareTotal2Total3SheetVerticalTotalToHorizontal();
+  const comparisonResults = comparator.compareDiscountTotal();
+  const result = toStatusFromBooleanArray_(
+    comparisonResults,
+    VALIDATION_MESSAGES.TOTAL_MISMATCH,
     "Total2, Total3の縦計*特別値引率と特別値引後合計の横計のチェック",
-  ];
+  );
+  return result;
 }

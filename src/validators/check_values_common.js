@@ -24,27 +24,22 @@ function validateItemValue_(
   const row = itemRowMap[itemName];
 
   if (!(row > 0)) {
-    return ["NG：該当する項目名なし", baseMessage];
+    return [
+      buildNgMessage_(VALIDATION_MESSAGES.NG_ITEM_NOT_FOUND),
+      baseMessage,
+    ];
   }
 
   const actualValue = columnValues[row - 1];
 
   if (actualValue !== expectedValue) {
-    return ["NG：値が想定と異なる", `${baseMessage},実際の値:${actualValue}`];
+    return [
+      buildNgMessage_(VALIDATION_MESSAGES.VALUE_MISMATCH),
+      `${baseMessage},実際の値:${actualValue}`,
+    ];
   }
 
-  return ["OK", baseMessage];
-}
-
-function check_itemName_and_value_(target, columnValues, item_name, value_ok) {
-  return validateItemValue_(
-    target.sheet.getName(),
-    target.array_item,
-    target.footer,
-    columnValues,
-    item_name,
-    value_ok,
-  );
+  return [VALIDATION_STATUS.OK, baseMessage];
 }
 
 function get_total_amount(target) {

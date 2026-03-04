@@ -12,6 +12,7 @@ function initCheckSheet_() {
     quotationRequestValidationContext.number_of_cases;
   const target_total = {
     sheet: _cachedSheets.total,
+    sheetName: _cachedSheets.total.getName(),
     array_item: get_fy_items_(
       _cachedSheets.total,
       TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
@@ -21,6 +22,7 @@ function initCheckSheet_() {
   };
   const target_total_ammount = {
     sheet: _cachedSheets.total,
+    sheetName: _cachedSheets.total.getName(),
     array_item: get_fy_items_(_cachedSheets.total, 2),
     col: 9,
     footer: "（金額）",
@@ -120,10 +122,10 @@ function compareTotalAmounts_(output_row) {
     (total_total_ammount === total2_total_ammount) &
     (total_total_ammount === total3_total_ammount)
   ) {
-    ammount_check[0] = "OK";
+    ammount_check[0] = VALIDATION_STATUS.OK;
     ammount_check[1] = ammount_check[1] + " ,想定値:" + total_total_ammount;
   } else {
-    ammount_check[0] = "NG：値が想定と異なる";
+    ammount_check[0] = buildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH);
   }
   output_row++;
   _cachedSheets.check

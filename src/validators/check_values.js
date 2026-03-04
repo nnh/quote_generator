@@ -59,6 +59,21 @@ function check_output_values() {
     )
     .getValue();
 
+  const targetTotalColumnValues = target_total.sheet
+    .getRange(1, target_total.col, target_total.sheet.getLastRow(), 1)
+    .getValues()
+    .flat();
+
+  const targetTotalAmountColumnValues = target_total_ammount.sheet
+    .getRange(
+      1,
+      target_total_ammount.col,
+      target_total_ammount.sheet.getLastRow(),
+      1,
+    )
+    .getValues()
+    .flat();
+
   const output_values = evaluateCheckItems_({
     total_checkitems,
     total_ammount_checkitems,
@@ -66,6 +81,8 @@ function check_output_values() {
     target_total_ammount,
     interim_count,
     closing_count,
+    targetTotalColumnValues,
+    targetTotalAmountColumnValues,
   });
 
   output_row++;
