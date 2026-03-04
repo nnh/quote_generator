@@ -1,9 +1,9 @@
-function applyItemPrices_(array_quotation_request, itemSheet) {
+function applyItemPrices_(itemSheet) {
   // 保険料
-  processInsuranceFee_(array_quotation_request, itemSheet);
+  processInsuranceFee_(itemSheet);
 
   // 研究協力費、負担軽減費
-  processResearchSupportFee_(array_quotation_request, itemSheet);
+  processResearchSupportFee_(itemSheet);
 }
 /**
  * 保険料（Insurance Fee）を items シートに反映する
@@ -12,18 +12,11 @@ function applyItemPrices_(array_quotation_request, itemSheet) {
  * 保険料の合計金額を取得し、items シートの「保険料」行に
  * 基準単価として設定する。
  *
- * array_quotation_request の想定構造:
- * - 1行目: 項目名（ヘッダ行）
- * - 2行目: 各項目の入力値
- *
- * @param {Array.<Array.<string|number>>} array_quotation_request
- *   Quotation Request シートの2行分データ（getValues()結果）
  * @param {GoogleAppsScript.Spreadsheet.Sheet} itemSheet
  *   単価を設定する items シート
  */
-function processInsuranceFee_(array_quotation_request, itemSheet) {
+function processInsuranceFee_(itemSheet) {
   const totalPrice = get_quotation_request_value_(
-    array_quotation_request,
     QUOTATION_REQUEST_SHEET.ITEMNAMES.INSURANCE_FEE,
   );
   const items_row = get_row_num_matched_value_(
@@ -43,18 +36,13 @@ function processInsuranceFee_(array_quotation_request, itemSheet) {
  * 各項目について、items シート上の単位（症例／施設／その他）に応じて
  * 金額を調整し、基準単価列へ反映する。
  * 「なし」の項目については、該当行の単価をクリアする。
- *
- * @param {Array<Array<*>>} array_quotation_request
- *   見積依頼シート（例: A1:AA2）から取得した二次元配列。
- *   1行目に項目名、2行目に値が格納されている想定。
  * @param {GoogleAppsScript.Spreadsheet.Sheet} itemSheet
  *   単価を設定する対象の items シート。
  *
  * @return {void}
  */
-function processResearchSupportFee_(array_quotation_request, itemSheet) {
+function processResearchSupportFee_(itemSheet) {
   const totalPrice = get_quotation_request_value_(
-    array_quotation_request,
     QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_SUPPORT_FEE,
   );
   const get_s_p = PropertiesService.getScriptProperties();
@@ -78,10 +66,7 @@ function processResearchSupportFee_(array_quotation_request, itemSheet) {
   const facilities = Number(
     get_s_p.getProperty(SCRIPT_PROPERTY_KEYS.FACILITIES_VALUE),
   );
-  const enabledItemCount = countEnabledItems_(
-    array_quotation_request,
-    cost_of_cooperation_item_name,
-  );
+  const enabledItemCount = countEnabledItems_(cost_of_cooperation_item_name);
   const basePrice = calculateBasePrice_(totalPrice, enabledItemCount);
 
   const itemUnitColNumber = getColumnNumber_(ITEMS_SHEET.COLUMNS.UNIT);
@@ -90,8 +75,7 @@ function processResearchSupportFee_(array_quotation_request, itemSheet) {
     if (!items_row) return;
 
     if (
-      get_quotation_request_value_(array_quotation_request, requestKey) ===
-      COMMON_EXISTENCE_LABELS.YES
+      get_quotation_request_value_(requestKey) === COMMON_EXISTENCE_LABELS.YES
     ) {
       const unit = itemSheet.getRange(items_row, itemUnitColNumber).getValue();
       const price = calculatePriceByUnit_(
@@ -109,20 +93,16 @@ function processResearchSupportFee_(array_quotation_request, itemSheet) {
 /**
  * 見積依頼シートの値をもとに、有効（「あり」）な項目数をカウントする。
  *
- * @param {Array<Array<any>>} array_quotation_request
- *   見積依頼シートの A1:AA2 などから getValues() した2次元配列。
- *   1行目に項目名、2行目に値（「あり」/「なし」など）を想定する。
  * @param {Array<Array<string>>} itemMappings
  *   見積依頼シートの項目名を含む配列。
  *   例: [[requestItemName, itemSheetName], ...]
  * @return {number}
  *   値が「あり」となっている項目の数
  */
-function countEnabledItems_(array_quotation_request, itemMappings) {
+function countEnabledItems_(itemMappings) {
   return itemMappings.filter(
     ([requestKey]) =>
-      get_quotation_request_value_(array_quotation_request, requestKey) ===
-      COMMON_EXISTENCE_LABELS.YES,
+      get_quotation_request_value_(requestKey) === COMMON_EXISTENCE_LABELS.YES,
   ).length;
 }
 /**

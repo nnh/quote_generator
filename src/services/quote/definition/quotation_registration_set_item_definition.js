@@ -2,28 +2,22 @@
  * Registrationシート用の項目と値のリストを生成する（入口関数）
  * Setup の buildSetupSetItems_ とインターフェースを揃える
  *
- * @param {Array} array_quotation_request
  * @param {string} sheetName
  * @return {Array<Array>}
  */
-function buildRegistrationSetItems_(array_quotation_request, sheetName) {
+function buildRegistrationSetItems_(sheetName) {
   return buildRegistrationItems_({
     sheetName,
-    arrayQuotationRequest: array_quotation_request,
   });
 }
 /**
  * 登録期関連の設定項目を生成する
  * @param {Object} params
  * @param {string} params.sheetName
- * @param {Array} params.arrayQuotationRequest
  * @returns {Array<Array>}
  */
-function buildRegistrationItems_({ sheetName, arrayQuotationRequest }) {
-  const registrationItemsList = createRegistrationItemsList_(
-    sheetName,
-    arrayQuotationRequest,
-  );
+function buildRegistrationItems_({ sheetName }) {
+  const registrationItemsList = createRegistrationItemsList_(sheetName);
   return convertItemsMapToList_(registrationItemsList);
 }
 /**
@@ -39,15 +33,13 @@ function getRegistrationYearConfig_(sheetName) {
 /**
  * Registrationシート用の項目Mapを生成する
  * @param {string} sheetName
- * @param {Array} arrayQuotationRequest
  * @return {Map<string, any>}
  */
-function createRegistrationItemsList_(sheetName, arrayQuotationRequest) {
+function createRegistrationItemsList_(sheetName) {
   const { isFirstYear } = getRegistrationYearConfig_(sheetName);
 
   const crbValue = returnIfEquals_(
     get_quotation_request_value_(
-      arrayQuotationRequest,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.CRB_APPLICATION,
     ),
     COMMON_EXISTENCE_LABELS.YES,
@@ -58,7 +50,6 @@ function createRegistrationItemsList_(sheetName, arrayQuotationRequest) {
   const crbAfterSecondYear = isFirstYear ? "" : crbValue;
 
   const essentialDocumentsCount = get_quotation_request_value_(
-    arrayQuotationRequest,
     QUOTATION_REQUEST_SHEET.ITEMNAMES
       .ESSENTIAL_DOCUMENTS_MONITORING_COUNT_PER_FACILITY,
   );
@@ -77,7 +68,6 @@ function createRegistrationItemsList_(sheetName, arrayQuotationRequest) {
       ITEMS_SHEET.ITEMNAMES.DRUG_TRANSPORTATION,
       returnIfEquals_(
         get_quotation_request_value_(
-          arrayQuotationRequest,
           QUOTATION_REQUEST_SHEET.ITEMNAMES.DRUG_TRANSPORTATION,
         ),
         COMMON_EXISTENCE_LABELS.YES,

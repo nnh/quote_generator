@@ -4,14 +4,13 @@
  * @return {string} <array> output message.
  */
 function compareTotalSheetTotaltoVerticalTotal_() {
-  const sheet = get_sheets();
   const GetRowCol = new GetTargetRowCol();
   const goukeikingakuCol = GetRowCol.getTargetCol(
-    sheet.total,
+    _cachedSheets.total,
     4,
     ITEM_LABELS.AMMOUNT,
   );
-  const totalValues = sheet.total.getDataRange().getValues();
+  const totalValues = _cachedSheets.total.getDataRange().getValues();
   const sum = totalValues.filter((x) => x[1] === ITEM_LABELS.SUM)[0][
     goukeikingakuCol - 1
   ];
@@ -36,11 +35,10 @@ function compareTotalSheetTotaltoVerticalTotal_() {
  */
 class CompareTotal2Total3SheetVerticalTotalToHorizontal {
   constructor() {
-    const st = get_sheets();
-    this.discountRate = st.trial.getRange("B47").getValue();
+    this.discountRate = _cachedSheets.trial.getRange("B47").getValue();
     this.targetSheet = [
-      [st.total2, 3],
-      [st.total3, 2],
+      [_cachedSheets.total2, 3],
+      [_cachedSheets.total3, 2],
     ];
     this.GetRowCol = new GetTargetRowCol();
     this.target = this.targetSheet.map((x) => {

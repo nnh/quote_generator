@@ -11,15 +11,14 @@ function create_pdf_total_book_(target_sheets, pdf_settings) {
   }
   // シートの表示非表示状態を取得
   // 非表示ならtrueになる
-  const sheets_show_hide = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheets()
-    .map((x) => {
-      let temp = {};
-      temp.sheet = x;
-      temp.isHidden = x.isSheetHidden();
-      temp.sheetName = x.getName();
-      return temp;
-    });
+  const ss = getSpreadsheet_();
+  const sheets_show_hide = ss.getSheets().map((x) => {
+    let temp = {};
+    temp.sheet = x;
+    temp.isHidden = x.isSheetHidden();
+    temp.sheetName = x.getName();
+    return temp;
+  });
   // PDF出力対象外のシートを非表示にする
   const target_sheet_names = target_sheets.map((x) => x.getName());
   const non_target_sheets = sheets_show_hide
@@ -49,24 +48,23 @@ function create_pdf_total_book_(target_sheets, pdf_settings) {
  * @return none
  */
 function ssToPdf() {
-  // 初回のみsetProtectionEditusersを実行
   initial_process();
   // フィルタ：0を非表示にする
   hideFilterVisibility();
   // Total2, Total3シートの合計0円の列を非表示に、0円以上の列を表示にする
   total2_3_show_hidden_cols();
   const output_folder = DriveApp.getRootFolder();
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet_();
   const const_page_fit = 4;
   const const_vertical = true;
   const const_horizontal = false;
   // Setup〜Closingシートを取得
-  var target_sheets = get_target_term_sheets();
+  let target_sheets = get_target_term_sheets();
   // Quote, Total, Total2, Total3を追加
-  target_sheets.push(ss.getSheetByName(QUOTATION_SHEET_NAMES.QUOTE));
-  target_sheets.push(ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL));
-  target_sheets.push(ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2));
-  target_sheets.push(ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL3));
+  target_sheets.push(getSheetByNameCached_(QUOTATION_SHEET_NAMES.QUOTE));
+  target_sheets.push(getSheetByNameCached_(QUOTATION_SHEET_NAMES.TOTAL));
+  target_sheets.push(getSheetByNameCached_(QUOTATION_SHEET_NAMES.TOTAL2));
+  target_sheets.push(getSheetByNameCached_(QUOTATION_SHEET_NAMES.TOTAL3));
   var pdf_settings_all_sheets = {
     sheet_name: null,
     portrait: const_vertical,
@@ -77,17 +75,17 @@ function ssToPdf() {
   create_pdf_total_book_(target_sheets, pdf_settings_all_sheets);
   // nmc
   const target_sheet_nmc = [
-    ss.getSheetByName(QUOTATION_REQUEST_SHEET_NAMES.QUOTE_NMC),
-    ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_NMC),
-    ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2_NMC),
+    getSheetByNameCached_(QUOTATION_REQUEST_SHEET_NAMES.QUOTE_NMC),
+    getSheetByNameCached_(QUOTATION_SHEET_NAMES.TOTAL_NMC),
+    getSheetByNameCached_(QUOTATION_SHEET_NAMES.TOTAL2_NMC),
   ];
   pdf_settings_all_sheets.pdf_name = ss.getName() + "_" + ORG.NMC;
   create_pdf_total_book_(target_sheet_nmc, pdf_settings_all_sheets);
   // oscr
   const target_sheet_oscr = [
-    ss.getSheetByName(QUOTATION_SHEET_NAMES.QUOTE_OSCR),
-    ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_OSCR),
-    ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2_OSCR),
+    getSheetByNameCached_(QUOTATION_SHEET_NAMES.QUOTE_OSCR),
+    getSheetByNameCached_(QUOTATION_SHEET_NAMES.TOTAL_OSCR),
+    getSheetByNameCached_(QUOTATION_SHEET_NAMES.TOTAL2_OSCR),
   ];
   pdf_settings_all_sheets.pdf_name = ss.getName() + "_" + ORG.OSCR;
   create_pdf_total_book_(target_sheet_oscr, pdf_settings_all_sheets);
@@ -99,7 +97,7 @@ function ssToPdf() {
     QUOTATION_SHEET_NAMES.TOTAL2_OSCR,
   ];
   target_sheets_name_horizontal.map(function (x) {
-    if (!ss.getSheetByName(x).isSheetHidden()) {
+    if (!getSheetByNameCached_(x).isSheetHidden()) {
       convertSpreadsheetToPdf_(
         x,
         const_horizontal,
@@ -126,11 +124,11 @@ function convertSpreadsheetToPdf_(
   pdf_name,
   output_folder,
 ) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet_();
   const url_base = ss.getUrl().replace(/edit.*$/, "");
   var str_id = "&id=" + ss.getId();
   if (sheet_name != null) {
-    var sheet_id = ss.getSheetByName(sheet_name).getSheetId();
+    var sheet_id = getSheetByNameCached_(sheet_name).getSheetId();
     str_id = "&gid=" + sheet_id;
   }
   const url_ext =

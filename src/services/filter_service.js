@@ -9,7 +9,7 @@ class FilterVisibleHidden {
       QUOTATION_SHEET_NAMES.PRICE_LOGIC,
     ],
   ) {
-    this.ss = SpreadsheetApp.getActiveSpreadsheet();
+    this.ss = getSpreadsheet_();
     this.sheets = this.ss
       .getSheets()
       .filter((sheet) => !excludeSheets.includes(sheet.getName()));

@@ -27,24 +27,18 @@ function setTargetInblanceValues_() {
   ];
   return targetImbalance;
 }
-function setImbalanceValues_(array_quotation_request) {
+function setImbalanceValues_() {
   // 年毎に設定する値が不均等である項目への対応
   const scriptProps = PropertiesService.getScriptProperties();
   const targetImbalance = setTargetInblanceValues_();
-  const target = buildImbalanceTargets_(
-    array_quotation_request,
-    targetImbalance,
-  );
+  const target = buildImbalanceTargets_(targetImbalance);
   writeImbalanceValues_(target, targetImbalance, scriptProps);
 }
-function buildImbalanceTargets_(array_quotation_request, targetImbalance) {
+function buildImbalanceTargets_(targetImbalance) {
   const DividedItemsCount = new GetArrayDividedItemsCountAdd();
 
   return targetImbalance.map((config) => {
-    let tempCount = get_quotation_request_value_(
-      array_quotation_request,
-      config.requestItemName,
-    );
+    let tempCount = get_quotation_request_value_(config.requestItemName);
 
     // 症例登録毎の支払は「あり、なし」で入力される
     if (
@@ -55,10 +49,7 @@ function buildImbalanceTargets_(array_quotation_request, targetImbalance) {
     }
 
     const tempMultiplier = config.multiplierItemName
-      ? get_quotation_request_value_(
-          array_quotation_request,
-          config.multiplierItemName,
-        )
+      ? get_quotation_request_value_(config.multiplierItemName)
       : 1;
 
     const countNum = Number(tempCount);
@@ -86,10 +77,9 @@ function writeImbalanceValues_(target, targetImbalance, scriptProps) {
   target.forEach((targetSheetAndValues, idx) => {
     if (targetSheetAndValues.length > 0) {
       targetSheetAndValues.forEach((targetSheetAndValue) => {
-        const targetSheet =
-          SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-            targetSheetAndValue[SHEET_IDX],
-          );
+        const targetSheet = getSheetByNameCached_(
+          targetSheetAndValue[SHEET_IDX],
+        );
         if (!targetSheet) {
           console.warn(`Sheet not found: ${targetSheetAndValue[SHEET_IDX]}`);
           return;

@@ -3,33 +3,24 @@
  */
 function initCheckSheet_() {
   initial_process();
-  const get_s_p = PropertiesService.getScriptProperties();
-  const sheet = get_sheets();
   hideFilterVisibility();
-  sheet.check.clear();
-  const array_quotation_request = sheet.quotation_request
-    .getRange(1, 1, 2, sheet.quotation_request.getDataRange().getLastColumn())
-    .getValues();
-  const facilities_value = get_quotation_request_value_(
-    array_quotation_request,
-    ITEM_LABELS.FACILITIES,
-  );
+  _cachedSheets.check.clear();
+  const facilities_value = get_quotation_request_value_(ITEM_LABELS.FACILITIES);
   const number_of_cases_value = get_quotation_request_value_(
-    array_quotation_request,
     ITEM_LABELS.NUMBER_OF_CASES,
   );
   const target_total = {
-    sheet: sheet.total,
+    sheet: _cachedSheets.total,
     array_item: get_fy_items_(
-      sheet.total,
+      _cachedSheets.total,
       TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
     ),
     col: TOTAL_AND_PHASE_SHEET.COLUMNS.COUNT,
     footer: null,
   };
   const target_total_ammount = {
-    sheet: sheet.total,
-    array_item: get_fy_items_(sheet.total, 2),
+    sheet: _cachedSheets.total,
+    array_item: get_fy_items_(_cachedSheets.total, 2),
     col: 9,
     footer: "（金額）",
   };
@@ -38,24 +29,15 @@ function initCheckSheet_() {
     [
       "",
       "症例登録開始〜試験終了日の月数チェック（作業用）",
-      get_quotation_request_value_(
-        array_quotation_request,
-        "症例登録開始日",
-      ).toLocaleDateString("ja"),
-      get_quotation_request_value_(
-        array_quotation_request,
-        "試験終了日",
-      ).toLocaleDateString("ja"),
+      get_quotation_request_value_("症例登録開始日").toLocaleDateString("ja"),
+      get_quotation_request_value_("試験終了日").toLocaleDateString("ja"),
     ],
   ];
 
-  sheet.check
+  _cachedSheets.check
     .getRange(1, 1, trial_start_end.length, trial_start_end[0].length)
     .setValues(trial_start_end);
   const res = {
-    get_s_p,
-    sheet,
-    array_quotation_request,
     facilities_value,
     number_of_cases_value,
     target_total,
@@ -67,16 +49,11 @@ function initCheckSheet_() {
 /**
  * 検証の基準となる月数データを取得する
  */
-function calculateSetupAndClosingMonths(array_quotation_request, get_s_p) {
-  const trial_type = get_quotation_request_value_(
-    array_quotation_request,
-    "試験種別",
-  );
+function calculateSetupAndClosingMonths() {
+  const trial_type = get_quotation_request_value_("試験種別");
   const has_report_support =
-    get_quotation_request_value_(
-      array_quotation_request,
-      "研究結果報告書作成支援",
-    ) === COMMON_EXISTENCE_LABELS.YES;
+    get_quotation_request_value_("研究結果報告書作成支援") ===
+    COMMON_EXISTENCE_LABELS.YES;
 
   let setup_month = 3;
   let closing_month = 3;
@@ -111,23 +88,23 @@ function calculateTrialDurationDetails_(trialMonths, setupClosingMonths) {
     ceilYears: Math.ceil(trialMonths / 12), // 切り上げ年数
   };
 }
-function compareTotalAmounts_(sheet, output_row) {
+function compareTotalAmounts_(output_row) {
   const total_total_ammount = get_total_amount({
-    sheet: sheet.total,
+    sheet: _cachedSheets.total,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
     header_row: 4,
     total_col_itemname: ITEM_LABELS.AMMOUNT,
   });
   const total2_total_ammount = get_total_amount({
-    sheet: sheet.total2,
+    sheet: _cachedSheets.total2,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
     header_row: 4,
     total_col_itemname: ITEM_LABELS.SUM,
   });
   const total3_total_ammount = get_total_amount({
-    sheet: sheet.total3,
+    sheet: _cachedSheets.total3,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
     header_row: 3,
@@ -144,32 +121,21 @@ function compareTotalAmounts_(sheet, output_row) {
     ammount_check[0] = "NG：値が想定と異なる";
   }
   output_row++;
-  sheet.check
+  _cachedSheets.check
     .getRange(output_row, 1, 1, ammount_check.length)
     .setValues([ammount_check]);
   return output_row;
 }
-function checkQuotationOfficeOperationItems_(
-  get_s_p,
-  array_quotation_request,
-  trial_months,
-  setup_month,
-) {
+function checkQuotationOfficeOperationItems_(trial_months, setup_month) {
   let office_bef_month = 0;
   let office_count = 0;
   let temp_value = 0;
   if (
-    (get_quotation_request_value_(array_quotation_request, "試験種別") ==
+    (get_quotation_request_value_("試験種別") ==
       TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED) |
-    (get_quotation_request_value_(
-      array_quotation_request,
-      "調整事務局設置の有無",
-    ) ==
+    (get_quotation_request_value_("調整事務局設置の有無") ==
       COMMON_EXISTENCE_LABELS.YES) |
-    (get_quotation_request_value_(
-      array_quotation_request,
-      ITEM_LABELS.FUNDING_SOURCE_LABEL,
-    ) ==
+    (get_quotation_request_value_(ITEM_LABELS.FUNDING_SOURCE_LABEL) ==
       QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL)
   ) {
     temp_value = trial_months;
@@ -195,18 +161,12 @@ function checkQuotationOfficeOperationItems_(
 }
 
 function checkQuotationMonitoringItems_(
-  array_quotation_request,
   facilities_value,
   number_of_cases_value,
   trial_ceil_year,
 ) {
   const monitoringPreparationDocumentCreation_value =
-    get_quotation_request_value_(
-      array_quotation_request,
-      "1例あたりの実地モニタリング回数",
-    ) > 0
-      ? 1
-      : 0;
+    get_quotation_request_value_("1例あたりの実地モニタリング回数") > 0 ? 1 : 0;
   const monitoringPreparationDocumentCreation = {
     itemname: "モニタリング準備業務（関連資料作成）",
     value: monitoringPreparationDocumentCreation_value,
@@ -214,12 +174,10 @@ function checkQuotationMonitoringItems_(
 
   const preStudyMonitoringAndEssentialDocumentReview_value =
     get_quotation_request_value_(
-      array_quotation_request,
       "年間1施設あたりの必須文書実地モニタリング回数",
     ) > 0
       ? parseInt(
           get_quotation_request_value_(
-            array_quotation_request,
             "年間1施設あたりの必須文書実地モニタリング回数",
           ),
         ) *
@@ -232,15 +190,9 @@ function checkQuotationMonitoringItems_(
   };
 
   const caseMonitoringAndSAESupport_value =
-    get_quotation_request_value_(
-      array_quotation_request,
-      "1例あたりの実地モニタリング回数",
-    ) > 0
+    get_quotation_request_value_("1例あたりの実地モニタリング回数") > 0
       ? parseInt(
-          get_quotation_request_value_(
-            array_quotation_request,
-            "1例あたりの実地モニタリング回数",
-          ),
+          get_quotation_request_value_("1例あたりの実地モニタリング回数"),
         ) * number_of_cases_value
       : 0;
   const caseMonitoringAndSAESupport = {

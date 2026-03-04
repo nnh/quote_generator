@@ -8,9 +8,7 @@ class CopyItemsSheet {
       initial_process();
       this.itemsSheetName = QUOTATION_SHEET_NAMES.ITEMS;
     }
-    this.itemsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      this.itemsSheetName,
-    );
+    this.itemsSheet = getSheetByNameCached_(this.itemsSheetName);
     this.itemsLastRow = this.itemsSheet
       .getRange(1, 1, this.itemsSheet.getLastRow(), 1)
       .getValues()
@@ -224,8 +222,8 @@ class CopyItemsSheetPriceLogic extends CopyItemsSheet {
   }
 }
 function reorganizePriceSheets() {
-  const priceSheet =
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Price");
+  const ss = getSpreadsheet_();
+  const priceSheet = ss.getSheetByName("Price");
   priceSheet.getRange(priceSheet.getLastRow() + 3, 1).setValue("※1:");
   const outputStartRow = 3;
   const titleCellAddress = "B1";
@@ -238,12 +236,12 @@ function reorganizePriceSheets() {
     priceSheet.getName(),
   );
   copyItemsSheetPriceLogic.setSheetInfo(
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("PriceLogic"),
+    ss.getSheetByName("PriceLogic"),
     outputStartRow,
     titleCellAddress,
   );
   copyItemsSheetPriceLogic.setSheetInfo(
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("PriceLogicCompany"),
+    ss.getSheetByName("PriceLogicCompany"),
     outputStartRow,
     titleCellAddress,
   );

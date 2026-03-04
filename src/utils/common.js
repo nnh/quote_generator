@@ -16,8 +16,8 @@ function getColumnNumber_(column_name) {
       "getColumnNumber_: invalid column name format: " + column_name,
     );
   }
-
-  const sheet = SpreadsheetApp.getActiveSheet();
+  const ss = getSpreadsheet_();
+  const sheet = ss.getActiveSheet();
   const range = sheet.getRange(colStr + "1");
   return range.getColumn();
 }
@@ -36,7 +36,8 @@ function getColumnString_(column_number) {
     );
   }
 
-  const sheet = SpreadsheetApp.getActiveSheet();
+  const ss = getSpreadsheet_();
+  const sheet = ss.getActiveSheet();
   const range = sheet.getRange(1, colNum);
   const columnLetter = range.getA1Notation().replace(/\d+/g, "");
   return columnLetter;
@@ -95,19 +96,21 @@ function get_row_num_matched_value_(
 }
 /**
  * quotation_requestの1行目（項目名）からフォーム入力情報を取得する
- * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
- * @param {string} header_str 検索対象の値
+ * @param dummy
+ * @param {string} header 検索対象の項目名
  * @return {string|null} 項目名が完全一致すればその項目の値を返す。一致しなければnullを返す。
  * @example
- *   const trial_start_date = get_quotation_request_value_(array_quotation_request, const_trial_start);
+ *   const trial_start_date = get_quotation_request_value_(const_trial_start);
  */
-function get_quotation_request_value_(array_quotation_request, header_str) {
-  const temp_col = array_quotation_request[0].indexOf(header_str);
-  if (temp_col > -1) {
-    return array_quotation_request[1][temp_col];
-  } else {
-    return null;
+function get_quotation_request_value_(header) {
+  if (_cachedSheets === null) {
+    get_sheets();
   }
+  if (_quotationRequestMap === null) {
+    buildQuotationRequestMap_();
+  }
+
+  return _quotationRequestMap.get(header) ?? null;
 }
 /**
  * スクリプトプロパティを設定する共通関数

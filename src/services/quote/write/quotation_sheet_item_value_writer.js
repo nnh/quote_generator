@@ -23,10 +23,7 @@ function applySetupItems_(context, input_values) {
     ? setSetupClinicalTrialsOffice_(context)
     : "";
 
-  const set_items_list = buildSetupSetItems_(
-    context.array_quotation_request,
-    clinical_trials_office,
-  );
+  const set_items_list = buildSetupSetItems_(clinical_trials_office);
 
   return getSetValues_(context, set_items_list, input_values);
 }
@@ -77,10 +74,7 @@ function applyClosingItems_(context, input_values) {
 
   const clinical_trials_office = context.clinical_trials_office_flg ? 1 : "";
 
-  const set_items_list = buildClosingSetItems_(
-    context.array_quotation_request,
-    clinical_trials_office,
-  );
+  const set_items_list = buildClosingSetItems_(clinical_trials_office);
 
   return getSetValues_(context, set_items_list, input_values);
 }
@@ -92,10 +86,7 @@ function applyRegistrationItems_(context, input_values) {
     return input_values;
   }
 
-  const setItemsList = buildRegistrationSetItems_(
-    context.array_quotation_request,
-    context.sheetname,
-  );
+  const setItemsList = buildRegistrationSetItems_(context.sheetname);
 
   return getSetValues_(context, setItemsList, input_values);
 }
@@ -171,7 +162,6 @@ function applyRegistrationTermItems_(context, input_values) {
     date_list,
     sheetname: context.sheetname,
     clinical_trials_office_flg: context.clinical_trials_office_flg,
-    array_quotation_request: context.array_quotation_request,
   });
 
   return getSetValues_(context, target_items, input_values);
@@ -183,10 +173,8 @@ function applyInterimAnalysis_(context) {
     SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
   );
 
-  const interimTableCount = get_quotation_request_value_(
-    context.array_quotation_request,
-    "中間解析に必要な図表数",
-  );
+  const interimTableCount =
+    get_quotation_request_value_("中間解析に必要な図表数");
 
   const dataCleaningBefore = getItemCountFromContext_(
     context,

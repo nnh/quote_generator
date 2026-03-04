@@ -39,7 +39,7 @@ function show_hidden_cols(target_sheet) {
   }
 }
 function total2_3_show_hidden_cols() {
-  const target_sheets = extract_target_sheet();
+  const target_sheets = extract_target_sheet_();
   target_sheets.forEach((x) => show_hidden_cols(x));
 }
 /**
@@ -100,11 +100,10 @@ function get_goukei_row(sheet) {
  * @return none
  */
 function total2_3_add_del_cols() {
-  // 初回のみsetProtectionEditusersを実行
   initial_process();
   //　フィルタを解除し全行表示する
   resetFilterVisibility();
-  const target_sheets = extract_target_sheet();
+  const target_sheets = extract_target_sheet_();
   // 列を初期化する
   target_sheets.forEach((x) => new Add_del_columns(x).init_cols());
   // Trialシートの試験期間、見出し、試験期間年数を取得する
@@ -129,12 +128,9 @@ function total2_3_add_del_cols() {
 /**
  * Total2, Total3シートの列構成用
  * 対象のシートオブジェクトの配列を返す
- * @param none
- * @return {[sheet]}
+ * @return {[Sheet]}
  */
-function extract_target_sheet() {
-  const sheets = get_sheets(); // 全シートの辞書
-
+function extract_target_sheet_() {
   const totalNames = [
     QUOTATION_SHEET_NAMES.TOTAL2.toLowerCase(),
     QUOTATION_SHEET_NAMES.TOTAL3.toLowerCase(),
@@ -147,7 +143,7 @@ function extract_target_sheet() {
   // total2 / total3 × 接尾辞 の組み合わせをすべて試す
   totalNames.forEach((base) => {
     suffixes.forEach((suffix) => {
-      const sheetObj = sheets[base + suffix];
+      const sheetObj = _cachedSheets[base + suffix];
       if (sheetObj) {
         result.push(sheetObj);
       }

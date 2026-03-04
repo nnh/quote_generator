@@ -4,8 +4,12 @@
  */
 class TrialCommentManager {
   constructor() {
-    this.trialSheet = get_sheets().trial;
-    this.commentRange = this.trialSheet.getRange(TRIAL_SHEET.RANGES.COMMENT);
+    const trialSheet = getSheetByNameCached_(TRIAL_SHEET.NAME);
+    if (!trialSheet) {
+      throw new Error("Trial シートが取得できません");
+    }
+    this.trialSheet = trialSheet;
+    this.commentRange = trialSheet.getRange(TRIAL_SHEET.RANGES.COMMENT);
   }
   clearComments() {
     this.commentRange.clearContent();

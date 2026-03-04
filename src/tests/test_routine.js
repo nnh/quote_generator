@@ -2,24 +2,27 @@
  * routine test
  */
 class RoutineTest {
+  constructor() {
+    this.sheets = get_sheets();
+    this.trialSheet = _cachedSheets.trial;
+    this.quotationRequestSheet =
+      _cachedSheets[normalizeSheetName_(QUOTATION_REQUEST_SHEET.NAME)];
+  }
   setQuote() {
-    const sheets = get_sheets();
     this.routineTestInit();
     quote_script_main();
-    const quotation_request_last_col = sheets.quotation_request
+    const quotation_request_last_col = this.quotationRequestSheet
       .getDataRange()
       .getLastColumn();
-    const array_quotation_request = sheets.quotation_request
+    const array_quotation_request = this.quotationRequestSheet
       .getRange(1, 1, 2, quotation_request_last_col)
       .getValues();
     const interimCount =
-      get_quotation_request_value_(
-        array_quotation_request,
-        "中間解析業務の依頼",
-      ) == COMMON_EXISTENCE_LABELS.YES
+      get_quotation_request_value_("中間解析業務の依頼") ==
+      COMMON_EXISTENCE_LABELS.YES
         ? 1
         : "";
-    this.setTestInterimValues(sheets.setup, interimCount);
+    this.setTestInterimValues(this.sheets.setup, interimCount);
     total2_3_add_del_cols();
   }
   execRoutineTest(targetValues, targetIdx) {
@@ -36,10 +39,7 @@ class RoutineTest {
     return res;
   }
   execTestMain(idx, discountValue) {
-    SpreadsheetApp.getActiveSpreadsheet()
-      .getSheetByName("Trial")
-      .getRange("B46")
-      .setValue(discountValue);
+    this.trialSheet.getRange("B46").setValue(discountValue);
     const targetValues = getQuotationRequestValues_();
     const testResults = this.execRoutineTest(targetValues, idx);
     // idx === 11,12 の場合のみ、testResultsが指定の配列と一致するか判定
@@ -432,20 +432,15 @@ class RoutineTest {
     return res;
   }
   setTestInterimValues(targetSheet, interimValue) {
-    const sheetQuotationRequest =
-      SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Quotation Request");
-    const quotation_request_last_col = sheetQuotationRequest
+    const quotation_request_last_col = this.quotationRequestSheet
       .getDataRange()
       .getLastColumn();
-    const array_quotation_request = sheetQuotationRequest
+    const array_quotation_request = this.quotationRequestSheet
       .getRange(1, 1, 2, quotation_request_last_col)
       .getValues();
     const tableCount =
       interimValue != ""
-        ? get_quotation_request_value_(
-            array_quotation_request,
-            "中間解析に必要な図表数",
-          )
+        ? get_quotation_request_value_("中間解析に必要な図表数")
         : interimValue;
     // tableCountが "空文字" または "数値ではない" 場合は終了
     if (tableCount === "" || Number.isNaN(Number(tableCount))) {
@@ -457,8 +452,7 @@ class RoutineTest {
     targetSheet.getRange("F56").setValue(interimValue);
   }
   getCheckResult_() {
-    const checkSheet =
-      SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Check");
+    const checkSheet = this.sheets.check;
     // Items not checked
     const exclusionIdx1 = checkSheet
       .getRange("B:B")
@@ -507,10 +501,8 @@ function routineTest() {
 }
 class RoutineTestIndividual extends RoutineTest {
   execRoutineTest(targetValues) {
-    const sheetQuotationRequest =
-      SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Quotation Request");
-    sheetQuotationRequest.clearContents();
-    sheetQuotationRequest
+    this.quotationRequestSheet.clearContents();
+    this.quotationRequestSheet
       .getRange(1, 1, targetValues.length, targetValues[0].length)
       .setValues(targetValues);
     this.setQuote();

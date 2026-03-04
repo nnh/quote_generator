@@ -1,14 +1,10 @@
 /**
  * Setupシート用の項目と値のリストを生成する
- * @param {Array} array_quotation_request
  * @param {boolean|number|string} clinical_trials_office
  * @return {Array<Array>}
  */
-function buildSetupSetItems_(array_quotation_request, clinical_trials_office) {
-  const setupItemsList = createSetupItemsList_(
-    array_quotation_request,
-    clinical_trials_office,
-  );
+function buildSetupSetItems_(clinical_trials_office) {
+  const setupItemsList = createSetupItemsList_(clinical_trials_office);
   return convertItemsMapToList_(setupItemsList);
 }
 function getSetupTrialTypeConfig_() {
@@ -62,10 +58,7 @@ function buildDmIrbFormula_() {
     ")"
   );
 }
-function createSetupItemsList_(
-  array_quotation_request,
-  clinical_trials_office,
-) {
+function createSetupItemsList_(clinical_trials_office) {
   const {
     sop,
     office_irb_str,
@@ -78,7 +71,6 @@ function createSetupItemsList_(
   const dm_irb = buildDmIrbFormula_();
   const pmda_support = returnIfEquals_(
     get_quotation_request_value_(
-      array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.PMDA_CONSULTATION_SUPPORT,
     ),
     COMMON_EXISTENCE_LABELS.YES,
@@ -87,7 +79,6 @@ function createSetupItemsList_(
 
   const amed_support = returnIfEquals_(
     get_quotation_request_value_(
-      array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.AMED_APPLICATION_SUPPORT,
     ),
     COMMON_EXISTENCE_LABELS.YES,
@@ -96,7 +87,6 @@ function createSetupItemsList_(
 
   const kickoff_meeting = returnIfEquals_(
     get_quotation_request_value_(
-      array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.KICKOFF_MEETING,
     ),
     COMMON_EXISTENCE_LABELS.YES,
@@ -105,7 +95,6 @@ function createSetupItemsList_(
 
   const monitoring_prep = returnIfGreaterThan_(
     get_quotation_request_value_(
-      array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.MONITORING_COUNT_PER_CASE,
     ),
     0,
@@ -114,7 +103,6 @@ function createSetupItemsList_(
 
   const audit_fee = returnIfGreaterThan_(
     get_quotation_request_value_(
-      array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.AUDIT_TARGET_FACILITIES,
     ),
     0,
@@ -122,17 +110,13 @@ function createSetupItemsList_(
   );
 
   const prepare_fee = returnIfEquals_(
-    get_quotation_request_value_(
-      array_quotation_request,
-      QUOTATION_REQUEST_SHEET.ITEMNAMES.PREPARE_FEE,
-    ),
+    get_quotation_request_value_(QUOTATION_REQUEST_SHEET.ITEMNAMES.PREPARE_FEE),
     COMMON_EXISTENCE_LABELS.YES,
     FUNCTION_FORMULAS.FACILITIES,
   );
 
   const insurance_fee = returnIfGreaterThan_(
     get_quotation_request_value_(
-      array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.INSURANCE_FEE,
     ),
     0,
@@ -141,7 +125,6 @@ function createSetupItemsList_(
 
   const drug_management = returnIfEquals_(
     get_quotation_request_value_(
-      array_quotation_request,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.DRUG_MANAGEMENT_CENTRAL,
     ),
     COMMON_EXISTENCE_LABELS.YES,

@@ -32,13 +32,11 @@ function buildCdiscCrfFormula_(crfCount) {
  * CRF項目数を CDISC対応有無に応じて調整し、コメントを更新する
  *
  * @param {string|number} crfCount CRF項目数（元の値）
- * @param {Array.<string>} arrayQuotationRequest quotation_request シートの値
  * @return {string|number} trialシートに設定する数式文字列またはCRF項目数
  */
-function handleCrfWithCdisc_(crfCount, arrayQuotationRequest) {
+function handleCrfWithCdisc_(crfCount) {
   const isCdiscEnabled =
     get_quotation_request_value_(
-      arrayQuotationRequest,
       QUOTATION_REQUEST_SHEET.ITEMNAMES.CDISC_SUPPORT,
     ) === COMMON_EXISTENCE_LABELS.YES;
 
@@ -71,21 +69,19 @@ function handleCrfWithCdisc_(crfCount, arrayQuotationRequest) {
 function renameSpreadsheetWithAcronym_(acronym) {
   if (!acronym) return;
   const today = Utilities.formatDate(new Date(), "JST", "yyyyMMdd");
-  SpreadsheetApp.getActiveSpreadsheet().rename(`Quote ${acronym} ${today}`);
+  const ss = getSpreadsheet_();
+  ss.rename(`Quote ${acronym} ${today}`);
   return;
 }
 /**
  * 試験期間に必要な日付を取得する
- * @param {Array.<string>} array_quotation_request quotation_request シートの値
  * @return {{trialStartDate:any, trialEndDate:any}|null}
  */
-function getTrialDates_(array_quotation_request) {
+function getTrialDates_() {
   const trialStartDate = get_quotation_request_value_(
-    array_quotation_request,
     QUOTATION_REQUEST_SHEET.ITEMNAMES.TRIAL_REGISTRATION_START_DATE,
   );
   const trialEndDate = get_quotation_request_value_(
-    array_quotation_request,
     QUOTATION_REQUEST_SHEET.ITEMNAMES.TRIAL_END_DATE,
   );
 
@@ -166,21 +162,20 @@ function writeTrialDatesToSheet_(
  * 試験種別に応じて試験期間を計算し、trialシートへ反映する
  *
  * @param {string} trialType 試験種別
- * @param {Array.<string>} quotationRequest quotation_request シートの値
  * @param {Object} sheet sheets オブジェクト
  * @return {void}
  */
-function applyTrialType_(trialType, quotationRequest, sheet) {
+function applyTrialType_(trialType, sheet) {
   const scriptProperties = PropertiesService.getScriptProperties();
   setTrialTypeProperty_(trialType, scriptProperties);
-  const trialDates = getTrialDates_(quotationRequest);
+  const trialDates = getTrialDates_();
   if (!trialDates) {
     return;
   }
 
   const { trialStartDate, trialEndDate } = trialDates;
   // Setup / Closing期間の決定とプロパティへの保存
-  applySetupClosingTerm_(trialType, quotationRequest);
+  applySetupClosingTerm_(trialType);
 
   // 試験期間配列を取得
   const trialDateArray = buildTrialDateArray_(trialStartDate, trialEndDate);
@@ -230,7 +225,6 @@ function resolveTrialFieldValue_(key, fieldValue, context) {
   if (fieldValue == null) return null;
 
   const sp = context.properties;
-  const arrayQuotationRequest = context.arrayQuotationRequest;
   const sheet = context.sheet;
   const const_facilities = ITEM_LABELS.FACILITIES;
   const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
@@ -245,12 +239,12 @@ function resolveTrialFieldValue_(key, fieldValue, context) {
       setFacilitiesProperty_(fieldValue, sp);
       return fieldValue;
     case TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE:
-      applyTrialType_(fieldValue, arrayQuotationRequest, sheet);
+      applyTrialType_(fieldValue, sheet);
       return fieldValue;
     case ITEM_LABELS.FUNDING_SOURCE_LABEL:
       return normalizeCoefficient_(fieldValue);
     case TRIAL_SHEET.ITEMNAMES.CRF:
-      return handleCrfWithCdisc_(fieldValue, arrayQuotationRequest);
+      return handleCrfWithCdisc_(fieldValue);
     case "試験実施番号":
       renameSpreadsheetWithAcronym_(fieldValue);
       return fieldValue;
@@ -261,15 +255,17 @@ function resolveTrialFieldValue_(key, fieldValue, context) {
 
 /**
  * quotation_requestシートの内容からtrialシート, itemsシートを設定する
- * @param {associative array} sheet 当スプレッドシート内のシートオブジェクト
- * @param {Array.<string>} array_quotation_request quotation_requestシートの1〜2行目の値
  * @return {void}
  * @example
- *   set_trial_sheet_(sheet, array_quotation_request);
+ *   set_trial_sheet_();
  */
-function set_trial_sheet_(sheet, array_quotation_request) {
+function set_trial_sheet_() {
   const const_facilities = ITEM_LABELS.FACILITIES;
   const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
+  const trialSheet = _cachedSheets.trial;
+  if (!trialSheet) {
+    throw new Error("Trial シートが取得できません");
+  }
   const trial_list = [
     [TRIAL_SHEET.ITEMNAMES.QUOTATION_TYPE, 2],
     ["見積発行先", 4],
@@ -287,31 +283,26 @@ function set_trial_sheet_(sheet, array_quotation_request) {
     const key = trial_list[i][0];
     const row = Number(trial_list[i][1]);
     const context = {
-      sheet,
-      arrayQuotationRequest: array_quotation_request,
+      sheet: _cachedSheets,
       properties: sp,
     };
 
-    const quotationRequestValue = get_quotation_request_value_(
-      array_quotation_request,
-      key,
-    );
+    const quotationRequestValue = get_quotation_request_value_(key);
     if (quotationRequestValue == null) {
       throw new Error(`Missing quotation request value for key: ${key}`);
     }
 
     const result = resolveTrialFieldValue_(key, quotationRequestValue, context);
-    sheet.trial.getRange(row, 2).setValue(result);
+    trialSheet.getRange(row, 2).setValue(result);
   }
   // 発行年月日に今日の日付を入れる
-  const date_of_issue = get_row_num_matched_value_(
-    sheet.trial,
-    1,
-    "発行年月日",
-  );
+  const date_of_issue = get_row_num_matched_value_(trialSheet, 1, "発行年月日");
   if (date_of_issue > 0) {
-    sheet.trial.getRange(date_of_issue, 2).setValue(formatTodayYmd_());
+    trialSheet.getRange(date_of_issue, 2).setValue(formatTodayYmd_());
   }
-  const itemSheet = sheet.items;
-  applyItemPrices_(array_quotation_request, itemSheet);
+  const itemSheet = _cachedSheets.items;
+  if (!itemSheet) {
+    throw new Error("Items シートが取得できません");
+  }
+  applyItemPrices_(itemSheet);
 }

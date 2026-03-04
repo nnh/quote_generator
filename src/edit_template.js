@@ -6,8 +6,7 @@
  * @return 項目名が完全一致すればその項目の値を返す。一致しなければnullを返す。
  */
 function add_items(item_str, target_row, target_col) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const get_s_p = PropertiesService.getScriptProperties();
+  const ss = getSpreadsheet_();
   // itemsシート
   var target_sheet = ss.getSheetByName(QUOTATION_SHEET_NAMES.ITEMS);
   copy_formulas_to_inserted_line(target_sheet, target_row, null);

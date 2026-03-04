@@ -428,7 +428,6 @@ function runImbalanceTest_(
       patientRegistrationFee,
     );
     const actualValues = buildImbalanceTargets_(
-      quotationRequestData,
       targetImbalance,
       patientRegistrationFee,
     );
