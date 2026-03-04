@@ -1,18 +1,52 @@
-function check_itemName_and_value(target, item_name, value_ok) {
-  const temp_item_name =
-    target.footer !== null ? item_name + target.footer : item_name;
-  const res_message = `シート名:${target.sheet.getName()},項目名:${temp_item_name},想定値:${value_ok}`;
-  if (!(target.array_item[item_name] > 0)) {
-    return ["NG：該当する項目名なし", res_message];
+/**
+ * 行番号と列値から想定値との一致を判定する純粋関数
+ *
+ * @param {string} sheetName
+ * @param {Object.<string, number>} itemRowMap - 項目名と行番号（1始まり）
+ * @param {string|null} footer
+ * @param {Array<*>} columnValues - 0始まり配列
+ * @param {string} itemName
+ * @param {*} expectedValue
+ * @returns {[string, string]}
+ */
+function validateItemValue_(
+  sheetName,
+  itemRowMap,
+  footer,
+  columnValues,
+  itemName,
+  expectedValue,
+) {
+  const displayName = footer ? itemName + footer : itemName;
+
+  const baseMessage = `シート名:${sheetName},項目名:${displayName},想定値:${expectedValue}`;
+
+  const row = itemRowMap[itemName];
+
+  if (!(row > 0)) {
+    return ["NG：該当する項目名なし", baseMessage];
   }
-  const check_value = target.sheet
-    .getRange(target.array_item[item_name], target.col)
-    .getValue();
-  if (check_value !== value_ok) {
-    return ["NG：値が想定と異なる", `${res_message},実際の値:${check_value}`];
+
+  const actualValue = columnValues[row - 1];
+
+  if (actualValue !== expectedValue) {
+    return ["NG：値が想定と異なる", `${baseMessage},実際の値:${actualValue}`];
   }
-  return ["OK", res_message];
+
+  return ["OK", baseMessage];
 }
+
+function check_itemName_and_value_(target, columnValues, item_name, value_ok) {
+  return validateItemValue_(
+    target.sheet.getName(),
+    target.array_item,
+    target.footer,
+    columnValues,
+    item_name,
+    value_ok,
+  );
+}
+
 function get_total_amount(target) {
   const items = target.sheet.getRange(target.item_cols).getValues().flat();
   const target_row = items.indexOf(target.total_row_itemname) + 1;

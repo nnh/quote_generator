@@ -485,21 +485,35 @@ function check_output_values() {
   temp_check_1.push(
     compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_(),
   );
+  const targetTotalColumnValues = target_total.sheet
+    .getRange(1, target_total.col, target_total.sheet.getLastRow(), 1)
+    .getValues()
+    .flat();
   // over all
   const res_total = total_checkitems.map((checkitems) =>
-    check_itemName_and_value(
+    check_itemName_and_value_(
       target_total,
+      targetTotalColumnValues,
       checkitems.itemname,
       checkitems.value,
     ),
   );
-  const res_total_ammount = total_ammount_checkitems.map(
-    (total_ammount_checkitems) =>
-      check_itemName_and_value(
-        target_total_ammount,
-        total_ammount_checkitems.itemname,
-        total_ammount_checkitems.value,
-      ),
+  const targetTotalAmountColumnValues = target_total_ammount.sheet
+    .getRange(
+      1,
+      target_total_ammount.col,
+      target_total_ammount.sheet.getLastRow(),
+      1,
+    )
+    .getValues()
+    .flat();
+  const res_total_ammount = total_ammount_checkitems.map((checkitems) =>
+    check_itemName_and_value_(
+      target_total_ammount,
+      targetTotalAmountColumnValues,
+      checkitems.itemname,
+      checkitems.value,
+    ),
   );
   const output_values_1 = res_total.concat(res_total_ammount);
   const output_values = output_values_1.concat(temp_check_1);
