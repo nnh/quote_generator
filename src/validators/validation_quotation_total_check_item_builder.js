@@ -324,7 +324,7 @@ function buildTotalCheckItems_(params) {
   total_checkitems.push({
     itemname: "症例登録",
     value: getValueIfMatch_(
-      quotationRequestValidationContext.caseRegistrationPayment,
+      quotationRequestValidationContext.paymentPerEnrollment,
       COMMON_EXISTENCE_LABELS.YES,
       number_of_cases_value,
       0,
@@ -334,7 +334,7 @@ function buildTotalCheckItems_(params) {
   total_checkitems.push({
     itemname: "症例報告",
     value: getValueIfMatch_(
-      quotationRequestValidationContext.finalCaseReportPayment,
+      quotationRequestValidationContext.paymentPerFinalReport,
       COMMON_EXISTENCE_LABELS.YES,
       number_of_cases_value,
       0,
@@ -397,11 +397,11 @@ function buildTotalCheckItems_(params) {
 
   total_checkitems.push({ itemname: "QOL調査", value: 0 });
 
-  const investigationalDrugTransport = "治験薬運搬";
+  const investigationalDrugTransportation = "治験薬運搬";
   total_checkitems.push({
-    itemname: investigationalDrugTransport,
+    itemname: investigationalDrugTransportation,
     value: getValueIfMatch_(
-      quotationRequestValidationContext.investigationalDrugTransport,
+      quotationRequestValidationContext.investigationalDrugTransportation,
       COMMON_EXISTENCE_LABELS.YES,
       facilities_value * trial_year,
       0,
@@ -423,14 +423,14 @@ function buildTotalCheckItems_(params) {
   total_checkitems.push({ itemname: "CDISC対応費", value: 0 });
   total_checkitems.push({ itemname: "中央診断謝金", value: 0 });
 
-  const researchCooperationFee_total_ammount =
-    quotationRequestValidationContext.researchCooperationFeeDistributionManagement ===
+  const researchFunding_total_ammount =
+    quotationRequestValidationContext.researchFundingManagement ===
     COMMON_EXISTENCE_LABELS.YES
-      ? quotationRequestValidationContext.researchCooperationFee
+      ? quotationRequestValidationContext.researchFunding
       : 0;
   total_ammount_checkitems.push({
     itemname: "研究協力費",
-    value: researchCooperationFee_total_ammount,
+    value: researchFunding_total_ammount,
   });
 
   return {

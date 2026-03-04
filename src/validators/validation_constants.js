@@ -73,7 +73,7 @@ function buildQuotationRequestValidationContext_() {
       get_quotation_request_value_("研究協力費、負担軽減費配分管理"),
     researchFunding: get_quotation_request_value_("研究協力費、負担軽減費"),
 
-    studyStartupCost: get_quotation_request_value_("試験開始準備費用"),
+    trialStartPreparationCost: get_quotation_request_value_("試験開始準備費用"),
     paymentPerEnrollment: get_quotation_request_value_("症例登録毎の支払"),
     paymentPerFinalReport:
       get_quotation_request_value_("症例最終報告書提出毎の支払"),
