@@ -15,6 +15,7 @@ function test_validation_quotation_total_check_item_builder() {
   test_countStatisticalDocumentSets_bothYes_();
   test_countStatisticalDocumentSets_unexpectedValue_();
   test_buildStatisticalItems_fullCombination_();
+  test_buildCostItems_fullCombination_();
 }
 /**
  * buildProtocolItems_ の全組み合わせテスト
@@ -422,6 +423,98 @@ function test_buildStatisticalItems_fullCombination_() {
                 reportSupport,
             );
           });
+        });
+      });
+    });
+  });
+}
+/**
+ * buildCostItems_ の網羅テスト
+ *
+ * 【網羅条件】
+ * ・CRB申請：あり / なし
+ * ・trial_year：1 / 2 / 3
+ * ・auditTargetSiteCount：0 / 1 / 3
+ * ・insuranceFee：0 / 100
+ */
+function test_buildCostItems_fullCombination_() {
+  const crbList = [COMMON_EXISTENCE_LABELS.YES, COMMON_EXISTENCE_LABELS.NO];
+  const trialYears = [1, 2, 3];
+  const auditCounts = [0, 1, 3];
+  const insuranceFees = [0, 100];
+
+  crbList.forEach((crb) => {
+    trialYears.forEach((trialYear) => {
+      auditCounts.forEach((auditCount) => {
+        insuranceFees.forEach((insuranceFee) => {
+          const context = {
+            crbApplication: crb,
+            auditTargetSiteCount: auditCount,
+            insuranceFee: insuranceFee,
+          };
+
+          const actual = buildCostItems_({
+            quotationRequestValidationContext: context,
+            trial_year: trialYear,
+          });
+
+          /** ===== expected ===== */
+
+          const isCrbYes = crb === COMMON_EXISTENCE_LABELS.YES;
+
+          const expectedCrbFirst = isCrbYes ? 1 : 0;
+          const expectedCrbAfter =
+            isCrbYes && trialYear > 1 ? trialYear - 1 : 0;
+
+          const expectedExternalAudit = auditCount > 0 ? 2 : 0;
+          const expectedSiteAudit = auditCount > 0 ? auditCount : 0;
+
+          const expectedInsuranceCount = insuranceFee > 0 ? 1 : 0;
+          const expectedInsuranceAmount = insuranceFee > 0 ? insuranceFee : 0;
+
+          const expected = {
+            totalCheckItems: [
+              {
+                itemname: "名古屋医療センターCRB申請費用(初年度)",
+                value: expectedCrbFirst,
+              },
+              {
+                itemname: "名古屋医療センターCRB申請費用(2年目以降)",
+                value: expectedCrbAfter,
+              },
+              {
+                itemname: "外部監査費用",
+                value: expectedExternalAudit,
+              },
+              {
+                itemname: "施設監査費用",
+                value: expectedSiteAudit,
+              },
+              {
+                itemname: "保険料",
+                value: expectedInsuranceCount,
+              },
+            ],
+            totalAmountCheckItems: [
+              {
+                itemname: "保険料",
+                value: expectedInsuranceAmount,
+              },
+            ],
+          };
+
+          assertEquals_(
+            JSON.stringify(actual),
+            JSON.stringify(expected),
+            "crb=" +
+              crb +
+              ", trialYear=" +
+              trialYear +
+              ", auditCount=" +
+              auditCount +
+              ", insuranceFee=" +
+              insuranceFee,
+          );
         });
       });
     });
