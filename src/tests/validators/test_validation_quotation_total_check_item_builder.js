@@ -7,6 +7,7 @@ function test_validation_quotation_total_check_item_builder() {
       "COMMON_EXISTENCE_LABELS should have YES='あり' and NO='なし'",
     );
   }
+  test_buildProtocolItems_fullCombination_();
   test_countStatisticalDocumentSets_bothNo_();
   test_countStatisticalDocumentSets_interimOnly_();
   test_countStatisticalDocumentSets_finalOnly_();
@@ -14,6 +15,163 @@ function test_validation_quotation_total_check_item_builder() {
   test_countStatisticalDocumentSets_unexpectedValue_();
   test_buildStatisticalItems_fullCombination_();
 }
+/**
+ * buildProtocolItems_ の全組み合わせテスト
+ *
+ * 【網羅している条件】
+ *
+ * ■ trialType
+ *   - getTrialTypeListForTest_() が返す全試験種別
+ *     - 医師主導治験
+ *     - 特定臨床研究
+ *     - 観察研究・レジストリ
+ *     - 介入研究（特定臨床研究以外）
+ *     - 先進
+ *
+ * ■ YES/NO分岐（全組み合わせ）
+ *   - pmdaConsultingSupport
+ *   - amedApplicationSupport
+ *   - kickoffMeeting
+ *   - caseReviewMeeting
+ *
+ * ■ trialType依存ロジックの検証
+ *
+ *   ▼ 医師主導治験の場合
+ *     - 薬剤対応 = facilities_value
+ *     - 監査対応 = 1
+ *     - SOP一式、CTR登録案、TMF管理 = 1
+ *     - IRB項目名 = "IRB承認確認、施設管理"
+ *     - IRB value = facilities_value
+ *
+ *   ▼ 医師主導治験以外の場合
+ *     - 上記項目は 0
+ *     - IRB項目名 = "IRB準備・承認確認"
+ *
+ *   ▼ 特定臨床研究の場合
+ *     - 特定臨床研究法申請資料作成支援 = facilities_value
+ *
+ *   ▼ それ以外の試験種別
+ *     - 特定臨床研究法申請資料作成支援 = 0
+ *
+ * ■ 固定値検証
+ *   - プロトコルレビュー・作成支援 = 1
+ *   - 検討会実施（TV会議等） = 4
+ *   - プロジェクト管理 = total_months
+ *   - PMDA対応、照会事項対応 = 0
+ *   - 契約・支払手続、実施計画提出支援 = 0
+ *
+ * 【保証していること】
+ *   - 全分岐のロジックが期待通りの数値を返すこと
+ *   - trialTypeによる項目名の動的切り替えが正しいこと
+ *   - YES/NO入力が正しく 1/0 に変換されること
+ *   - 配列の順序が変更されていないこと
+ */
+function test_buildProtocolItems_fullCombination_() {
+  const trialTypes = getTrialTypeListForTest_();
+  const yesNoList = [COMMON_EXISTENCE_LABELS.YES, COMMON_EXISTENCE_LABELS.NO];
+
+  const facilitiesValue = 3;
+  const totalMonths = 12;
+
+  trialTypes.forEach((trialType) => {
+    yesNoList.forEach((pmda) => {
+      yesNoList.forEach((amed) => {
+        yesNoList.forEach((kickoff) => {
+          yesNoList.forEach((caseReview) => {
+            const actual = buildProtocolItems_({
+              quotationRequestValidationContext: {
+                trialType: trialType,
+                pmdaConsultingSupport: pmda,
+                amedApplicationSupport: amed,
+                kickoffMeeting: kickoff,
+                caseReviewMeeting: caseReview,
+              },
+              facilities_value: facilitiesValue,
+              total_months: totalMonths,
+            });
+
+            const isInvestigator =
+              trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
+
+            const isSpecifiedClinical =
+              trialType === TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL;
+
+            const expectedIrpName = isInvestigator
+              ? "IRB承認確認、施設管理"
+              : "IRB準備・承認確認";
+
+            const expectedIrpValue = isInvestigator ? facilitiesValue : 0;
+
+            const expected = [
+              { itemname: "プロトコルレビュー・作成支援", value: 1 },
+              { itemname: "検討会実施（TV会議等）", value: 4 },
+              {
+                itemname: "PMDA相談資料作成支援",
+                value: Number(pmda === COMMON_EXISTENCE_LABELS.YES),
+              },
+              {
+                itemname: "AMED申請資料作成支援",
+                value: Number(amed === COMMON_EXISTENCE_LABELS.YES),
+              },
+              { itemname: "プロジェクト管理", value: totalMonths },
+              {
+                itemname: "キックオフミーティング準備・実行",
+                value: Number(kickoff === COMMON_EXISTENCE_LABELS.YES),
+              },
+              {
+                itemname: "症例検討会準備・実行",
+                value: Number(caseReview === COMMON_EXISTENCE_LABELS.YES),
+              },
+              {
+                itemname: "薬剤対応",
+                value: isInvestigator ? facilitiesValue : 0,
+              },
+              { itemname: "PMDA対応、照会事項対応", value: 0 },
+              {
+                itemname: "監査対応",
+                value: isInvestigator ? 1 : 0,
+              },
+              {
+                itemname: "SOP一式、CTR登録案、TMF管理",
+                value: isInvestigator ? 1 : 0,
+              },
+              {
+                itemname: expectedIrpName,
+                value: expectedIrpValue,
+              },
+              {
+                itemname: "特定臨床研究法申請資料作成支援",
+                value: isSpecifiedClinical ? facilitiesValue : 0,
+              },
+              {
+                itemname: "契約・支払手続、実施計画提出支援",
+                value: 0,
+              },
+            ];
+
+            assertEquals_(
+              JSON.stringify(actual),
+              JSON.stringify(expected),
+              "trialType=" +
+                trialType +
+                ", pmda=" +
+                pmda +
+                ", amed=" +
+                amed +
+                ", kickoff=" +
+                kickoff +
+                ", caseReview=" +
+                caseReview,
+            );
+          });
+        });
+      });
+    });
+  });
+}
+/**
+ * 統計解析
+ */
 function test_countStatisticalDocumentSets_bothNo_() {
   const actual = countStatisticalDocumentSets_(
     COMMON_EXISTENCE_LABELS.NO,
