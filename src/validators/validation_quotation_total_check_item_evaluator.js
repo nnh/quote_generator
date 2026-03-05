@@ -23,16 +23,21 @@ function evaluateCheckItems_(params) {
     checkDiscountByYearSheet_(),
     VALIDATION_MESSAGES.VALUE_MISMATCH,
   );
+  const discount_byYear_message = [
+    discount_byYear,
+    "Setup〜Closingシートの特別値引後合計のチェック",
+  ];
+  const checkQuoteSum_message = toStatusFromBooleanArray_(
+    checkQuoteSum_(),
+    VALIDATION_MESSAGES.VALUE_MISMATCH,
+    "Quote, total, total2, total3の合計・特別値引後合計一致チェック",
+  );
 
   const crossSheetValidationRows = [
-    [discount_byYear, "Setup〜Closingシートの特別値引後合計のチェック"],
+    discount_byYear_message,
     compareTotalSheetTotaltoVerticalTotal_(),
     compareTotal2Total3SheetVerticalTotalToHorizontalTotal_(),
-    toStatusFromBooleanArray_(
-      checkQuoteSum_(),
-      VALIDATION_MESSAGES.VALUE_MISMATCH,
-      "Quote, total, total2, total3の合計・特別値引後合計一致チェック",
-    ),
+    checkQuoteSum_message,
     compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_(),
   ];
 
