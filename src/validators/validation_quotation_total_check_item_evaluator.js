@@ -10,15 +10,6 @@ function evaluateCheckItems_(params) {
     targetTotalAmountColumnValues,
   } = params;
 
-  // データクリーニング項目追加
-  const totalCheckItemsWithCleaning = [
-    ...totalCheckItems,
-    {
-      itemname: "データクリーニング",
-      value: interimCount + closingCount,
-    },
-  ];
-
   const discount_byYear = toStatusFromBooleanArray_(
     checkDiscountByYearSheet_(),
     VALIDATION_MESSAGES.VALUE_MISMATCH,
@@ -42,7 +33,7 @@ function evaluateCheckItems_(params) {
   ];
 
   const totalValidationRows = evaluateItemChecks_(
-    totalCheckItemsWithCleaning,
+    totalCheckItems,
     targetTotal,
     targetTotalColumnValues,
   );

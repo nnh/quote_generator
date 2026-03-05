@@ -16,6 +16,7 @@ function test_validation_quotation_total_check_item_builder() {
   test_countStatisticalDocumentSets_unexpectedValue_();
   test_buildStatisticalItems_fullCombination_();
   test_buildCostItems_fullCombination_();
+  test_buildMonitoringItems_fullCombination_();
 }
 /**
  * buildProtocolItems_ の全組み合わせテスト
@@ -209,12 +210,14 @@ function test_buildOfficeOperationItems_fullCombination_() {
   const facilitiesValue = 5;
   const trialMonths = 10;
   const closingMonth = 2;
+  const interimCount = 3;
+  const closingCount = 4;
 
   trialTypes.forEach((trialType) => {
     yesNoList.forEach((caseReview) => {
       officeSetupList.forEach((safetySetup) => {
         officeSetupList.forEach((efficacySetup) => {
-          const actual = buildOfficeOperationItems_({
+          const param = {
             quotationRequestValidationContext: {
               trialType: trialType,
               caseReviewMeeting: caseReview,
@@ -224,7 +227,10 @@ function test_buildOfficeOperationItems_fullCombination_() {
             facilities_value: facilitiesValue,
             trial_months: trialMonths,
             closing_month: closingMonth,
-          });
+            interimCount: interimCount,
+            closingCount: closingCount,
+          };
+          const actual = buildOfficeOperationItems_(param);
 
           const isInvestigator =
             trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
@@ -257,6 +263,10 @@ function test_buildOfficeOperationItems_fullCombination_() {
               value: trialMonths,
             },
             { itemname: "データベース固定作業、クロージング", value: 1 },
+            {
+              itemname: "データクリーニング",
+              value: interimCount + closingCount,
+            },
             {
               itemname: "症例検討会資料作成",
               value: Number(caseReview === COMMON_EXISTENCE_LABELS.YES),
@@ -341,13 +351,16 @@ function test_buildStatisticalItems_fullCombination_() {
 
         tableCounts.forEach((tableCount) => {
           yesNoList.forEach((reportSupport) => {
-            const actual = buildStatisticalItems_({
-              trialType: trialType,
-              interimAnalysisRequest: interim,
-              finalAnalysisRequest: finalReq,
-              finalAnalysisTableCount: tableCount,
-              studyReportSupport: reportSupport,
-            });
+            const params = {
+              quotationRequestValidationContext: {
+                trialType: trialType,
+                interimAnalysisRequest: interim,
+                finalAnalysisRequest: finalReq,
+                studyReportSupport: reportSupport,
+                finalAnalysisTableCount: tableCount,
+              },
+            };
+            const actual = buildStatisticalItems_(params);
 
             const isInvestigator =
               trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
@@ -522,6 +535,74 @@ function test_buildCostItems_fullCombination_() {
           });
         });
       });
+    });
+  });
+}
+/**
+ * buildMonitoringItems_ の網羅テスト
+ *
+ * 【網羅条件】
+ * ・monitoringVisitsPerCase：0 / 2
+ * ・annualRequiredDocMonitoringPerSite：0 / 3
+ */
+function test_buildMonitoringItems_fullCombination_() {
+  const monitoringVisitsList = [0, 2];
+  const requiredDocMonitoringList = [0, 3];
+
+  const facilities_value = 5;
+  const number_of_cases_value = 10;
+  const trial_ceil_year = 2;
+
+  monitoringVisitsList.forEach((monitoringVisitsPerCase) => {
+    requiredDocMonitoringList.forEach((annualRequiredDocMonitoringPerSite) => {
+      const context = {
+        monitoringVisitsPerCase: monitoringVisitsPerCase,
+        annualRequiredDocMonitoringPerSite: annualRequiredDocMonitoringPerSite,
+      };
+
+      const actual = buildMonitoringItems_({
+        facilities_value,
+        number_of_cases_value,
+        trial_ceil_year,
+        quotationRequestValidationContext: context,
+      });
+
+      /** ===== expected ===== */
+
+      const expectedMonitoringPreparation = monitoringVisitsPerCase > 0 ? 1 : 0;
+
+      const expectedPreStudyMonitoring =
+        annualRequiredDocMonitoringPerSite > 0
+          ? annualRequiredDocMonitoringPerSite *
+            facilities_value *
+            trial_ceil_year
+          : 0;
+
+      const expectedCaseMonitoring =
+        monitoringVisitsPerCase > 0
+          ? monitoringVisitsPerCase * number_of_cases_value
+          : 0;
+
+      const expected = [
+        {
+          itemname: "モニタリング準備業務（関連資料作成）",
+          value: expectedMonitoringPreparation,
+        },
+        {
+          itemname: "開始前モニタリング・必須文書確認",
+          value: expectedPreStudyMonitoring,
+        },
+        {
+          itemname: "症例モニタリング・SAE対応",
+          value: expectedCaseMonitoring,
+        },
+      ];
+
+      assertEquals_(
+        JSON.stringify(actual),
+        JSON.stringify(expected),
+        `monitoringVisitsPerCase=${monitoringVisitsPerCase}, annualRequiredDocMonitoringPerSite=${annualRequiredDocMonitoringPerSite}`,
+      );
     });
   });
 }

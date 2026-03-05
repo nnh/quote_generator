@@ -3,14 +3,7 @@ function buildTotalCheckItems_(params) {
     quotationRequestValidationContext: ctx,
     facilities_value,
     number_of_cases_value,
-    trial_months,
-    total_months,
     trial_year,
-    trial_ceil_year,
-    setup_month,
-    closing_month,
-    interimCount,
-    closingCount,
   } = params;
 
   const totalCheckItems = [];
@@ -24,19 +17,7 @@ function buildTotalCheckItems_(params) {
   /** ==============================
    * Monitoring
    ============================== */
-  const monitoringItems = checkQuotationMonitoringItems_(
-    facilities_value,
-    number_of_cases_value,
-    trial_ceil_year,
-    ctx,
-  );
-
-  totalCheckItems.push(
-    monitoringItems.get("monitoringPreparationDocumentCreation"),
-    monitoringItems.get("preStudyMonitoringAndEssentialDocumentReview"),
-    monitoringItems.get("caseMonitoringAndSAESupport"),
-  );
-
+  totalCheckItems.push(...buildMonitoringItems_(params));
   /** ==============================
    * Office / DM
    ============================== */
@@ -45,15 +26,7 @@ function buildTotalCheckItems_(params) {
   /** ==============================
    * Statistical
    ============================== */
-  totalCheckItems.push(
-    ...buildStatisticalItems_({
-      trialType: ctx.trialType,
-      interimAnalysisRequest: ctx.interimAnalysisRequest,
-      finalAnalysisRequest: ctx.finalAnalysisRequest,
-      finalAnalysisTableCount: ctx.finalAnalysisTableCount,
-      studyReportSupport: ctx.studyReportSupport,
-    }),
-  );
+  totalCheckItems.push(...buildStatisticalItems_(params));
 
   /** ==============================
    * Audit
@@ -468,24 +441,23 @@ function countStatisticalDocumentSets_(interimRequest, finalRequest) {
  * 最終報告関連項目の内容が変わる。
  *
  * @param {Object} params パラメータオブジェクト
- * @param {string} params.trialType 試験種別（TRIAL_TYPE_LABELS）
- * @param {string} params.interimAnalysisRequest 中間解析実施有無（COMMON_EXISTENCE_LABELS）
- * @param {string} params.finalAnalysisRequest 最終解析実施有無（COMMON_EXISTENCE_LABELS）
- * @param {number} params.finalAnalysisTableCount 解析表数
- * @param {string} params.studyReportSupport 研究結果報告書作成支援有無（COMMON_EXISTENCE_LABELS）
  *
  * @return {Array<Object>} 統計関連作業項目の配列
  * @return {string} return[].itemname 作業項目名
  * @return {number} return[].value 作業量（数量）
  */
 
-function buildStatisticalItems_({
-  trialType,
-  interimAnalysisRequest,
-  finalAnalysisRequest,
-  finalAnalysisTableCount,
-  studyReportSupport,
-}) {
+function buildStatisticalItems_(params) {
+  const trialType = params.quotationRequestValidationContext.trialType;
+  const interimAnalysisRequest =
+    params.quotationRequestValidationContext.interimAnalysisRequest;
+  const finalAnalysisRequest =
+    params.quotationRequestValidationContext.finalAnalysisRequest;
+  const finalAnalysisTableCount =
+    params.quotationRequestValidationContext.finalAnalysisTableCount;
+  const studyReportSupport =
+    params.quotationRequestValidationContext.studyReportSupport;
+
   const isInvestigatorInitiated =
     trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
 
