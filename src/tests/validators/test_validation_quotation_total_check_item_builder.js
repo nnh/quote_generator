@@ -8,6 +8,7 @@ function test_validation_quotation_total_check_item_builder() {
     );
   }
   test_buildProtocolItems_fullCombination_();
+  test_buildOfficeOperationItems_fullCombination_();
   test_countStatisticalDocumentSets_bothNo_();
   test_countStatisticalDocumentSets_interimOnly_();
   test_countStatisticalDocumentSets_finalOnly_();
@@ -181,6 +182,110 @@ function test_countStatisticalDocumentSets_bothNo_() {
   const expected = 0;
 
   assertEquals_(actual, expected, "both NO → 0");
+}
+
+/**
+ * buildOfficeOperationItems_ の全組み合わせテスト
+ *
+ * 【網羅条件】
+ * ■ trialType 全種別
+ * ■ caseReviewMeeting YES/NO
+ * ■ safetyManagementOfficeSetup 設置・委託する / それ以外
+ * ■ efficacyOfficeSetup 設置・委託する / それ以外
+ *
+ * 【検証内容】
+ * ・trialType による初期アカウント設定名称分岐
+ * ・YES/NO による 1/0 切替
+ * ・trial_months を使用する項目の正当性
+ * ・trial_months + closing_month 計算
+ * ・配列順序保証
+ */
+function test_buildOfficeOperationItems_fullCombination_() {
+  const trialTypes = getTrialTypeListForTest_();
+  const yesNoList = [COMMON_EXISTENCE_LABELS.YES, COMMON_EXISTENCE_LABELS.NO];
+  const officeSetupList = ["設置・委託する", "設置しない"];
+
+  const facilitiesValue = 5;
+  const trialMonths = 10;
+  const closingMonth = 2;
+
+  trialTypes.forEach((trialType) => {
+    yesNoList.forEach((caseReview) => {
+      officeSetupList.forEach((safetySetup) => {
+        officeSetupList.forEach((efficacySetup) => {
+          const actual = buildOfficeOperationItems_({
+            quotationRequestValidationContext: {
+              trialType: trialType,
+              caseReviewMeeting: caseReview,
+              safetyManagementOfficeSetup: safetySetup,
+              efficacyOfficeSetup: efficacySetup,
+            },
+            facilities_value: facilitiesValue,
+            trial_months: trialMonths,
+            closing_month: closingMonth,
+          });
+
+          const isInvestigator =
+            trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
+
+          const expectedInitialAccountName = isInvestigator
+            ? "初期アカウント設定（施設・ユーザー）"
+            : "初期アカウント設定（施設・ユーザー）、IRB承認確認";
+
+          const expected = [
+            { itemname: "問い合わせ対応", value: 0 },
+            { itemname: "EDCライセンス・データベースセットアップ", value: 1 },
+            {
+              itemname: "データベース管理料",
+              value: trialMonths + closingMonth,
+            },
+            {
+              itemname: "業務分析・DM計画書の作成・CTR登録案の作成",
+              value: 1,
+            },
+            { itemname: "紙CRFのEDC代理入力（含む問合せ）", value: 0 },
+            { itemname: "DB作成・eCRF作成・バリデーション", value: 1 },
+            { itemname: "バリデーション報告書", value: 1 },
+            {
+              itemname: expectedInitialAccountName,
+              value: facilitiesValue,
+            },
+            { itemname: "入力の手引作成", value: 1 },
+            {
+              itemname: "ロジカルチェック、マニュアルチェック、クエリ対応",
+              value: trialMonths,
+            },
+            { itemname: "データベース固定作業、クロージング", value: 1 },
+            {
+              itemname: "症例検討会資料作成",
+              value: Number(caseReview === COMMON_EXISTENCE_LABELS.YES),
+            },
+            {
+              itemname: "安全性管理事務局業務",
+              value: safetySetup === "設置・委託する" ? trialMonths : 0,
+            },
+            {
+              itemname: "効果安全性評価委員会事務局業務",
+              value: efficacySetup === "設置・委託する" ? trialMonths : 0,
+            },
+          ];
+
+          assertEquals_(
+            JSON.stringify(actual),
+            JSON.stringify(expected),
+            "trialType=" +
+              trialType +
+              ", caseReview=" +
+              caseReview +
+              ", safetySetup=" +
+              safetySetup +
+              ", efficacySetup=" +
+              efficacySetup,
+          );
+        });
+      });
+    });
+  });
 }
 
 function test_countStatisticalDocumentSets_interimOnly_() {
