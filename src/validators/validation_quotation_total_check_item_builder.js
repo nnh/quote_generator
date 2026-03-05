@@ -1,6 +1,6 @@
 function buildTotalCheckItems_(params) {
   const {
-    quotationRequestValidationContext,
+    quotationRequestValidationContext: ctx,
     facilities_value,
     number_of_cases_value,
     trial_months,
@@ -9,128 +9,175 @@ function buildTotalCheckItems_(params) {
     trial_ceil_year,
     setup_month,
     closing_month,
+    interimCount,
+    closingCount,
   } = params;
 
-  const total_checkitems = [];
-  const total_ammount_checkitems = [];
+  const totalCheckItems = [];
+  const totalAmountCheckItems = [];
 
-  total_checkitems.push(...buildProtocolItems_(params));
+  /** ==============================
+   * Protocol
+   ============================== */
+  totalCheckItems.push(...buildProtocolItems_(params));
+
+  /** ==============================
+   * Monitoring
+   ============================== */
   const monitoringItems = checkQuotationMonitoringItems_(
     facilities_value,
     number_of_cases_value,
     trial_ceil_year,
-    quotationRequestValidationContext,
+    ctx,
   );
-  total_checkitems.push(
-    monitoringItems.get("monitoringPreparationDocumentCreation"),
-  );
-  total_checkitems.push(
-    monitoringItems.get("preStudyMonitoringAndEssentialDocumentReview"),
-  );
-  total_checkitems.push(monitoringItems.get("caseMonitoringAndSAESupport"));
-  total_checkitems.push(...buildOfficeOperationItems_(params));
 
-  total_checkitems.push(
+  totalCheckItems.push(
+    monitoringItems.get("monitoringPreparationDocumentCreation"),
+    monitoringItems.get("preStudyMonitoringAndEssentialDocumentReview"),
+    monitoringItems.get("caseMonitoringAndSAESupport"),
+  );
+
+  /** ==============================
+   * Office / DM
+   ============================== */
+  totalCheckItems.push(...buildOfficeOperationItems_(params));
+
+  /** ==============================
+   * Statistical
+   ============================== */
+  totalCheckItems.push(
     ...buildStatisticalItems_({
-      trialType: quotationRequestValidationContext.trialType,
-      interimAnalysisRequest:
-        quotationRequestValidationContext.interimAnalysisRequest,
-      finalAnalysisRequest:
-        quotationRequestValidationContext.finalAnalysisRequest,
-      finalAnalysisTableCount:
-        quotationRequestValidationContext.finalAnalysisTableCount,
-      studyReportSupport: quotationRequestValidationContext.studyReportSupport,
+      trialType: ctx.trialType,
+      interimAnalysisRequest: ctx.interimAnalysisRequest,
+      finalAnalysisRequest: ctx.finalAnalysisRequest,
+      finalAnalysisTableCount: ctx.finalAnalysisTableCount,
+      studyReportSupport: ctx.studyReportSupport,
     }),
   );
-  total_checkitems.push({ itemname: "監査計画書作成", value: 0 });
-  total_checkitems.push({ itemname: "施設監査", value: 0 });
-  total_checkitems.push({ itemname: "監査報告書作成", value: 0 });
 
-  const trialStartPreparationCost_name = "試験開始準備費用";
-  total_checkitems.push({
-    itemname: trialStartPreparationCost_name,
+  /** ==============================
+   * Audit
+   ============================== */
+  totalCheckItems.push(
+    { itemname: "監査計画書作成", value: 0 },
+    { itemname: "施設監査", value: 0 },
+    { itemname: "監査報告書作成", value: 0 },
+  );
+
+  /** ==============================
+   * Trial Start Cost
+   ============================== */
+  totalCheckItems.push({
+    itemname: "試験開始準備費用",
     value: getValueIfMatch_(
-      quotationRequestValidationContext.trialStartPreparationCost,
+      ctx.trialStartPreparationCost,
       COMMON_EXISTENCE_LABELS.YES,
       facilities_value,
       0,
     ),
   });
 
-  total_checkitems.push({
-    itemname: "症例登録",
-    value: getValueIfMatch_(
-      quotationRequestValidationContext.paymentPerEnrollment,
-      COMMON_EXISTENCE_LABELS.YES,
-      number_of_cases_value,
-      0,
-    ),
-  });
+  /** ==============================
+   * Case Payment
+   ============================== */
+  totalCheckItems.push(
+    {
+      itemname: "症例登録",
+      value: getValueIfMatch_(
+        ctx.paymentPerEnrollment,
+        COMMON_EXISTENCE_LABELS.YES,
+        number_of_cases_value,
+        0,
+      ),
+    },
+    {
+      itemname: "症例報告",
+      value: getValueIfMatch_(
+        ctx.paymentPerFinalReport,
+        COMMON_EXISTENCE_LABELS.YES,
+        number_of_cases_value,
+        0,
+      ),
+    },
+  );
 
-  total_checkitems.push({
-    itemname: "症例報告",
-    value: getValueIfMatch_(
-      quotationRequestValidationContext.paymentPerFinalReport,
-      COMMON_EXISTENCE_LABELS.YES,
-      number_of_cases_value,
-      0,
-    ),
-  });
-  total_checkitems.push({ itemname: "国内学会発表", value: 0 });
-  total_checkitems.push({ itemname: "国際学会発表", value: 0 });
-  total_checkitems.push({ itemname: "論文作成", value: 0 });
+  /** ==============================
+   * Publication
+   ============================== */
+  totalCheckItems.push(
+    { itemname: "国内学会発表", value: 0 },
+    { itemname: "国際学会発表", value: 0 },
+    { itemname: "論文作成", value: 0 },
+  );
 
+  /** ==============================
+   * Cost
+   ============================== */
   const costItems = buildCostItems_({
-    quotationRequestValidationContext,
+    quotationRequestValidationContext: ctx,
     trial_year,
   });
 
-  total_checkitems.push(...costItems.totalCheckItems);
-  total_ammount_checkitems.push(...costItems.totalAmountCheckItems);
+  totalCheckItems.push(...costItems.totalCheckItems);
+  totalAmountCheckItems.push(...costItems.totalAmountCheckItems);
 
-  total_checkitems.push({ itemname: "QOL調査", value: 0 });
+  /** ==============================
+   * Other
+   ============================== */
+  totalCheckItems.push({ itemname: "QOL調査", value: 0 });
 
-  const investigationalDrugTransportation = "治験薬運搬";
-  total_checkitems.push({
-    itemname: investigationalDrugTransportation,
-    value: getValueIfMatch_(
-      quotationRequestValidationContext.investigationalDrugTransportation,
-      COMMON_EXISTENCE_LABELS.YES,
-      facilities_value * trial_year,
-      0,
-    ),
-  });
+  /** ==============================
+   * Drug Handling
+   ============================== */
+  totalCheckItems.push(
+    {
+      itemname: "治験薬運搬",
+      value: getValueIfMatch_(
+        ctx.investigationalDrugTransportation,
+        COMMON_EXISTENCE_LABELS.YES,
+        facilities_value * trial_year,
+        0,
+      ),
+    },
+    {
+      itemname: "治験薬管理（中央）",
+      value: getValueIfMatch_(
+        ctx.investigationalDrugManagement,
+        COMMON_EXISTENCE_LABELS.YES,
+        1,
+        0,
+      ),
+    },
+  );
 
-  const investigationalDrugManagement = "治験薬管理";
-  total_checkitems.push({
-    itemname: `${investigationalDrugManagement}（中央）`,
-    value: getValueIfMatch_(
-      quotationRequestValidationContext.investigationalDrugManagement,
-      COMMON_EXISTENCE_LABELS.YES,
-      1,
-      0,
-    ),
-  });
+  /** ==============================
+   * Misc
+   ============================== */
+  totalCheckItems.push(
+    { itemname: "翻訳", value: 0 },
+    { itemname: "CDISC対応費", value: 0 },
+    { itemname: "中央診断謝金", value: 0 },
+  );
 
-  total_checkitems.push({ itemname: "翻訳", value: 0 });
-  total_checkitems.push({ itemname: "CDISC対応費", value: 0 });
-  total_checkitems.push({ itemname: "中央診断謝金", value: 0 });
-
-  const researchFunding_total_ammount =
-    quotationRequestValidationContext.researchFundingManagement ===
-    COMMON_EXISTENCE_LABELS.YES
-      ? quotationRequestValidationContext.researchFunding
+  /** ==============================
+   * Research Funding
+   ============================== */
+  const researchFundingAmount =
+    ctx.researchFundingManagement === COMMON_EXISTENCE_LABELS.YES
+      ? ctx.researchFunding
       : 0;
-  total_ammount_checkitems.push({
+
+  totalAmountCheckItems.push({
     itemname: "研究協力費",
-    value: researchFunding_total_ammount,
+    value: researchFundingAmount,
   });
 
   return {
-    totalCheckItems: total_checkitems,
-    totalAmountCheckItems: total_ammount_checkitems,
+    totalCheckItems,
+    totalAmountCheckItems,
   };
 }
+
 /**
  * プロトコル関連作業項目を構築する。
  *
@@ -277,6 +324,8 @@ function buildProtocolItems_(params) {
  * @param {number} params.facilities_value
  * @param {number} params.trial_months
  * @param {number} params.closing_month
+ * @param {number} params.interimCount
+ * @param {number} params.closingCount
  * @return {Array<Object>}
  */
 function buildOfficeOperationItems_(params) {
@@ -285,6 +334,8 @@ function buildOfficeOperationItems_(params) {
     facilities_value,
     trial_months,
     closing_month,
+    interimCount,
+    closingCount,
   } = params;
 
   const items = [];
@@ -339,6 +390,11 @@ function buildOfficeOperationItems_(params) {
   items.push({
     itemname: "データベース固定作業、クロージング",
     value: 1,
+  });
+
+  items.push({
+    itemname: "データクリーニング",
+    value: interimCount + closingCount,
   });
 
   items.push({
@@ -528,7 +584,9 @@ function buildCostItems_(params) {
   /** ===== CRB ===== */
   const isCrbYes =
     quotationRequestValidationContext.crbApplication ===
-    COMMON_EXISTENCE_LABELS.YES;
+      COMMON_EXISTENCE_LABELS.YES &&
+    quotationRequestValidationContext.trialType ===
+      TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL;
 
   totalCheckItems.push({
     itemname: "名古屋医療センターCRB申請費用(初年度)",

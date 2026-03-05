@@ -189,3 +189,63 @@ function compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_() {
     "Total2, Total3の縦計*特別値引率と特別値引後合計の横計のチェック",
   );
 }
+
+/**
+ * Itemsシートと totalCheckItems の整合性を検証する。
+ *
+ * 【検証内容】
+ * 1. Itemsシートに存在する項目が totalCheckItems に含まれているか（不足チェック）
+ * 2. totalCheckItems に存在する項目が Itemsシートに含まれているか（余分チェック）
+ *
+ * Itemsシートの「（税抜）」「（税込）」は除去して比較する。
+ *
+ * 不整合がある場合は Error をスローする。
+ *
+ * @param {Array<Object>} totalCheckItems
+ * @param {string} totalCheckItems[].itemname
+ */
+function validateItemsSheetCoverage_(totalCheckItems) {
+  const itemsSheetValues = _cachedSheets.items
+    .getRange(1, 2, _cachedSheets.items.getLastRow(), 1)
+    .getValues()
+    .flat();
+
+  /** Itemsシート項目 */
+  const sheetItemSet = new Set(
+    itemsSheetValues
+      .map((item) => item.replace(/（税抜）|（税込）/g, ""))
+      .map((item) => item.trim())
+      .filter((item) => item !== ""),
+  );
+
+  /** コード側項目 */
+  const codeItemSet = new Set(totalCheckItems.map((item) => item.itemname));
+
+  /** ===== 不足チェック ===== */
+  const missingItems = [...sheetItemSet].filter(
+    (name) => !codeItemSet.has(name),
+  );
+
+  /** ===== 余分チェック ===== */
+  const extraItems = [...codeItemSet].filter((name) => !sheetItemSet.has(name));
+
+  if (missingItems.length > 0 || extraItems.length > 0) {
+    const messages = [];
+
+    if (missingItems.length > 0) {
+      messages.push(
+        "Itemsシートに存在するがチェック対象に含まれていない項目:\n" +
+          missingItems.join("\n"),
+      );
+    }
+
+    if (extraItems.length > 0) {
+      messages.push(
+        "コード側に存在するがItemsシートに存在しない項目:\n" +
+          extraItems.join("\n"),
+      );
+    }
+
+    console.error(messages.join("\n\n"));
+  }
+}

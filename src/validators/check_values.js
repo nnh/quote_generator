@@ -34,18 +34,6 @@ function check_output_values() {
   _cachedSheets.check.getRange(output_row, output_col).setValue(total_months);
   // 合計金額チェック
   output_row = compareTotalAmounts_(output_row);
-  // 個別項目チェック
-  const { totalCheckItems, totalAmountCheckItems } = buildTotalCheckItems_({
-    quotationRequestValidationContext,
-    facilities_value,
-    number_of_cases_value,
-    trial_months,
-    total_months,
-    trial_year,
-    trial_ceil_year,
-    setup_month,
-    closing_month,
-  });
   const interimCount = targetTotal.sheet
     .getRange(
       targetTotal.array_item["中間解析報告書作成（出力結果＋表紙）"],
@@ -58,6 +46,22 @@ function check_output_values() {
       targetTotal.col,
     )
     .getValue();
+  // 個別項目チェック
+  const { totalCheckItems, totalAmountCheckItems } = buildTotalCheckItems_({
+    quotationRequestValidationContext,
+    facilities_value,
+    number_of_cases_value,
+    trial_months,
+    total_months,
+    trial_year,
+    trial_ceil_year,
+    setup_month,
+    closing_month,
+    interimCount,
+    closingCount,
+  });
+  // Itemsシートの項目が全てチェック対象になっているかを確認する
+  validateItemsSheetCoverage_(totalCheckItems);
 
   const targetTotalColumnValues = targetTotal.sheet
     .getRange(1, targetTotal.col, targetTotal.sheet.getLastRow(), 1)

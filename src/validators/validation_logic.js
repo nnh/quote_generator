@@ -54,32 +54,51 @@ function initCheckSheet_() {
   return res;
 }
 /**
- * 検証の基準となる月数データを取得する
+ * 検証に使用するセットアップ期間・クローズ期間（月数）を算出する。
+ *
+ * ルール:
+ * - 通常: setup=3ヶ月 / closing=3ヶ月
+ * - 医師主導治験または特定臨床研究: setup=6ヶ月 / closing=6ヶ月
+ * - 上記以外で研究結果報告書作成支援あり: closingに+3ヶ月
+ *
+ * @param {Object} quotationRequestValidationContext
+ * @param {string} quotationRequestValidationContext.trialType 試験種別
+ * @param {string} quotationRequestValidationContext.reportSupport 研究結果報告書作成支援有無（COMMON_EXISTENCE_LABELS）
+ *
+ * @returns {{
+ *   setup_month: number,
+ *   closing_month: number,
+ *   setup_closing_months: number
+ * }} セットアップ・クローズ月数および合計月数
  */
 function calculateSetupAndClosingMonths(quotationRequestValidationContext) {
-  const trial_type = quotationRequestValidationContext.trialType;
-  const has_report_support =
+  const trialType = quotationRequestValidationContext.trialType;
+  const hasReportSupport =
     quotationRequestValidationContext.reportSupport ===
     COMMON_EXISTENCE_LABELS.YES;
 
-  let setup_month = 3;
-  let closing_month = 3;
+  const DEFAULT_MONTH = 3;
+  const INVESTIGATOR_MONTH = 6;
+  const REPORT_SUPPORT_EXTRA_MONTH = 3;
 
-  // 医師主導治験または特定臨床研究の場合
-  if (
-    trial_type === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED ||
-    trial_type === TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL
-  ) {
-    setup_month = 6;
-    closing_month = 6;
-  } else if (has_report_support) {
-    closing_month += 3;
+  let setupMonth = DEFAULT_MONTH;
+  let closingMonth = DEFAULT_MONTH;
+
+  const isInvestigatorTrial =
+    trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED ||
+    trialType === TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL;
+
+  if (isInvestigatorTrial) {
+    setupMonth = INVESTIGATOR_MONTH;
+    closingMonth = INVESTIGATOR_MONTH;
+  } else if (hasReportSupport) {
+    closingMonth += REPORT_SUPPORT_EXTRA_MONTH;
   }
 
   return {
-    setup_month: setup_month,
-    closing_month: closing_month,
-    setup_closing_months: setup_month + closing_month,
+    setup_month: setupMonth,
+    closing_month: closingMonth,
+    setup_closing_months: setupMonth + closingMonth,
   };
 }
 /**

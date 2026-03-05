@@ -91,3 +91,56 @@ function test_validateItemValue_withFooter_() {
 
   assertEquals_(actual, expected, "withFooter: footer appended");
 }
+/**
+ * calculateSetupAndClosingMonths の網羅テスト
+ *
+ * 【網羅条件】
+ * ・trialType：getTrialTypeListForTest_() の全パターン
+ * ・reportSupport：あり / なし
+ */
+function test_calculateSetupAndClosingMonths_fullCombination() {
+  const trialTypes = getTrialTypeListForTest_();
+  const reportSupports = [
+    COMMON_EXISTENCE_LABELS.YES,
+    COMMON_EXISTENCE_LABELS.NO,
+  ];
+
+  trialTypes.forEach((trialType) => {
+    reportSupports.forEach((reportSupport) => {
+      const context = {
+        trialType: trialType,
+        reportSupport: reportSupport,
+      };
+
+      const actual = calculateSetupAndClosingMonths(context);
+
+      /** ===== expected ===== */
+
+      const isInvestigatorTrial =
+        trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED ||
+        trialType === TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL;
+
+      let expectedSetup = 3;
+      let expectedClosing = 3;
+
+      if (isInvestigatorTrial) {
+        expectedSetup = 6;
+        expectedClosing = 6;
+      } else if (reportSupport === COMMON_EXISTENCE_LABELS.YES) {
+        expectedClosing += 3;
+      }
+
+      const expected = {
+        setup_month: expectedSetup,
+        closing_month: expectedClosing,
+        setup_closing_months: expectedSetup + expectedClosing,
+      };
+
+      assertEquals_(
+        JSON.stringify(actual),
+        JSON.stringify(expected),
+        `trialType=${trialType}, reportSupport=${reportSupport}, setupMonth=${expectedSetup}, closingMonth=${expectedClosing}`,
+      );
+    });
+  });
+}
