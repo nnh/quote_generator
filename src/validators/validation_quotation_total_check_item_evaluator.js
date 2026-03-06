@@ -4,8 +4,6 @@ function evaluateCheckItems_(params) {
     totalAmountCheckItems,
     targetTotal,
     targetTotalAmount,
-    interimCount,
-    closingCount,
     targetTotalColumnValues,
     targetTotalAmountColumnValues,
   } = params;

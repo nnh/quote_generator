@@ -60,8 +60,8 @@ function check_output_values() {
     interimCount,
     closingCount,
   });
-  // Itemsシートの項目が全てチェック対象になっているかを確認する
-  validateItemsSheetCoverage_(totalCheckItems);
+  // Itemsシートの項目が全てチェック対象になっているかを確認し、ソートして返す
+  const sortedTotalCheckItems = alignTotalCheckItemsToSheet_(totalCheckItems);
 
   const targetTotalColumnValues = targetTotal.sheet
     .getRange(1, targetTotal.col, targetTotal.sheet.getLastRow(), 1)
@@ -74,12 +74,10 @@ function check_output_values() {
     .flat();
 
   const output_values = evaluateCheckItems_({
-    totalCheckItems,
+    totalCheckItems: sortedTotalCheckItems,
     totalAmountCheckItems,
     targetTotal,
     targetTotalAmount,
-    interimCount,
-    closingCount,
     targetTotalColumnValues,
     targetTotalAmountColumnValues,
   });
