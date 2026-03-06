@@ -149,3 +149,58 @@ class SetTestValues {
 function getColumnValues_(sheet, col) {
   return sheet.getRange(1, col, sheet.getLastRow(), 1).getValues().flat();
 }
+
+/**
+ * totalCheckItems を Items シートの並び順に揃える
+ *
+ * - 不足・余分チェックも行う
+ * - 並び順を Items シートと同じにして返す
+ *
+ * @param {Array<{itemname:string,value:number}>} totalCheckItems
+ * @returns {Array<{itemname:string,value:number}>} 並び順を修正した配列
+ */
+function alignTotalCheckItemsToSheet_(totalCheckItems) {
+  const itemsSheetValues = _cachedSheets.items
+    .getRange(1, 2, _cachedSheets.items.getLastRow(), 1)
+    .getValues()
+    .flat();
+
+  // Itemsシート項目（税抜/税込を除去してトリム）
+  const sheetItems = itemsSheetValues
+    .map((item) => item.replace(/（税抜）|（税込）/g, "").trim())
+    .filter((item) => item !== "");
+
+  // コード側を Map にして itemname で高速検索
+  const codeItemMap = new Map();
+  totalCheckItems.forEach((item) => codeItemMap.set(item.itemname, item));
+
+  // 不足・余分チェック
+  const missingItems = sheetItems.filter((name) => !codeItemMap.has(name));
+  const extraItems = totalCheckItems
+    .map((item) => item.itemname)
+    .filter((name) => !sheetItems.includes(name));
+
+  if (missingItems.length > 0 || extraItems.length > 0) {
+    const messages = [];
+    if (missingItems.length > 0) {
+      messages.push(
+        "Itemsシートに存在するがチェック対象に含まれていない項目:\n" +
+          missingItems.join("\n"),
+      );
+    }
+    if (extraItems.length > 0) {
+      messages.push(
+        "コード側に存在するがItemsシートに存在しない項目:\n" +
+          extraItems.join("\n"),
+      );
+    }
+    console.error(messages.join("\n\n"));
+  }
+
+  // Itemsシート順に並び替え
+  const alignedItems = sheetItems
+    .map((name) => codeItemMap.get(name))
+    .filter(Boolean); // 不足分は除外
+
+  return alignedItems;
+}
