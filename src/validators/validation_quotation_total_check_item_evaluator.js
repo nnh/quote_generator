@@ -50,7 +50,7 @@ function evaluateCheckItems_(params) {
 }
 function evaluateItemChecks_(checkItems, target, columnValues) {
   return checkItems.map((item) =>
-    checkItemNameAndValue_(
+    validateItemValue_(
       target.sheetName,
       target.array_item,
       target.footer,
