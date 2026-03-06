@@ -115,21 +115,21 @@ function calculateTrialDurationDetails_(trialMonths, setupClosingMonths) {
   };
 }
 function compareTotalAmounts_(output_row) {
-  const total_total_ammount = get_total_amount({
+  const total_total_ammount = getValidationTotalAmount_({
     sheet: _cachedSheets.total,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
     header_row: 4,
     total_col_itemname: ITEM_LABELS.AMMOUNT,
   });
-  const total2_total_ammount = get_total_amount({
+  const total2_total_ammount = getValidationTotalAmount_({
     sheet: _cachedSheets.total2,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
     header_row: 4,
     total_col_itemname: ITEM_LABELS.SUM,
   });
-  const total3_total_ammount = get_total_amount({
+  const total3_total_ammount = getValidationTotalAmount_({
     sheet: _cachedSheets.total3,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
