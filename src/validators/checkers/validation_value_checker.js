@@ -9,7 +9,7 @@
  * @param {*} expectedValue
  * @returns {[string, string]}
  */
-function validateItemValue_(
+function validationValidateItemValue_(
   sheetName,
   itemRowMap,
   footer,
@@ -49,7 +49,7 @@ function validateItemValue_(
  * @param {any} returnValue 一致した時に返す値 (例: 1)
  * @param {any} defaultValue 一致しない時に返す値 (デフォルトは空文字)
  */
-function getValueIfMatch_(
+function validationGetValueIfMatch_(
   actualValue,
   expectedValue,
   returnValue,

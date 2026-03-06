@@ -40,7 +40,7 @@ function buildOtherItems_(params) {
     /** Drug Handling */
     {
       itemname: "治験薬運搬",
-      value: getValueIfMatch_(
+      value: validationGetValueIfMatch_(
         ctx.investigationalDrugTransportation,
         COMMON_EXISTENCE_LABELS.YES,
         facilities_value * trial_year,
@@ -49,7 +49,7 @@ function buildOtherItems_(params) {
     },
     {
       itemname: "治験薬管理（中央）",
-      value: getValueIfMatch_(
+      value: validationGetValueIfMatch_(
         ctx.investigationalDrugManagement,
         COMMON_EXISTENCE_LABELS.YES,
         1,

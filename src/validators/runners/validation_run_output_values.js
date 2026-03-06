@@ -25,25 +25,27 @@ function check_output_values() {
   );
 
   // 合計金額チェック
-  const updatedRow = compareTotalAmounts_(rowOutput);
+  const updatedRow = validationCompareTotalAmounts_(rowOutput);
 
   // 個別項目の中間解析・クロージング数取得
-  const { interimCount, closingCount } = getTargetCounts_(targetTotal);
+  const { interimCount, closingCount } =
+    validationGetTargetCounts_(targetTotal);
 
   // 総チェック項目の生成
-  const { totalCheckItems, totalAmountCheckItems } = buildAllCheckItems_({
-    quotationRequestValidationContext,
-    facilities_value,
-    number_of_cases_value,
-    trial_months: trialMonthsFromSheet,
-    total_months: trialInfo.totalMonths,
-    trial_year: trialInfo.fullYears,
-    trial_ceil_year: trialInfo.ceilYears,
-    setup_month,
-    closing_month,
-    interimCount,
-    closingCount,
-  });
+  const { totalCheckItems, totalAmountCheckItems } =
+    validationBuildAllCheckItems_({
+      quotationRequestValidationContext,
+      facilities_value,
+      number_of_cases_value,
+      trial_months: trialMonthsFromSheet,
+      total_months: trialInfo.totalMonths,
+      trial_year: trialInfo.fullYears,
+      trial_ceil_year: trialInfo.ceilYears,
+      setup_month,
+      closing_month,
+      interimCount,
+      closingCount,
+    });
 
   // Itemsシートの並びに合わせてソート
   const sortedTotalCheckItems = alignTotalCheckItemsToSheet_(totalCheckItems);

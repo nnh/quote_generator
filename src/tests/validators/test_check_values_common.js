@@ -1,18 +1,18 @@
 /**
- * Test suite for validateItemValue_
+ * Test suite for validationValidateItemValue_
  */
 function test_validateItemValue() {
-  test_validateItemValue_match_();
-  test_validateItemValue_itemNotFound_();
-  test_validateItemValue_valueMismatch_();
-  test_validateItemValue_withFooter_();
+  test_validationValidateItemValue_match_();
+  test_validationValidateItemValue_itemNotFound_();
+  test_validationValidateItemValue_valueMismatch_();
+  test_validationValidateItemValue_withFooter_();
 }
 
 /**
  * Case: value matches expected
  */
-function test_validateItemValue_match_() {
-  const actual = validateItemValue_(
+function test_validationValidateItemValue_match_() {
+  const actual = validationValidateItemValue_(
     "TestSheet",
     { A: 1 },
     null,
@@ -32,8 +32,8 @@ function test_validateItemValue_match_() {
 /**
  * Case: item not found
  */
-function test_validateItemValue_itemNotFound_() {
-  const actual = validateItemValue_(
+function test_validationValidateItemValue_itemNotFound_() {
+  const actual = validationValidateItemValue_(
     "TestSheet",
     {},
     null,
@@ -53,8 +53,8 @@ function test_validateItemValue_itemNotFound_() {
 /**
  * Case: value mismatch
  */
-function test_validateItemValue_valueMismatch_() {
-  const actual = validateItemValue_(
+function test_validationValidateItemValue_valueMismatch_() {
+  const actual = validationValidateItemValue_(
     "TestSheet",
     { A: 1 },
     null,
@@ -74,8 +74,8 @@ function test_validateItemValue_valueMismatch_() {
 /**
  * Case: footer applied
  */
-function test_validateItemValue_withFooter_() {
-  const actual = validateItemValue_(
+function test_validationValidateItemValue_withFooter_() {
+  const actual = validationValidateItemValue_(
     "TestSheet",
     { A: 1 },
     "_F",

@@ -12,7 +12,7 @@ const ITEM_LABELS = {
   NUMBER_OF_CASES: "目標症例数",
   FUNDING_SOURCE_LABEL: "原資",
   SUM: "合計",
-  AMMOUNT: "金額",
+  AMOUNT: "金額",
   ACRONYM: "試験実施番号",
 };
 // ===== Common yes/no (existence) labels =====

@@ -22,7 +22,7 @@ function buildCostAndPaymentItems_(params) {
     /** Trial Start Cost */
     {
       itemname: "試験開始準備費用",
-      value: getValueIfMatch_(
+      value: validationGetValueIfMatch_(
         ctx.trialStartPreparationCost,
         COMMON_EXISTENCE_LABELS.YES,
         facilities_value,
@@ -33,7 +33,7 @@ function buildCostAndPaymentItems_(params) {
     /** Case Payment */
     {
       itemname: "症例登録",
-      value: getValueIfMatch_(
+      value: validationGetValueIfMatch_(
         ctx.paymentPerEnrollment,
         COMMON_EXISTENCE_LABELS.YES,
         number_of_cases_value,
@@ -42,7 +42,7 @@ function buildCostAndPaymentItems_(params) {
     },
     {
       itemname: "症例報告",
-      value: getValueIfMatch_(
+      value: validationGetValueIfMatch_(
         ctx.paymentPerFinalReport,
         COMMON_EXISTENCE_LABELS.YES,
         number_of_cases_value,

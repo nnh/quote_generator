@@ -93,7 +93,7 @@ function buildOfficeOperationItems_(params) {
 
   items.push({
     itemname: "症例検討会資料作成",
-    value: getValueIfMatch_(
+    value: validationGetValueIfMatch_(
       quotationRequestValidationContext.caseReviewMeeting,
       COMMON_EXISTENCE_LABELS.YES,
       1,
@@ -103,7 +103,7 @@ function buildOfficeOperationItems_(params) {
 
   items.push({
     itemname: "安全性管理事務局業務",
-    value: getValueIfMatch_(
+    value: validationGetValueIfMatch_(
       quotationRequestValidationContext.safetyManagementOfficeSetup,
       "設置・委託する",
       trial_months,
@@ -113,7 +113,7 @@ function buildOfficeOperationItems_(params) {
 
   items.push({
     itemname: "効果安全性評価委員会事務局業務",
-    value: getValueIfMatch_(
+    value: validationGetValueIfMatch_(
       quotationRequestValidationContext.efficacyOfficeSetup,
       "設置・委託する",
       trial_months,

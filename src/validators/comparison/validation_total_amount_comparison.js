@@ -8,45 +8,45 @@
  * チェック結果は Check シートに書き込み、
  * 次に書き込む行番号を返す。
  *
- * @function compareTotalAmounts_
+ * @function validationCompareTotalAmounts_
  * @param {number} output_row - Checkシートに書き込む現在の行番号
  * @returns {number} 次に書き込む行番号
  */
-function compareTotalAmounts_(output_row) {
-  const total_total_ammount = getValidationTotalAmount_({
+function validationCompareTotalAmounts_(output_row) {
+  const total_total_amount = getValidationTotalAmount_({
     sheet: _cachedSheets.total,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
     header_row: 4,
-    total_col_itemname: ITEM_LABELS.AMMOUNT,
+    total_col_itemname: ITEM_LABELS.AMOUNT,
   });
-  const total2_total_ammount = getValidationTotalAmount_({
+  const total2_total_amount = getValidationTotalAmount_({
     sheet: _cachedSheets.total2,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
     header_row: 4,
     total_col_itemname: ITEM_LABELS.SUM,
   });
-  const total3_total_ammount = getValidationTotalAmount_({
+  const total3_total_amount = getValidationTotalAmount_({
     sheet: _cachedSheets.total3,
     item_cols: "B:B",
     total_row_itemname: ITEM_LABELS.SUM,
     header_row: 3,
     total_col_itemname: ITEM_LABELS.SUM,
   });
-  const ammount_check = [null, "Total, Total2, Total3の合計金額チェック"];
+  const amount_check = [null, "Total, Total2, Total3の合計金額チェック"];
   if (
-    (total_total_ammount === total2_total_ammount) &
-    (total_total_ammount === total3_total_ammount)
+    (total_total_amount === total2_total_amount) &
+    (total_total_amount === total3_total_amount)
   ) {
-    ammount_check[0] = VALIDATION_STATUS.OK;
-    ammount_check[1] = ammount_check[1] + " ,想定値:" + total_total_ammount;
+    amount_check[0] = VALIDATION_STATUS.OK;
+    amount_check[1] = amount_check[1] + " ,想定値:" + total_total_amount;
   } else {
-    ammount_check[0] = buildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH);
+    amount_check[0] = buildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH);
   }
   output_row++;
   _cachedSheets.check
-    .getRange(output_row, 1, 1, ammount_check.length)
-    .setValues([ammount_check]);
+    .getRange(output_row, 1, 1, amount_check.length)
+    .setValues([amount_check]);
   return output_row;
 }

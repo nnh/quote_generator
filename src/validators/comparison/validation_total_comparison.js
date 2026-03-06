@@ -1,67 +1,105 @@
 /**
- * On the Quote, Total, Total2, and Total3 sheets, check that the totals and discounted totals are printed correctly.
- * @param none.
- * @return {boolean} <array> Return True if OK, False otherwise.
+ * Quote / Total / Total2 / Total3 シートの
+ * 「合計」と「特別値引後合計」が一致しているかを確認する。
+ *
+ * @returns {boolean[]}
+ * [0] 合計が全シートで一致しているか
+ * [1] 特別値引後合計が全シートで一致しているか
  */
-function checkQuoteSum_() {
-  const GetRowCol = new GetTargetRowCol();
-  const quoteGoukeiRow = GetRowCol.getTargetRow(_cachedSheets.quote, 3, "小計");
-  const totalGoukeiRow = GetRowCol.getTargetRow(
-    _cachedSheets.total,
-    2,
-    ITEM_LABELS.SUM,
-  );
-  const total2GoukeiRow = GetRowCol.getTargetRow(
-    _cachedSheets.total2,
-    2,
-    ITEM_LABELS.SUM,
-  );
-  const total3GoukeiRow = GetRowCol.getTargetRow(
-    _cachedSheets.total3,
-    2,
-    ITEM_LABELS.SUM,
-  );
-  const quoteGoukeiCol = GetRowCol.getTargetCol(
-    _cachedSheets.quote,
-    11,
-    ITEM_LABELS.AMMOUNT,
-  );
-  const totalGoukeiCol = GetRowCol.getTargetCol(
-    _cachedSheets.total,
-    4,
-    ITEM_LABELS.AMMOUNT,
-  );
-  const total2GoukeiCol = GetRowCol.getTargetCol(
-    _cachedSheets.total2,
-    4,
-    ITEM_LABELS.SUM,
-  );
-  const total3GoukeiCol = GetRowCol.getTargetCol(
-    _cachedSheets.total3,
-    3,
-    ITEM_LABELS.SUM,
-  );
-  const checkAmount = [
-    _cachedSheets.quote.getRange(quoteGoukeiRow, quoteGoukeiCol).getValue(),
-    _cachedSheets.total.getRange(totalGoukeiRow, totalGoukeiCol).getValue(),
-    _cachedSheets.total2.getRange(total2GoukeiRow, total2GoukeiCol).getValue(),
-    _cachedSheets.total3.getRange(total3GoukeiRow, total3GoukeiCol).getValue(),
-  ].map((x) => (x === "" ? 0 : Math.round(x)));
-  const checkDiscount = [
-    _cachedSheets.quote.getRange(quoteGoukeiRow + 2, quoteGoukeiCol).getValue(),
-    _cachedSheets.total.getRange(totalGoukeiRow + 1, totalGoukeiCol).getValue(),
-    _cachedSheets.total2
-      .getRange(total2GoukeiRow + 1, total2GoukeiCol)
-      .getValue(),
-    _cachedSheets.total3
-      .getRange(total3GoukeiRow + 1, total3GoukeiCol)
-      .getValue(),
-  ].map((x) => (x === "" ? 0 : Math.round(x)));
+function validationCheckQuoteSum_() {
+  const getRowCol = new GetTargetRowCol();
+
+  const sheetConfigs = [
+    {
+      sheet: _cachedSheets.quote,
+      rowHeaderRow: 3,
+      rowLabel: "小計",
+      colHeaderRow: 11,
+      colLabel: ITEM_LABELS.AMOUNT,
+      discountOffset: 2,
+    },
+    {
+      sheet: _cachedSheets.total,
+      rowHeaderRow: 2,
+      rowLabel: ITEM_LABELS.SUM,
+      colHeaderRow: 4,
+      colLabel: ITEM_LABELS.AMOUNT,
+      discountOffset: 1,
+    },
+    {
+      sheet: _cachedSheets.total2,
+      rowHeaderRow: 2,
+      rowLabel: ITEM_LABELS.SUM,
+      colHeaderRow: 4,
+      colLabel: ITEM_LABELS.SUM,
+      discountOffset: 1,
+    },
+    {
+      sheet: _cachedSheets.total3,
+      rowHeaderRow: 2,
+      rowLabel: ITEM_LABELS.SUM,
+      colHeaderRow: 3,
+      colLabel: ITEM_LABELS.SUM,
+      discountOffset: 1,
+    },
+  ];
+
+  const amountValues = [];
+  const discountValues = [];
+
+  sheetConfigs.forEach((config) => {
+    const row = getRowCol.getTargetRow(
+      config.sheet,
+      config.rowHeaderRow,
+      config.rowLabel,
+    );
+
+    const col = getRowCol.getTargetCol(
+      config.sheet,
+      config.colHeaderRow,
+      config.colLabel,
+    );
+
+    amountValues.push(validationGetNormalizedValue_(config.sheet, row, col));
+
+    discountValues.push(
+      validationGetNormalizedValue_(
+        config.sheet,
+        row + config.discountOffset,
+        col,
+      ),
+    );
+  });
+
   return [
-    checkAmount.every((x, _, arr) => x === arr[0]),
-    checkDiscount.every((x, _, arr) => x === arr[0]),
+    validationAreAllValuesEqual_(amountValues),
+    validationAreAllValuesEqual_(discountValues),
   ];
 }
+
+/**
+ * 指定セルの値を取得し、空文字を0として丸めた数値を返す
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
+ * @param {number} row
+ * @param {number} col
+ * @returns {number}
+ */
+function validationGetNormalizedValue_(sheet, row, col) {
+  const value = sheet.getRange(row, col).getValue();
+  return value === "" ? 0 : Math.round(value);
+}
+
+/**
+ * 配列内の値がすべて同一か判定する
+ *
+ * @param {number[]} values
+ * @returns {boolean}
+ */
+function validationAreAllValuesEqual_(values) {
+  return values.every((v) => v === values[0]);
+}
+
 /**
  * Check that the total and the discounted total on each sheet from Setup to Closing are output correctly.
  * @param {string} The sheet name.
@@ -73,7 +111,7 @@ function checkAmountByYearSheet_(sheetName, discountRate) {
   const targetSheet = ss.getSheetByName(sheetName);
   const GetRowCol = new GetTargetRowCol();
   const sumRow = GetRowCol.getTargetRow(targetSheet, 2, ITEM_LABELS.SUM);
-  const sumCol = GetRowCol.getTargetCol(targetSheet, 4, ITEM_LABELS.AMMOUNT);
+  const sumCol = GetRowCol.getTargetCol(targetSheet, 4, ITEM_LABELS.AMOUNT);
   const sumValue = targetSheet.getRange(sumRow, sumCol).getValue();
   const discountValue = targetSheet.getRange(sumRow + 1, sumCol).getValue();
   const test1 = Math.trunc(sumValue * (1 - discountRate));
@@ -105,7 +143,7 @@ function compareTotalSheetTotaltoVerticalTotal_() {
   const amountColumnIndex = RowColResolver.getTargetCol(
     _cachedSheets.total,
     4,
-    ITEM_LABELS.AMMOUNT,
+    ITEM_LABELS.AMOUNT,
   );
   const totalValues = _cachedSheets.total.getDataRange().getValues();
 

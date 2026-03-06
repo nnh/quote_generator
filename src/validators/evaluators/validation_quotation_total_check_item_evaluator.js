@@ -17,7 +17,7 @@ function evaluateCheckItems_(params) {
     "Setup〜Closingシートの特別値引後合計のチェック",
   ];
   const checkQuoteSum_message = toStatusFromBooleanArray_(
-    checkQuoteSum_(),
+    validationCheckQuoteSum_(),
     VALIDATION_MESSAGES.VALUE_MISMATCH,
     "Quote, total, total2, total3の合計・特別値引後合計一致チェック",
   );
@@ -50,7 +50,7 @@ function evaluateCheckItems_(params) {
 }
 function evaluateItemChecks_(checkItems, target, columnValues) {
   return checkItems.map((item) =>
-    validateItemValue_(
+    validationValidateItemValue_(
       target.sheetName,
       target.array_item,
       target.footer,

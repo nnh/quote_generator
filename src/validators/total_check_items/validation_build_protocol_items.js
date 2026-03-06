@@ -23,7 +23,7 @@ function buildProtocolItems_(params) {
 
   items.push({
     itemname: "PMDA相談資料作成支援",
-    value: getValueIfMatch_(
+    value: validationGetValueIfMatch_(
       quotationRequestValidationContext.pmdaConsultingSupport,
       COMMON_EXISTENCE_LABELS.YES,
       1,
@@ -33,7 +33,7 @@ function buildProtocolItems_(params) {
 
   items.push({
     itemname: "AMED申請資料作成支援",
-    value: getValueIfMatch_(
+    value: validationGetValueIfMatch_(
       quotationRequestValidationContext.amedApplicationSupport,
       COMMON_EXISTENCE_LABELS.YES,
       1,
@@ -45,7 +45,7 @@ function buildProtocolItems_(params) {
 
   items.push({
     itemname: "キックオフミーティング準備・実行",
-    value: getValueIfMatch_(
+    value: validationGetValueIfMatch_(
       quotationRequestValidationContext.kickoffMeeting,
       COMMON_EXISTENCE_LABELS.YES,
       1,
@@ -55,7 +55,7 @@ function buildProtocolItems_(params) {
 
   items.push({
     itemname: "症例検討会準備・実行",
-    value: getValueIfMatch_(
+    value: validationGetValueIfMatch_(
       quotationRequestValidationContext.caseReviewMeeting,
       COMMON_EXISTENCE_LABELS.YES,
       1,
@@ -65,7 +65,7 @@ function buildProtocolItems_(params) {
 
   items.push({
     itemname: "薬剤対応",
-    value: getValueIfMatch_(
+    value: validationGetValueIfMatch_(
       quotationRequestValidationContext.trialType,
       TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED,
       facilities_value,
@@ -77,7 +77,7 @@ function buildProtocolItems_(params) {
 
   items.push({
     itemname: "監査対応",
-    value: getValueIfMatch_(
+    value: validationGetValueIfMatch_(
       quotationRequestValidationContext.trialType,
       TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED,
       1,
@@ -87,7 +87,7 @@ function buildProtocolItems_(params) {
 
   items.push({
     itemname: "SOP一式、CTR登録案、TMF管理",
-    value: getValueIfMatch_(
+    value: validationGetValueIfMatch_(
       quotationRequestValidationContext.trialType,
       TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED,
       1,
@@ -108,7 +108,7 @@ function buildProtocolItems_(params) {
 
   items.push({
     itemname: "特定臨床研究法申請資料作成支援",
-    value: getValueIfMatch_(
+    value: validationGetValueIfMatch_(
       quotationRequestValidationContext.trialType,
       TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL,
       facilities_value,
