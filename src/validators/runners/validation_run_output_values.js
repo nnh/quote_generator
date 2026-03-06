@@ -72,53 +72,9 @@ function check_output_values() {
   writeOutputValues_(updatedRow + 1, outputValues);
 }
 
-/** ====================================
- * サブ関数群
- * ==================================== */
-
-/** 試験月数をシートから取得 */
-function calculateTrialMonths_(row, col) {
-  const formulaTrialMonths = '=DATEDIF(C2,D2,"M") + IF(DAY(C2)<=DAY(D2),1,2)';
-  const checkSheet = _cachedSheets.check;
-  checkSheet.getRange(row, col).setFormula(formulaTrialMonths);
-  SpreadsheetApp.flush();
-  const COL_TRIAL_MONTHS = 5;
-  return checkSheet.getRange(row, COL_TRIAL_MONTHS).getValue();
-}
-
-/** targetTotalから中間解析・クロージング数を取得 */
-function getTargetCounts_(targetTotal) {
-  const interimCount = targetTotal.sheet
-    .getRange(
-      targetTotal.array_item["中間解析報告書作成（出力結果＋表紙）"],
-      targetTotal.col,
-    )
-    .getValue();
-  const closingCount = targetTotal.sheet
-    .getRange(
-      targetTotal.array_item["データベース固定作業、クロージング"],
-      targetTotal.col,
-    )
-    .getValue();
-  return { interimCount, closingCount };
-}
-
-/** 指定列の値を1次元配列で取得 */
-function getColumnValues_(sheet, col) {
-  return sheet.getRange(1, col, sheet.getLastRow(), 1).getValues().flat();
-}
-
 /** 出力値をシートに書き込む */
 function writeOutputValues_(startRow, outputValues) {
   _cachedSheets.check
     .getRange(startRow, 1, outputValues.length, outputValues[0].length)
     .setValues(outputValues);
-}
-
-/** 総チェック項目生成のラッパー */
-function buildAllCheckItems_(params) {
-  const totalCheckItems = buildTotalCheckItems_(params).totalCheckItems;
-  const totalAmountCheckItems =
-    buildTotalCheckItems_(params).totalAmountCheckItems;
-  return { totalCheckItems, totalAmountCheckItems };
 }

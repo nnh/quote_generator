@@ -144,3 +144,8 @@ class SetTestValues {
       .flat();
   }
 }
+
+/** 指定列の値を1次元配列で取得 */
+function getColumnValues_(sheet, col) {
+  return sheet.getRange(1, col, sheet.getLastRow(), 1).getValues().flat();
+}
