@@ -91,67 +91,64 @@ function validationGetNormalizedValue_(sheet, row, col) {
 }
 
 /**
- * 配列内の値がすべて同一か判定する
+ * 年度シート（Setup〜Closing）の「合計」と「特別値引後合計」が
+ * 正しく計算されているかを検証する。
  *
- * @param {number[]} values
- * @returns {boolean}
+ * 検証内容:
+ * - discountRate >= 0 または Trialフラグが空の場合
+ *   → 合計 × (1 - 割引率) と特別値引後合計が一致するかを確認
+ * - 上記以外の場合
+ *   → 特別値引後合計が空であることを確認
+ *
+ * @param {string} sheetName 対象シート名
+ * @param {number} discountRate 割引率
+ * @returns {boolean} 検証OKの場合 true、それ以外は false
  */
-function validationAreAllValuesEqual_(values) {
-  return values.every((v) => v === values[0]);
+function validationCheckAmountByYearSheet_(sheetName, discountRate) {
+  const sheet = getSpreadsheet_().getSheetByName(sheetName);
+
+  if (!sheet) {
+    throw new Error(`Sheet not found: ${sheetName}`);
+  }
+
+  const { sumValue, discountValue } = validationGetYearSheetTotals_(sheet);
+
+  const expectedDiscountTotal = Math.trunc(sumValue * (1 - discountRate));
+  const actualDiscountTotal = Math.trunc(discountValue);
+
+  const trialFlag = sheet.getRange("B2").getValue();
+
+  const shouldValidateDiscount = discountRate >= 0 || trialFlag === "";
+
+  if (shouldValidateDiscount) {
+    return expectedDiscountTotal === actualDiscountTotal;
+  }
+
+  return discountValue === "";
 }
 
 /**
- * Check that the total and the discounted total on each sheet from Setup to Closing are output correctly.
- * @param {string} The sheet name.
- * @param {number} Discount rate for Trial sheets.
- * @return {boolean} Return True if OK, False otherwise.
+ * Totalシートの合計金額と縦計の値を比較する。
+ *
+ * TotalシートのAMOUNT列の縦計と、合計行の金額を比較する。
+ *
+ * @returns {[string, string]}
+ *   [ステータス, メッセージ]
  */
-function checkAmountByYearSheet_(sheetName, discountRate) {
-  const ss = getSpreadsheet_();
-  const targetSheet = ss.getSheetByName(sheetName);
-  const GetRowCol = new GetTargetRowCol();
-  const sumRow = GetRowCol.getTargetRow(targetSheet, 2, ITEM_LABELS.SUM);
-  const sumCol = GetRowCol.getTargetCol(targetSheet, 4, ITEM_LABELS.AMOUNT);
-  const sumValue = targetSheet.getRange(sumRow, sumCol).getValue();
-  const discountValue = targetSheet.getRange(sumRow + 1, sumCol).getValue();
-  const test1 = Math.trunc(sumValue * (1 - discountRate));
-  const test2 = Math.trunc(discountValue);
-  const discountCheck =
-    discountRate >= 0 ||
-    ss
-      .getSheetByName(sheetName)
-      .getSheetByName(sheetName)
-      .getRange("B2")
-      .getValue() === ""
-      ? test1 === test2
-      : discountValue === "";
-  return discountCheck;
-}
+function validationCompareTotalSheetTotalToVerticalTotal_() {
+  const sheet = _cachedSheets.total;
+  const rowColResolver = new GetTargetRowCol();
 
-/**
- * Totalシートの合計金額と縦計の値を比較する
- *
- * Totalシートの指定列（AMOUNT列）の縦計の合計値と、合計行の金額を比較し、
- * 一致していれば「OK」、一致していなければNGメッセージを返す。
- *
- * @returns {Array} 配列 [ステータス, メッセージ]
- *   - ステータス: VALIDATION_STATUS.OK または buildNgMessage_で生成されたNGメッセージ
- *   - メッセージ: 縦計と合計金額の値を含む説明文字列
- */
-function compareTotalSheetTotaltoVerticalTotal_() {
-  const RowColResolver = new GetTargetRowCol();
-  const amountColumnIndex = RowColResolver.getTargetCol(
-    _cachedSheets.total,
+  const amountColumnIndex = rowColResolver.getTargetCol(
+    sheet,
     4,
     ITEM_LABELS.AMOUNT,
   );
-  const totalValues = _cachedSheets.total.getDataRange().getValues();
 
-  const TOTAL_LABEL = "　合計金額";
-  const toNumber = (v) => Number(v) || 0;
+  const values = sheet.getDataRange().getValues();
 
-  // 合計行を取得
-  const totalRow = totalValues.find((row) => row[1] === ITEM_LABELS.SUM);
+  const totalRow = values.find((row) => row[1] === ITEM_LABELS.SUM);
+
   if (!totalRow) {
     return [
       buildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH),
@@ -159,22 +156,22 @@ function compareTotalSheetTotaltoVerticalTotal_() {
     ];
   }
 
-  const totalAmountCellValue = totalRow[amountColumnIndex - 1];
+  const totalAmount = validationNormalizeValue_(
+    totalRow[amountColumnIndex - 1],
+  );
 
-  // 縦計の値を取得（空白・ラベル行除外）
-  const verticalTotal = totalValues
-    .filter(
-      (row) =>
-        row[amountColumnIndex] !== "" && row[amountColumnIndex] !== TOTAL_LABEL,
-    )
-    .map((row) => toNumber(row[amountColumnIndex]))
-    .reduce((sum, val) => sum + val, 0);
+  const verticalTotal = validationCalculateVerticalTotal_(
+    values,
+    amountColumnIndex,
+  );
+
+  const isValid = totalAmount === verticalTotal;
 
   return [
-    totalAmountCellValue === verticalTotal
+    isValid
       ? VALIDATION_STATUS.OK
       : buildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH),
-    `Totalシートの縦計と合計金額のチェック, 縦計: ${verticalTotal}, 合計金額: ${totalAmountCellValue}`,
+    `Totalシートの縦計と合計金額のチェック, 縦計: ${verticalTotal}, 合計金額: ${totalAmount}`,
   ];
 }
 

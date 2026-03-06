@@ -9,7 +9,7 @@ function checkDiscountByYearSheet_(targetSheetsName = null) {
     ? targetSheetsName
     : setVal.getTrialYearsItemsName();
   const res = target.map((x, idx) =>
-    checkAmountByYearSheet_(x, setVal.getDiscountRateValue(idx)),
+    validationCheckAmountByYearSheet_(x, setVal.getDiscountRateValue(idx)),
   );
   if (!res.every((x) => x)) {
     console.log("checkDiscountByYearSheet NG\n" + target + "\n" + res);

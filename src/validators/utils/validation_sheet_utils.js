@@ -204,3 +204,45 @@ function alignTotalCheckItemsToSheet_(totalCheckItems) {
 
   return alignedItems;
 }
+/**
+ * バリデーション用に数値を正規化する。
+ *
+ * - 空文字（""）は 0 として扱う
+ * - 数値は四捨五入して整数に変換する
+ *
+ * @param {*} value 正規化対象の値
+ * @returns {number} 正規化された数値
+ */
+function validationNormalizeValue_(value) {
+  return value === "" ? 0 : Math.round(value);
+}
+
+/**
+ * 配列内のすべての値が同一かどうかを判定する。
+ *
+ * @param {number[]} values 比較対象の数値配列
+ * @returns {boolean} すべて同じ値であれば true、それ以外は false
+ */
+function validationAreAllValuesEqual_(values) {
+  return values.every((v) => v === values[0]);
+}
+
+/**
+ * 年度シートから「合計」と「特別値引後合計」の値を取得する。
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet 対象のシート
+ * @returns {{sumValue:number, discountValue:number}}
+ *   - sumValue: 合計値
+ *   - discountValue: 特別値引後合計
+ */
+function validationGetYearSheetTotals_(sheet) {
+  const getRowCol = new GetTargetRowCol();
+
+  const sumRow = getRowCol.getTargetRow(sheet, 2, ITEM_LABELS.SUM);
+  const sumCol = getRowCol.getTargetCol(sheet, 4, ITEM_LABELS.AMOUNT);
+
+  const sumValue = sheet.getRange(sumRow, sumCol).getValue();
+  const discountValue = sheet.getRange(sumRow + 1, sumCol).getValue();
+
+  return { sumValue, discountValue };
+}
