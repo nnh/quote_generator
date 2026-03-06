@@ -1,11 +1,4 @@
 function buildTotalCheckItems_(params) {
-  const {
-    quotationRequestValidationContext: ctx,
-    facilities_value,
-    number_of_cases_value,
-    trial_year,
-  } = params;
-
   const totalCheckItems = [];
   const totalAmountCheckItems = [];
 
@@ -21,6 +14,7 @@ function buildTotalCheckItems_(params) {
   /** ==============================
    * Office / DM
    ============================== */
+  totalCheckItems.push(...buildQuotationOfficeOperationItems_(params));
   totalCheckItems.push(...buildOfficeOperationItems_(params));
 
   /** ==============================
@@ -31,65 +25,24 @@ function buildTotalCheckItems_(params) {
   /** ==============================
    * Audit
    ============================== */
-  totalCheckItems.push(
-    { itemname: "監査計画書作成", value: 0 },
-    { itemname: "施設監査", value: 0 },
-    { itemname: "監査報告書作成", value: 0 },
-  );
+  totalCheckItems.push(...buildAuditItems_());
 
   /** ==============================
-   * Trial Start Cost
+   * Research Funding
    ============================== */
-  totalCheckItems.push({
-    itemname: "試験開始準備費用",
-    value: getValueIfMatch_(
-      ctx.trialStartPreparationCost,
-      COMMON_EXISTENCE_LABELS.YES,
-      facilities_value,
-      0,
-    ),
-  });
-
-  /** ==============================
-   * Case Payment
-   ============================== */
-  totalCheckItems.push(
-    {
-      itemname: "症例登録",
-      value: getValueIfMatch_(
-        ctx.paymentPerEnrollment,
-        COMMON_EXISTENCE_LABELS.YES,
-        number_of_cases_value,
-        0,
-      ),
-    },
-    {
-      itemname: "症例報告",
-      value: getValueIfMatch_(
-        ctx.paymentPerFinalReport,
-        COMMON_EXISTENCE_LABELS.YES,
-        number_of_cases_value,
-        0,
-      ),
-    },
-  );
+  const costAndPayment = buildCostAndPaymentItems_(params);
+  totalCheckItems.push(...costAndPayment.checkItems);
+  totalAmountCheckItems.push(...costAndPayment.amountCheckItems);
 
   /** ==============================
    * Publication
    ============================== */
-  totalCheckItems.push(
-    { itemname: "国内学会発表", value: 0 },
-    { itemname: "国際学会発表", value: 0 },
-    { itemname: "論文作成", value: 0 },
-  );
+  totalCheckItems.push(...buildPublicationItems_());
 
   /** ==============================
    * Cost
    ============================== */
-  const costItems = buildCostItems_({
-    quotationRequestValidationContext: ctx,
-    trial_year,
-  });
+  const costItems = buildCostItems_(params);
 
   totalCheckItems.push(...costItems.totalCheckItems);
   totalAmountCheckItems.push(...costItems.totalAmountCheckItems);
@@ -97,53 +50,7 @@ function buildTotalCheckItems_(params) {
   /** ==============================
    * Other
    ============================== */
-  totalCheckItems.push({ itemname: "QOL調査", value: 0 });
-
-  /** ==============================
-   * Drug Handling
-   ============================== */
-  totalCheckItems.push(
-    {
-      itemname: "治験薬運搬",
-      value: getValueIfMatch_(
-        ctx.investigationalDrugTransportation,
-        COMMON_EXISTENCE_LABELS.YES,
-        facilities_value * trial_year,
-        0,
-      ),
-    },
-    {
-      itemname: "治験薬管理（中央）",
-      value: getValueIfMatch_(
-        ctx.investigationalDrugManagement,
-        COMMON_EXISTENCE_LABELS.YES,
-        1,
-        0,
-      ),
-    },
-  );
-
-  /** ==============================
-   * Misc
-   ============================== */
-  totalCheckItems.push(
-    { itemname: "翻訳", value: 0 },
-    { itemname: "CDISC対応費", value: 0 },
-    { itemname: "中央診断謝金", value: 0 },
-  );
-
-  /** ==============================
-   * Research Funding
-   ============================== */
-  const researchFundingAmount =
-    ctx.researchFundingManagement === COMMON_EXISTENCE_LABELS.YES
-      ? ctx.researchFunding
-      : 0;
-
-  totalAmountCheckItems.push({
-    itemname: "研究協力費",
-    value: researchFundingAmount,
-  });
+  totalCheckItems.push(...buildOtherItems_(params));
 
   return {
     totalCheckItems,
@@ -601,4 +508,236 @@ function buildCostItems_(params) {
     totalCheckItems,
     totalAmountCheckItems,
   };
+}
+
+/**
+ * モニタリング関連のチェック項目を作成する。
+ *
+ * 以下の3項目のチェックデータを作成して配列で返す。
+ * - モニタリング準備業務（関連資料作成）
+ * - 開始前モニタリング・必須文書確認
+ * - 症例モニタリング・SAE対応
+ *
+ * 戻り値は `totalCheckItems.push(...items)` のように
+ * そのまま展開して追加できる形式になっている。
+ *
+ * @param {Object} params
+ * @param {number} params.facilities_value 施設数
+ * @param {number} params.number_of_cases_value 症例数
+ * @param {number} params.trial_ceil_year 試験年数（切り上げ）
+ * @param {Object} params.quotationRequestValidationContext 見積依頼コンテキスト
+ * @param {number|string} params.quotationRequestValidationContext.monitoringVisitsPerCase 症例ごとのモニタリング回数
+ * @param {number|string} params.quotationRequestValidationContext.annualRequiredDocMonitoringPerSite 施設ごとの年間必須文書モニタリング回数
+ *
+ * @returns {{
+ *   itemname: string,
+ *   value: number
+ * }[]} モニタリング関連チェック項目配列
+ */
+function buildMonitoringItems_(params) {
+  const {
+    facilities_value,
+    number_of_cases_value,
+    trial_ceil_year,
+    quotationRequestValidationContext,
+  } = params;
+
+  const monitoringPreparationDocumentCreation_value =
+    quotationRequestValidationContext.monitoringVisitsPerCase > 0 ? 1 : 0;
+
+  const preStudyMonitoringAndEssentialDocumentReview_value =
+    quotationRequestValidationContext.annualRequiredDocMonitoringPerSite > 0
+      ? parseInt(
+          quotationRequestValidationContext.annualRequiredDocMonitoringPerSite,
+        ) *
+        facilities_value *
+        trial_ceil_year
+      : 0;
+
+  const caseMonitoringAndSAESupport_value =
+    quotationRequestValidationContext.monitoringVisitsPerCase > 0
+      ? parseInt(quotationRequestValidationContext.monitoringVisitsPerCase) *
+        number_of_cases_value
+      : 0;
+
+  return [
+    {
+      itemname: "モニタリング準備業務（関連資料作成）",
+      value: monitoringPreparationDocumentCreation_value,
+    },
+    {
+      itemname: "開始前モニタリング・必須文書確認",
+      value: preStudyMonitoringAndEssentialDocumentReview_value,
+    },
+    {
+      itemname: "症例モニタリング・SAE対応",
+      value: caseMonitoringAndSAESupport_value,
+    },
+  ];
+}
+function buildQuotationOfficeOperationItems_(params) {
+  const { setup_month, trial_months, quotationRequestValidationContext } =
+    params;
+  let office_bef_month = 0;
+  let office_count = 0;
+  let temp_value = 0;
+  if (
+    (quotationRequestValidationContext.trialType ===
+      TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED) |
+    (quotationRequestValidationContext.coordinatingOfficeSetup ===
+      COMMON_EXISTENCE_LABELS.YES) |
+    (quotationRequestValidationContext.fundingSource ===
+      QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL)
+  ) {
+    temp_value = trial_months;
+    office_count = 1;
+    office_bef_month = setup_month;
+  } else {
+    temp_value = 0;
+  }
+  return [
+    {
+      itemname: "事務局運営（試験開始後から試験終了まで）",
+      value: temp_value,
+    },
+    {
+      itemname: "事務局運営（試験開始前）",
+      value: office_bef_month,
+    },
+    {
+      itemname: "事務局運営（試験終了時）",
+      value: office_count,
+    },
+  ];
+}
+function buildAuditItems_() {
+  return [
+    { itemname: "監査計画書作成", value: 0 },
+    { itemname: "施設監査", value: 0 },
+    { itemname: "監査報告書作成", value: 0 },
+  ];
+}
+function buildPublicationItems_() {
+  return [
+    { itemname: "国内学会発表", value: 0 },
+    { itemname: "国際学会発表", value: 0 },
+    { itemname: "論文作成", value: 0 },
+  ];
+}
+/**
+ * その他関連のチェック項目を作成する
+ *
+ * 以下をまとめて生成する
+ * - QOL調査
+ * - 治験薬関連
+ * - Misc項目
+ *
+ * @param {Object} params
+ * @param {Object} params.quotationRequestValidationContext
+ * @param {number} params.facilities_value
+ * @param {number} params.trial_year
+ * @returns {Array<{itemname:string,value:number}>}
+ */
+function buildOtherItems_(params) {
+  const {
+    quotationRequestValidationContext: ctx,
+    facilities_value,
+    trial_year,
+  } = params;
+
+  return [
+    /** QOL */
+    { itemname: "QOL調査", value: 0 },
+
+    /** Drug Handling */
+    {
+      itemname: "治験薬運搬",
+      value: getValueIfMatch_(
+        ctx.investigationalDrugTransportation,
+        COMMON_EXISTENCE_LABELS.YES,
+        facilities_value * trial_year,
+        0,
+      ),
+    },
+    {
+      itemname: "治験薬管理（中央）",
+      value: getValueIfMatch_(
+        ctx.investigationalDrugManagement,
+        COMMON_EXISTENCE_LABELS.YES,
+        1,
+        0,
+      ),
+    },
+
+    /** Misc */
+    { itemname: "翻訳", value: 0 },
+    { itemname: "CDISC対応費", value: 0 },
+    { itemname: "中央診断謝金", value: 0 },
+  ];
+}
+/**
+ * 試験開始費用・症例関連費用・研究協力費をまとめて作成する
+ *
+ * @param {Object} params
+ * @param {Object} params.quotationRequestValidationContext
+ * @param {number} params.facilities_value
+ * @param {number} params.number_of_cases_value
+ * @param {number} params.trial_year
+ * @returns {{
+ *   checkItems: Array<{itemname:string,value:number}>,
+ *   amountCheckItems: Array<{itemname:string,value:number}>
+ * }}
+ */
+function buildCostAndPaymentItems_(params) {
+  const {
+    quotationRequestValidationContext: ctx,
+    facilities_value,
+    number_of_cases_value,
+  } = params;
+
+  const checkItems = [
+    /** Trial Start Cost */
+    {
+      itemname: "試験開始準備費用",
+      value: getValueIfMatch_(
+        ctx.trialStartPreparationCost,
+        COMMON_EXISTENCE_LABELS.YES,
+        facilities_value,
+        0,
+      ),
+    },
+
+    /** Case Payment */
+    {
+      itemname: "症例登録",
+      value: getValueIfMatch_(
+        ctx.paymentPerEnrollment,
+        COMMON_EXISTENCE_LABELS.YES,
+        number_of_cases_value,
+        0,
+      ),
+    },
+    {
+      itemname: "症例報告",
+      value: getValueIfMatch_(
+        ctx.paymentPerFinalReport,
+        COMMON_EXISTENCE_LABELS.YES,
+        number_of_cases_value,
+        0,
+      ),
+    },
+  ];
+
+  const amountCheckItems = [
+    /** Research Funding */
+    {
+      itemname: "研究協力費",
+      value:
+        ctx.researchFundingManagement === COMMON_EXISTENCE_LABELS.YES
+          ? ctx.researchFunding
+          : 0,
+    },
+  ];
+
+  return { checkItems, amountCheckItems };
 }

@@ -17,6 +17,9 @@ function test_validation_quotation_total_check_item_builder() {
   test_buildStatisticalItems_fullCombination_();
   test_buildCostItems_fullCombination_();
   test_buildMonitoringItems_fullCombination_();
+  test_buildQuotationOfficeOperationItems_();
+  test_buildOtherItems_();
+  test_buildCostAndPaymentItems_();
 }
 /**
  * buildProtocolItems_ の全組み合わせテスト
@@ -603,6 +606,244 @@ function test_buildMonitoringItems_fullCombination_() {
         JSON.stringify(expected),
         `monitoringVisitsPerCase=${monitoringVisitsPerCase}, annualRequiredDocMonitoringPerSite=${annualRequiredDocMonitoringPerSite}`,
       );
+    });
+  });
+}
+/**
+ * buildQuotationOfficeOperationItems_ の単体テスト
+ *
+ * trialType / coordinatingOfficeSetup / fundingSource の
+ * 組み合わせごとに事務局運営の計算結果が正しいかを確認する。
+ *
+ * 期待動作:
+ * 以下のいずれかを満たす場合に事務局運営が発生する
+ *  - 医師主導試験
+ *  - 事務局設置あり
+ *  - 資金源が企業
+ *
+ * 上記条件を満たす場合
+ *  - 試験中事務局運営 = trial_months
+ *  - 試験前事務局運営 = setup_month
+ *  - 試験終了時事務局運営 = 1
+ *
+ * それ以外
+ *  - 全て 0
+ */
+function test_buildQuotationOfficeOperationItems_() {
+  const setup_month = 6;
+  const trial_months = 12;
+
+  const trialTypes = getTrialTypeListForTest_();
+  const coordinatingOfficeSetupList = [
+    COMMON_EXISTENCE_LABELS.YES,
+    COMMON_EXISTENCE_LABELS.NO,
+  ];
+  const fundingSourceList = [
+    QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL,
+    "その他資金",
+  ];
+
+  trialTypes.forEach((trialType) => {
+    coordinatingOfficeSetupList.forEach((coordinatingOfficeSetup) => {
+      fundingSourceList.forEach((fundingSource) => {
+        const quotationRequestValidationContext = {
+          trialType,
+          coordinatingOfficeSetup,
+          fundingSource,
+        };
+
+        const params = {
+          setup_month,
+          trial_months,
+          quotationRequestValidationContext,
+        };
+
+        const actual = buildQuotationOfficeOperationItems_(params);
+
+        const shouldApply =
+          trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED ||
+          coordinatingOfficeSetup === COMMON_EXISTENCE_LABELS.YES ||
+          fundingSource === QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
+
+        const expected = shouldApply
+          ? [
+              {
+                itemname: "事務局運営（試験開始後から試験終了まで）",
+                value: trial_months,
+              },
+              {
+                itemname: "事務局運営（試験開始前）",
+                value: setup_month,
+              },
+              {
+                itemname: "事務局運営（試験終了時）",
+                value: 1,
+              },
+            ]
+          : [
+              {
+                itemname: "事務局運営（試験開始後から試験終了まで）",
+                value: 0,
+              },
+              {
+                itemname: "事務局運営（試験開始前）",
+                value: 0,
+              },
+              {
+                itemname: "事務局運営（試験終了時）",
+                value: 0,
+              },
+            ];
+
+        assertEquals_(
+          JSON.stringify(actual),
+          JSON.stringify(expected),
+          `trialType=${trialType}, coordinatingOfficeSetup=${coordinatingOfficeSetup}, fundingSource=${fundingSource}, expected=${JSON.stringify(
+            expected,
+          )}, actual=${JSON.stringify(actual)}`,
+        );
+      });
+    });
+  });
+}
+/**
+ * buildOtherItems_ の単体テスト
+ *
+ * QOL / 治験薬運搬・管理 / Misc の値が正しく計算されるか確認する
+ */
+function test_buildOtherItems_() {
+  const trialYearsList = [1, 2];
+  const facilitiesList = [0, 3];
+  const yesNoList = [COMMON_EXISTENCE_LABELS.YES, COMMON_EXISTENCE_LABELS.NO];
+
+  trialYearsList.forEach((trial_year) => {
+    facilitiesList.forEach((facilities_value) => {
+      yesNoList.forEach((drugTransport) => {
+        yesNoList.forEach((drugManage) => {
+          const ctx = {
+            investigationalDrugTransportation: drugTransport,
+            investigationalDrugManagement: drugManage,
+          };
+          const params = {
+            quotationRequestValidationContext: ctx,
+            facilities_value,
+            trial_year,
+          };
+
+          const actual = buildOtherItems_(params);
+
+          const expected = [
+            { itemname: "QOL調査", value: 0 },
+            {
+              itemname: "治験薬運搬",
+              value:
+                drugTransport === COMMON_EXISTENCE_LABELS.YES
+                  ? facilities_value * trial_year
+                  : 0,
+            },
+            {
+              itemname: "治験薬管理（中央）",
+              value: drugManage === COMMON_EXISTENCE_LABELS.YES ? 1 : 0,
+            },
+            { itemname: "翻訳", value: 0 },
+            { itemname: "CDISC対応費", value: 0 },
+            { itemname: "中央診断謝金", value: 0 },
+          ];
+
+          assertEquals_(
+            JSON.stringify(actual),
+            JSON.stringify(expected),
+            `facilities=${facilities_value}, trial_year=${trial_year}, drugTransport=${drugTransport}, drugManage=${drugManage}, expected=${JSON.stringify(expected)}, actual=${JSON.stringify(actual)}`,
+          );
+        });
+      });
+    });
+  });
+}
+/**
+ * buildCostAndPaymentItems_ の単体テスト
+ *
+ * 試験開始費用・症例登録・症例報告・研究協力費が正しく計算されるか確認する
+ */
+function test_buildCostAndPaymentItems_() {
+  const facilitiesList = [0, 3];
+  const numberOfCasesList = [0, 10];
+  const yesNoList = [COMMON_EXISTENCE_LABELS.YES, COMMON_EXISTENCE_LABELS.NO];
+  const researchFundingList = [0, 100000];
+
+  facilitiesList.forEach((facilities_value) => {
+    numberOfCasesList.forEach((number_of_cases_value) => {
+      yesNoList.forEach((trialStartCost) => {
+        yesNoList.forEach((paymentEnrollment) => {
+          yesNoList.forEach((paymentFinalReport) => {
+            yesNoList.forEach((researchFundingManagement) => {
+              researchFundingList.forEach((researchFunding) => {
+                const ctx = {
+                  trialStartPreparationCost: trialStartCost,
+                  paymentPerEnrollment: paymentEnrollment,
+                  paymentPerFinalReport: paymentFinalReport,
+                  researchFundingManagement,
+                  researchFunding,
+                };
+
+                const params = {
+                  quotationRequestValidationContext: ctx,
+                  facilities_value,
+                  number_of_cases_value,
+                };
+
+                const actual = buildCostAndPaymentItems_(params);
+
+                const expectedCheckItems = [
+                  {
+                    itemname: "試験開始準備費用",
+                    value:
+                      trialStartCost === COMMON_EXISTENCE_LABELS.YES
+                        ? facilities_value
+                        : 0,
+                  },
+                  {
+                    itemname: "症例登録",
+                    value:
+                      paymentEnrollment === COMMON_EXISTENCE_LABELS.YES
+                        ? number_of_cases_value
+                        : 0,
+                  },
+                  {
+                    itemname: "症例報告",
+                    value:
+                      paymentFinalReport === COMMON_EXISTENCE_LABELS.YES
+                        ? number_of_cases_value
+                        : 0,
+                  },
+                ];
+
+                const expectedAmountCheckItems = [
+                  {
+                    itemname: "研究協力費",
+                    value:
+                      researchFundingManagement === COMMON_EXISTENCE_LABELS.YES
+                        ? researchFunding
+                        : 0,
+                  },
+                ];
+
+                assertEquals_(
+                  JSON.stringify(actual.checkItems),
+                  JSON.stringify(expectedCheckItems),
+                  `facilities=${facilities_value}, number_of_cases=${number_of_cases_value}, trialStartCost=${trialStartCost}, paymentEnrollment=${paymentEnrollment}, paymentFinalReport=${paymentFinalReport}, expected=${JSON.stringify(expectedCheckItems)}, actual=${JSON.stringify(actual.checkItems)}`,
+                );
+
+                assertEquals_(
+                  JSON.stringify(actual.amountCheckItems),
+                  JSON.stringify(expectedAmountCheckItems),
+                  `researchFundingManagement=${researchFundingManagement}, researchFunding=${researchFunding}, expected=${JSON.stringify(expectedAmountCheckItems)}, actual=${JSON.stringify(actual.amountCheckItems)}`,
+                );
+              });
+            });
+          });
+        });
+      });
     });
   });
 }
