@@ -1,61 +1,36 @@
 /**
- * 指定列から一致する文字列の行インデックスを取得する（0-based）
+ * 配列内から指定した文字列の行インデックスを取得する（0-based）
  *
- * @param {GoogleAppsScript.Spreadsheet.Sheet} targetSheet 対象シート
- * @param {number} targetIdx 検索対象列インデックス（0-based）
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet 対象シート
+ * @param {number} columnIndex 検索対象列インデックス（0-based）
  * @param {string} targetStr 検索する文字列
  * @returns {number} 行インデックス（0-based）。見つからない場合は -1
  */
-function test_validationGetTargetRowIndex_(targetSheet, targetIdx, targetStr) {
-  const values = targetSheet.getDataRange().getValues();
-  const targetColumnValues = values.map((row) => row[targetIdx]).flat();
-  const res = validationGetTargetRowIndex_(targetColumnValues, targetStr);
-  return res;
-}
-function validationGetTargetRowIndex_(values, targetStr) {
-  const rowIndex = values.indexOf(targetStr);
+function validationGetTargetRowIndex_(sheet, columnIndex, targetStr) {
+  const values = sheet.getDataRange().getValues();
+  const rowIndex = values.findIndex((row) => row[columnIndex] === targetStr);
   return rowIndex;
 }
 /**
  * 指定列から一致する文字列の行番号を取得する（1-based）
  *
- * @param {GoogleAppsScript.Spreadsheet.Sheet} targetSheet 対象シート
- * @param {number} targetColNumber 検索対象列番号（1-based）
+ * 指定列の中から targetStr を検索し、最初に一致した行番号を返す。
+ * 見つからない場合は 0 を返す。
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet 対象シート
+ * @param {number} columnNumber 検索対象列番号（1-based）
  * @param {string} targetStr 検索する文字列
  * @returns {number} 行番号（1-based）。見つからない場合は 0
  */
-function validationGetTargetRow_(targetSheet, targetColNumber, targetStr) {
-  const rowIndex = test_validationGetTargetRowIndex_(
-    targetSheet,
-    targetColNumber - 1,
-    targetStr,
-  );
-  return rowIndex + 1;
-}
-function test_validationGetTargetRow_(targetSheet, targetColNumber, targetStr) {
-  const rowIndex = test_validationGetTargetRowIndex_(
-    targetSheet,
-    targetColNumber - 1,
-    targetStr,
-  );
-  return rowIndex + 1;
+function validationGetTargetRowNumber_(sheet, columnNumber, targetStr) {
+  const values = sheet.getDataRange().getValues();
+  const columnIndex = columnNumber - 1;
+
+  const rowIndex = values.findIndex((row) => row[columnIndex] === targetStr);
+
+  return rowIndex === -1 ? 0 : rowIndex + 1;
 }
 
-/**
- * 指定行から一致する文字列の列インデックスを取得する（0-based）
- *
- * @param {GoogleAppsScript.Spreadsheet.Sheet} targetSheet 対象シート
- * @param {number} targetIdx 検索対象行インデックス（0-based）
- * @param {string} targetStr 検索する文字列
- * @returns {number} 列インデックス（0-based）。見つからない場合は -1
- */
-/*
-function testvalidationGetTargetColIndex_(targetSheet, targetIdx, targetStr) {
-  const values = targetSheet.getDataRange().getValues();
-  const row = values[targetIdx];
-  const res = validationGetTargetColIndex_(row, targetStr);
-  return res;
-}*/
 /**
  * 配列内から指定した文字列のインデックスを取得する。
  *
@@ -104,28 +79,6 @@ function validationGetRowValuesAsStrings_(sheet, rowNumber) {
     .map((v) => String(v));
 }
 
-/**
- * 指定行から一致する文字列の列番号を取得する（1-based）
- *
- * @param {GoogleAppsScript.Spreadsheet.Sheet} targetSheet 対象シート
- * @param {number} targetRowNumber 検索対象行番号（1-based）
- * @param {string} targetStr 検索する文字列
- * @returns {number} 列番号（1-based）。見つからない場合は 0
- */
-/*
-function test_validationGetTargetColNumber_(
-  targetSheet,
-  targetRowNumber,
-  targetStr,
-) {
-  const colIndex = validationGetTargetColIndex_(
-    targetSheet,
-    targetRowNumber,
-    targetStr,
-  );
-  return colIndex + 1;
-}
-*/
 /**
  * Set, delete, and retrieve values for testing.
  */
@@ -330,7 +283,7 @@ function validationAreAllValuesEqual_(values) {
  *   - discountValue: 特別値引後合計
  */
 function validationGetYearSheetTotals_(sheet) {
-  const sumRow = test_validationGetTargetRow_(sheet, 2, ITEM_LABELS.SUM);
+  const sumRow = validationGetTargetRowNumber_(sheet, 2, ITEM_LABELS.SUM);
   const targetRowValues = validationGetRowValuesAsStrings_(sheet, 4);
   const sumCol = validationGetTargetColNumber_(
     targetRowValues,

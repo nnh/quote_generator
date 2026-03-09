@@ -46,7 +46,7 @@ function validationCheckQuoteSum_() {
   const discountValues = [];
 
   sheetConfigs.forEach((config) => {
-    const row = test_validationGetTargetRow_(
+    const row = validationGetTargetRowNumber_(
       config.sheet,
       config.rowHeaderRow,
       config.rowLabel,
@@ -226,7 +226,7 @@ class CompareTotal2Total3Sheet {
    * @param {Object} targetData チェック対象シート情報
    * @param {string} rowLabel 行ラベル
    * @param {string} colLabel 列ラベル
-   * @returns {{row:number, col:number}} 行番号・列番号
+   * @returns {{rowIndex:number, colIndex:number}} 行インデックス・列インデックス
    */
   getRowCol(targetData, rowLabel, colLabel) {
     const targetRowValues = validationGetRowValuesAsStrings_(
@@ -234,11 +234,7 @@ class CompareTotal2Total3Sheet {
       targetData.termRowNumber,
     );
     return {
-      rowIndex: test_validationGetTargetRowIndex_(
-        targetData.sheet,
-        1,
-        rowLabel,
-      ),
+      rowIndex: validationGetTargetRowIndex_(targetData.sheet, 1, rowLabel),
       colIndex: validationGetTargetColIndex_(targetRowValues, colLabel),
     };
   }
