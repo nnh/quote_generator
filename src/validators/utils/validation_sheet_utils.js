@@ -294,7 +294,7 @@ function validationAreAllValuesEqual_(values) {
  *   - discountValue: 特別値引後合計
  */
 function validationGetYearSheetTotals_(sheet) {
-  const targetValues = sheet.getDataRange().getValues();
+  const targetValues = validationGetSheetValues_(sheet, sheet.getLastColumn());
   const targetColIndex = 1;
   const sumRowIndex = validationFindRowIndex_(
     targetValues,

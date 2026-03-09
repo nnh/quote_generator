@@ -46,7 +46,10 @@ function validationCheckQuoteSum_() {
   const discountValues = [];
 
   sheetConfigs.forEach((config) => {
-    const targetValues = config.sheet.getDataRange().getValues();
+    const targetValues = validationGetSheetValues_(
+      config.sheet,
+      config.sheet.getLastColumn(),
+    );
     const rowIndex = validationFindRowIndex_(
       targetValues,
       config.rowHeaderIndex,
@@ -127,7 +130,7 @@ function validationCheckAmountByYearSheet_(sheetName, discountRate) {
  */
 function validationCompareTotalSheetTotalToVerticalTotal_() {
   const sheet = _cachedSheets.total;
-  const targetValues = sheet.getDataRange().getValues();
+  const targetValues = validationGetSheetValues_(sheet, sheet.getLastColumn());
   const targetRowIndex = 3;
 
   // 金額の列のインデックスを取得する
@@ -184,28 +187,31 @@ class CompareTotal2Total3Sheet {
 
     /** チェック対象シート情報 */
     this.targetSheets = [
-      { sheet: _cachedSheets.total2, termRowNumber: 4 },
-      { sheet: _cachedSheets.total3, termRowNumber: 3 },
+      { sheet: _cachedSheets.total2, termRowIndex: 3 },
+      { sheet: _cachedSheets.total3, termRowIndex: 2 },
     ];
 
     /** シートデータを加工したオブジェクト */
     this.targets = this.targetSheets.map((info) => ({
       sheet: info.sheet,
-      termRowNumber: info.termRowNumber,
+      termRowIndex: info.termRowIndex,
       setupStartColIdx: 3,
-      totalValues: info.sheet.getDataRange().getValues(),
+      totalValues: validationGetSheetValues_(
+        info.sheet,
+        info.sheet.getLastColumn(),
+      ),
     }));
   }
 
   /**
    * 指定セル範囲の縦計または横計を計算
    * @param {Object} targetData チェック対象シート情報
-   * @param {number} rowIndex 対象行番号
-   * @param {number} colIndex 対象列番号
+   * @param {number} rowIndex 対象行インデックス（0-based）
+   * @param {number} colIndex 対象列インデックス（0-based）
    * @param {"horizontal"|"vertical"} direction 計算方向
    * @returns {number} 合計値
    */
-  getSum(targetData, rowIndex, colIndex, direction = "horizontal") {
+  sumUntilCell(targetData, rowIndex, colIndex, direction = "horizontal") {
     if (direction === "horizontal") {
       return targetData.totalValues[rowIndex]
         .slice(targetData.setupStartColIdx, colIndex)
@@ -226,13 +232,16 @@ class CompareTotal2Total3Sheet {
    * @param {string} colLabel 列ラベル
    * @returns {{rowIndex:number, colIndex:number}} 行インデックス・列インデックス
    */
-  getRowCol(targetData, rowLabel, colLabel) {
-    const targetValues = targetData.sheet.getDataRange().getValues();
+  findRowColIndex(targetData, rowLabel, colLabel) {
+    const targetValues = validationGetSheetValues_(
+      targetData.sheet,
+      targetData.sheet.getLastColumn(),
+    );
     return {
       rowIndex: validationFindRowIndex_(targetValues, 1, rowLabel),
       colIndex: validationFindColIndex_(
         targetValues,
-        targetData.termRowNumber - 1,
+        targetData.termRowIndex,
         colLabel,
       ),
     };
@@ -246,14 +255,23 @@ class CompareTotal2Total3Sheet {
    */
   compareTotalsExact(rowLabel = ITEM_LABELS.SUM, colLabel = ITEM_LABELS.SUM) {
     const results = this.targets.map((target) => {
-      const { rowIndex, colIndex } = this.getRowCol(target, rowLabel, colLabel);
-      const horizontalTotal = this.getSum(
+      const { rowIndex, colIndex } = this.findRowColIndex(
+        target,
+        rowLabel,
+        colLabel,
+      );
+      const horizontalTotal = this.sumUntilCell(
         target,
         rowIndex,
         colIndex,
         "horizontal",
       );
-      const verticalTotal = this.getSum(target, rowIndex, colIndex, "vertical");
+      const verticalTotal = this.sumUntilCell(
+        target,
+        rowIndex,
+        colIndex,
+        "vertical",
+      );
       return horizontalTotal === verticalTotal;
     });
 
@@ -270,26 +288,26 @@ class CompareTotal2Total3Sheet {
    */
   compareTotalsWithDiscount() {
     return this.targets.map((target) => {
-      const sumRowCol = this.getRowCol(
+      const sumRowCol = this.findRowColIndex(
         target,
         ITEM_LABELS.SUM,
         ITEM_LABELS.SUM,
       );
-      const discountRowCol = this.getRowCol(
+      const discountRowCol = this.findRowColIndex(
         target,
         "特別値引後合計",
         ITEM_LABELS.SUM,
       );
 
       const verticalTotal =
-        this.getSum(
+        this.sumUntilCell(
           target,
           sumRowCol.rowIndex,
           sumRowCol.colIndex,
           "vertical",
         ) *
         (1 - this.discountRate);
-      const horizontalTotal = this.getSum(
+      const horizontalTotal = this.sumUntilCell(
         target,
         discountRowCol.rowIndex,
         discountRowCol.colIndex,
