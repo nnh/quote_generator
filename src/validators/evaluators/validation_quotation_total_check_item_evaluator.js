@@ -25,9 +25,9 @@ function evaluateCheckItems_(params) {
   const crossSheetValidationRows = [
     discount_byYear_message,
     validationCompareTotalSheetTotalToVerticalTotal_(),
-    compareTotal2Total3SheetVerticalTotalToHorizontalTotal_(),
+    total2Total3ValidatorVerticalTotalToHorizontalTotal_(),
     checkQuoteSum_message,
-    compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_(),
+    total2Total3ValidatorVerticalTotalToHorizontalDiscountTotal_(),
   ];
 
   const totalValidationRows = evaluateItemChecks_(

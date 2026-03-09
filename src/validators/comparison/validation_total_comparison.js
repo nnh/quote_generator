@@ -178,22 +178,19 @@ function validationCompareTotalSheetTotalToVerticalTotal_() {
 /**
  * Total2/Total3シートの縦計と横計を比較するクラス
  */
-class CompareTotal2Total3Sheet {
+class Total2Total3Validator {
   constructor() {
     /** 全体の割引率（TrialシートB47） */
     this.discountRate = _cachedSheets.trial.getRange("B47").getValue();
 
-    /** チェック対象シート情報 */
-    this.targetSheets = [
+    const SETUP_START_COL_INDEX = 3;
+
+    this.targets = [
       { sheet: _cachedSheets.total2, termRowIndex: 3 },
       { sheet: _cachedSheets.total3, termRowIndex: 2 },
-    ];
-
-    /** シートデータを加工したオブジェクト */
-    this.targets = this.targetSheets.map((info) => ({
-      sheet: info.sheet,
-      termRowIndex: info.termRowIndex,
-      setupStartColIdx: 3,
+    ].map((info) => ({
+      ...info,
+      setupStartColIdx: SETUP_START_COL_INDEX,
       totalValues: validationGetSheetValues_(
         info.sheet,
         info.sheet.getLastColumn(),
@@ -250,36 +247,33 @@ class CompareTotal2Total3Sheet {
     };
   }
 
-  /**
-   * 縦計と横計を誤差なしで比較
-   * @param {string} rowLabel 行ラベル
-   * @param {string} colLabel 列ラベル
-   * @returns {Array} ["OK"/"NG", チェック説明]
-   */
-  compareTotalsExact(
-    rowLabel = VALIDATION_LABELS.SUM,
-    colLabel = VALIDATION_LABELS.SUM,
-  ) {
-    const results = this.targets.map((target) => {
-      const { rowIndex, colIndex } = this.findRowColIndex(
-        target,
-        rowLabel,
-        colLabel,
-      );
-      const horizontalTotal = this.sumUntilCell(
-        target,
-        rowIndex,
-        colIndex,
-        VALIDATION_SUM_DIRECTION.HORIZONTAL,
-      );
-      const verticalTotal = this.sumUntilCell(
-        target,
-        rowIndex,
-        colIndex,
-        VALIDATION_SUM_DIRECTION.VERTICAL,
-      );
-      return horizontalTotal === verticalTotal;
-    });
+  compareSheetTotalsExact(target, rowLabel, colLabel) {
+    const { rowIndex, colIndex } = this.findRowColIndex(
+      target,
+      rowLabel,
+      colLabel,
+    );
+
+    const horizontalTotal = this.sumUntilCell(
+      target,
+      rowIndex,
+      colIndex,
+      VALIDATION_SUM_DIRECTION.HORIZONTAL,
+    );
+
+    const verticalTotal = this.sumUntilCell(
+      target,
+      rowIndex,
+      colIndex,
+      VALIDATION_SUM_DIRECTION.VERTICAL,
+    );
+
+    return horizontalTotal === verticalTotal;
+  }
+  validateTotalsExact(rowLabel = ITEM_LABELS.SUM, colLabel = ITEM_LABELS.SUM) {
+    const results = this.targets.map((target) =>
+      this.compareSheetTotalsExact(target, rowLabel, colLabel),
+    );
 
     return toStatusFromBooleanArray_(
       results,
@@ -292,7 +286,7 @@ class CompareTotal2Total3Sheet {
    * 割引後の横計と縦計×(1-割引率)を比較（誤差±1円）
    * @returns {boolean[]} 比較結果（true: 許容範囲内）
    */
-  compareTotalsWithDiscount() {
+  validateTotalsWithDiscount() {
     return this.targets.map((target) => {
       const sumRowCol = this.findRowColIndex(
         target,
@@ -329,18 +323,18 @@ class CompareTotal2Total3Sheet {
  * Total2, Total3の縦計と横計をチェック（誤差なし）
  * @returns {Array} ["OK"/"NG", チェック説明]
  */
-function compareTotal2Total3SheetVerticalTotalToHorizontalTotal_() {
-  const comparator = new CompareTotal2Total3Sheet();
-  return comparator.compareTotalsExact();
+function total2Total3ValidatorVerticalTotalToHorizontalTotal_() {
+  const comparator = new Total2Total3Validator();
+  return comparator.validateTotalsExact();
 }
 
 /**
  * Total2, Total3の縦計×特別値引率と特別値引後横計をチェック（誤差±1円）
  * @returns {Array} ["OK"/"NG", チェック説明]
  */
-function compareTotal2Total3SheetVerticalTotalToHorizontalDiscountTotal_() {
-  const comparator = new CompareTotal2Total3Sheet();
-  const discountResults = comparator.compareTotalsWithDiscount();
+function total2Total3ValidatorVerticalTotalToHorizontalDiscountTotal_() {
+  const comparator = new Total2Total3Validator();
+  const discountResults = comparator.validateTotalsWithDiscount();
   return toStatusFromBooleanArray_(
     discountResults,
     VALIDATION_MESSAGES.TOTAL_MISMATCH,
