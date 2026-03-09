@@ -10,33 +10,33 @@ function validationCheckQuoteSum_() {
   const sheetConfigs = [
     {
       sheet: _cachedSheets.quote,
-      rowHeaderRow: 3,
+      rowHeaderIndex: 2, // 3行目
       rowLabel: "小計",
-      colHeaderRow: 11,
+      colHeaderIndex: 10, // 11行目
       colLabel: ITEM_LABELS.AMOUNT,
       discountOffset: 2,
     },
     {
       sheet: _cachedSheets.total,
-      rowHeaderRow: 2,
+      rowHeaderIndex: 1, // 2行目
       rowLabel: ITEM_LABELS.SUM,
-      colHeaderRow: 4,
+      colHeaderIndex: 3, // 4行目
       colLabel: ITEM_LABELS.AMOUNT,
       discountOffset: 1,
     },
     {
       sheet: _cachedSheets.total2,
-      rowHeaderRow: 2,
+      rowHeaderIndex: 1,
       rowLabel: ITEM_LABELS.SUM,
-      colHeaderRow: 4,
+      colHeaderIndex: 3,
       colLabel: ITEM_LABELS.SUM,
       discountOffset: 1,
     },
     {
       sheet: _cachedSheets.total3,
-      rowHeaderRow: 2,
+      rowHeaderIndex: 1,
       rowLabel: ITEM_LABELS.SUM,
-      colHeaderRow: 3,
+      colHeaderIndex: 2, // 3行目
       colLabel: ITEM_LABELS.SUM,
       discountOffset: 1,
     },
@@ -46,28 +46,22 @@ function validationCheckQuoteSum_() {
   const discountValues = [];
 
   sheetConfigs.forEach((config) => {
-    const rowNumber = validationFindRowNumber_(
-      config.sheet.getDataRange().getValues(),
-      config.rowHeaderRow,
+    const targetValues = config.sheet.getDataRange().getValues();
+    const rowIndex = validationFindRowIndex_(
+      targetValues,
+      config.rowHeaderIndex,
       config.rowLabel,
     );
-    const colNumber = validationFindColNumber_(
-      config.sheet.getDataRange().getValues(),
-      config.colHeaderRow,
+    const colIndex = validationFindColIndex_(
+      targetValues,
+      config.colHeaderIndex,
       config.colLabel,
     );
-
-    amountValues.push(
-      validationGetNormalizedValue_(config.sheet, rowNumber, colNumber),
-    );
-
-    discountValues.push(
-      validationGetNormalizedValue_(
-        config.sheet,
-        rowNumber + config.discountOffset,
-        colNumber,
-      ),
-    );
+    const amountCellValue = targetValues[rowIndex][colIndex];
+    const discountCellValue =
+      targetValues[rowIndex + config.discountOffset][colIndex];
+    amountValues.push(validationGetNormalizedValue_(amountCellValue));
+    discountValues.push(validationGetNormalizedValue_(discountCellValue));
   });
 
   return [
@@ -79,13 +73,10 @@ function validationCheckQuoteSum_() {
 /**
  * 指定セルの値を取得し、空文字を0として丸めた数値を返す
  *
- * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
- * @param {number} row
- * @param {number} col
+ * @param {string|number} value セルの値
  * @returns {number}
  */
-function validationGetNormalizedValue_(sheet, row, col) {
-  const value = sheet.getRange(row, col).getValue();
+function validationGetNormalizedValue_(value) {
   return value === "" ? 0 : Math.round(value);
 }
 

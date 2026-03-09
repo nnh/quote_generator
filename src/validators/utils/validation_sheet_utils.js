@@ -29,18 +29,7 @@ function validationFindIndex_(values, direction, index, targetStr) {
 function validationFindRowIndex_(values, columnIndex, targetStr) {
   return validationFindIndex_(values, "col", columnIndex, targetStr);
 }
-/**
- * 指定列から一致する文字列の行番号を取得する（1-based）
- *
- * @param {Array<Array<*>>} values シートの全データ
- * @param {number} columnNumber 検索対象列番号（1-based）
- * @param {string} targetStr 検索する文字列
- * @returns {number} 行番号（1-based）。見つからない場合は 0
- */
-function validationFindRowNumber_(values, columnNumber, targetStr) {
-  const rowIndex = validationFindRowIndex_(values, columnNumber - 1, targetStr);
-  return rowIndex === -1 ? 0 : rowIndex + 1;
-}
+
 /**
  * 指定行から一致する文字列の列インデックスを取得する（0-based）
  *
@@ -51,18 +40,6 @@ function validationFindRowNumber_(values, columnNumber, targetStr) {
  */
 function validationFindColIndex_(values, rowIndex, targetStr) {
   return validationFindIndex_(values, "row", rowIndex, targetStr);
-}
-/**
- * 指定行から一致する文字列の列番号を取得する（1-based）
- *
- * @param {Array<Array<*>>} values シートの全データ
- * @param {number} rowNumber 検索対象行番号（1-based）
- * @param {string} targetStr 検索する文字列
- * @returns {number} 列番号（1-based）。見つからない場合は 0
- */
-function validationFindColNumber_(values, rowNumber, targetStr) {
-  const colIndex = validationFindColIndex_(values, rowNumber - 1, targetStr);
-  return colIndex === -1 ? 0 : colIndex + 1;
 }
 
 /**
@@ -318,22 +295,20 @@ function validationAreAllValuesEqual_(values) {
  */
 function validationGetYearSheetTotals_(sheet) {
   const targetValues = sheet.getDataRange().getValues();
-  const sumRowNumber = validationFindRowNumber_(
+  const targetColIndex = 1;
+  const sumRowIndex = validationFindRowIndex_(
     targetValues,
-    2,
+    targetColIndex,
     ITEM_LABELS.SUM,
   );
-  const targetRowNumber = 4;
-  const sumColNumber = validationFindColNumber_(
+  const targetRowIndex = 3;
+  const sumColIndex = validationFindColIndex_(
     targetValues,
-    targetRowNumber,
+    targetRowIndex,
     ITEM_LABELS.AMOUNT,
   );
-
-  const sumValue = sheet.getRange(sumRowNumber, sumColNumber).getValue();
-  const discountValue = sheet
-    .getRange(sumRowNumber + 1, sumColNumber)
-    .getValue();
+  const sumValue = targetValues[sumRowIndex][sumColIndex];
+  const discountValue = targetValues[sumRowIndex + 1][sumColIndex];
 
   return { sumValue, discountValue };
 }
