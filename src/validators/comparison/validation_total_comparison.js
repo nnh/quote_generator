@@ -13,31 +13,31 @@ function validationCheckQuoteSum_() {
       rowHeaderIndex: 2, // 3行目
       rowLabel: "小計",
       colHeaderIndex: 10, // 11行目
-      colLabel: ITEM_LABELS.AMOUNT,
+      colLabel: VALIDATION_LABELS.AMOUNT,
       discountOffset: 2,
     },
     {
       sheet: _cachedSheets.total,
       rowHeaderIndex: 1, // 2行目
-      rowLabel: ITEM_LABELS.SUM,
+      rowLabel: VALIDATION_LABELS.SUM,
       colHeaderIndex: 3, // 4行目
-      colLabel: ITEM_LABELS.AMOUNT,
+      colLabel: VALIDATION_LABELS.AMOUNT,
       discountOffset: 1,
     },
     {
       sheet: _cachedSheets.total2,
       rowHeaderIndex: 1,
-      rowLabel: ITEM_LABELS.SUM,
+      rowLabel: VALIDATION_LABELS.SUM,
       colHeaderIndex: 3,
-      colLabel: ITEM_LABELS.SUM,
+      colLabel: VALIDATION_LABELS.SUM,
       discountOffset: 1,
     },
     {
       sheet: _cachedSheets.total3,
       rowHeaderIndex: 1,
-      rowLabel: ITEM_LABELS.SUM,
+      rowLabel: VALIDATION_LABELS.SUM,
       colHeaderIndex: 2, // 3行目
-      colLabel: ITEM_LABELS.SUM,
+      colLabel: VALIDATION_LABELS.SUM,
       discountOffset: 1,
     },
   ];
@@ -130,27 +130,25 @@ function validationCheckAmountByYearSheet_(sheetName, discountRate) {
  */
 function validationCompareTotalSheetTotalToVerticalTotal_() {
   const sheet = _cachedSheets.total;
-  const targetValues = validationGetSheetValues_(sheet, sheet.getLastColumn());
+  const values = validationGetSheetValues_(sheet, sheet.getLastColumn());
   const targetRowIndex = 3;
 
   // 金額の列のインデックスを取得する
   const amountColumnIndex = validationFindColIndex_(
-    targetValues,
+    values,
     targetRowIndex,
-    ITEM_LABELS.AMOUNT,
+    VALIDATION_LABELS.AMOUNT,
   );
 
   // 合計金額の列のインデックスを取得する
-  const TOTAL_LABEL = "　合計金額";
+  const TOTAL_LABEL = VALIDATION_LABELS.TOTAL_AMOUNT;
   const totalColumnIndex = validationFindColIndex_(
-    targetValues,
+    values,
     targetRowIndex,
     TOTAL_LABEL,
   );
 
-  const values = validationGetSheetValues_(sheet, sheet.getLastColumn());
-
-  const totalRow = values.find((row) => row[1] === ITEM_LABELS.SUM);
+  const totalRow = values.find((row) => row[1] === VALIDATION_LABELS.SUM);
 
   if (!totalRow) {
     return [
@@ -211,18 +209,26 @@ class CompareTotal2Total3Sheet {
    * @param {"horizontal"|"vertical"} direction 計算方向
    * @returns {number} 合計値
    */
-  sumUntilCell(targetData, rowIndex, colIndex, direction = "horizontal") {
-    if (direction === "horizontal") {
-      return targetData.totalValues[rowIndex]
+  sumUntilCell(
+    targetData,
+    rowIndex,
+    colIndex,
+    direction = VALIDATION_SUM_DIRECTION.HORIZONTAL,
+  ) {
+    const values = targetData.totalValues;
+
+    if (direction === VALIDATION_SUM_DIRECTION.HORIZONTAL) {
+      return values[rowIndex]
         .slice(targetData.setupStartColIdx, colIndex)
         .filter((v) => v > 0)
         .reduce((sum, v) => sum + v, 0);
-    } else {
-      return targetData.totalValues
-        .filter((row, idx) => row[colIndex] > 0 && idx < rowIndex)
-        .map((row) => row[colIndex])
-        .reduce((sum, v) => sum + v, 0);
     }
+
+    return values
+      .slice(0, rowIndex)
+      .map((row) => row[colIndex])
+      .filter((v) => v > 0)
+      .reduce((sum, v) => sum + v, 0);
   }
 
   /**
@@ -233,10 +239,7 @@ class CompareTotal2Total3Sheet {
    * @returns {{rowIndex:number, colIndex:number}} 行インデックス・列インデックス
    */
   findRowColIndex(targetData, rowLabel, colLabel) {
-    const targetValues = validationGetSheetValues_(
-      targetData.sheet,
-      targetData.sheet.getLastColumn(),
-    );
+    const targetValues = targetData.totalValues;
     return {
       rowIndex: validationFindRowIndex_(targetValues, 1, rowLabel),
       colIndex: validationFindColIndex_(
@@ -253,7 +256,10 @@ class CompareTotal2Total3Sheet {
    * @param {string} colLabel 列ラベル
    * @returns {Array} ["OK"/"NG", チェック説明]
    */
-  compareTotalsExact(rowLabel = ITEM_LABELS.SUM, colLabel = ITEM_LABELS.SUM) {
+  compareTotalsExact(
+    rowLabel = VALIDATION_LABELS.SUM,
+    colLabel = VALIDATION_LABELS.SUM,
+  ) {
     const results = this.targets.map((target) => {
       const { rowIndex, colIndex } = this.findRowColIndex(
         target,
@@ -264,13 +270,13 @@ class CompareTotal2Total3Sheet {
         target,
         rowIndex,
         colIndex,
-        "horizontal",
+        VALIDATION_SUM_DIRECTION.HORIZONTAL,
       );
       const verticalTotal = this.sumUntilCell(
         target,
         rowIndex,
         colIndex,
-        "vertical",
+        VALIDATION_SUM_DIRECTION.VERTICAL,
       );
       return horizontalTotal === verticalTotal;
     });
@@ -290,13 +296,13 @@ class CompareTotal2Total3Sheet {
     return this.targets.map((target) => {
       const sumRowCol = this.findRowColIndex(
         target,
-        ITEM_LABELS.SUM,
-        ITEM_LABELS.SUM,
+        VALIDATION_LABELS.SUM,
+        VALIDATION_LABELS.SUM,
       );
       const discountRowCol = this.findRowColIndex(
         target,
-        "特別値引後合計",
-        ITEM_LABELS.SUM,
+        VALIDATION_LABELS.DISCOUNT_TOTAL,
+        VALIDATION_LABELS.SUM,
       );
 
       const verticalTotal =
@@ -304,14 +310,14 @@ class CompareTotal2Total3Sheet {
           target,
           sumRowCol.rowIndex,
           sumRowCol.colIndex,
-          "vertical",
+          VALIDATION_SUM_DIRECTION.VERTICAL,
         ) *
         (1 - this.discountRate);
       const horizontalTotal = this.sumUntilCell(
         target,
         discountRowCol.rowIndex,
         discountRowCol.colIndex,
-        "horizontal",
+        VALIDATION_SUM_DIRECTION.HORIZONTAL,
       );
 
       return Math.abs(verticalTotal - horizontalTotal) <= 1;

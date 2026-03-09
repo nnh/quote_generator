@@ -16,23 +16,23 @@ function validationCompareTotalAmounts_(output_row) {
   const total_total_amount = getValidationTotalAmount_({
     sheet: _cachedSheets.total,
     item_cols: "B:B",
-    total_row_itemname: ITEM_LABELS.SUM,
+    total_row_itemname: VALIDATION_LABELS.SUM,
     header_row: 4,
-    total_col_itemname: ITEM_LABELS.AMOUNT,
+    total_col_itemname: VALIDATION_LABELS.AMOUNT,
   });
   const total2_total_amount = getValidationTotalAmount_({
     sheet: _cachedSheets.total2,
     item_cols: "B:B",
-    total_row_itemname: ITEM_LABELS.SUM,
+    total_row_itemname: VALIDATION_LABELS.SUM,
     header_row: 4,
-    total_col_itemname: ITEM_LABELS.SUM,
+    total_col_itemname: VALIDATION_LABELS.SUM,
   });
   const total3_total_amount = getValidationTotalAmount_({
     sheet: _cachedSheets.total3,
     item_cols: "B:B",
-    total_row_itemname: ITEM_LABELS.SUM,
+    total_row_itemname: VALIDATION_LABELS.SUM,
     header_row: 3,
-    total_col_itemname: ITEM_LABELS.SUM,
+    total_col_itemname: VALIDATION_LABELS.SUM,
   });
   const amount_check = [null, "Total, Total2, Total3の合計金額チェック"];
   if (

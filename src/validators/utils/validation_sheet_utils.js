@@ -299,13 +299,13 @@ function validationGetYearSheetTotals_(sheet) {
   const sumRowIndex = validationFindRowIndex_(
     targetValues,
     targetColIndex,
-    ITEM_LABELS.SUM,
+    VALIDATION_LABELS.SUM,
   );
   const targetRowIndex = 3;
   const sumColIndex = validationFindColIndex_(
     targetValues,
     targetRowIndex,
-    ITEM_LABELS.AMOUNT,
+    VALIDATION_LABELS.AMOUNT,
   );
   const sumValue = targetValues[sumRowIndex][sumColIndex];
   const discountValue = targetValues[sumRowIndex + 1][sumColIndex];
