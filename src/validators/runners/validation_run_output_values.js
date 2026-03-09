@@ -72,8 +72,10 @@ function check_output_values() {
   );
 
   // 個別項目の中間解析・クロージング数取得
-  const { interimCount, closingCount } =
-    validationGetTargetCounts_(targetTotal);
+  const { interimCount, closingCount } = validationGetTargetCounts_(
+    targetTotal,
+    totalSheetValues,
+  );
 
   // 総チェック項目の生成
   const { totalCheckItems, totalAmountCheckItems } =

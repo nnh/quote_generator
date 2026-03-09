@@ -18,6 +18,7 @@ function initCheckSheet_() {
       TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
     ),
     col: TOTAL_AND_PHASE_SHEET.COLUMNS.COUNT,
+    colIndex: TOTAL_AND_PHASE_SHEET.COLUMNS.COUNT - 1, // 0-origin
     footer: null,
   };
   const targetTotalAmount = {
@@ -25,6 +26,7 @@ function initCheckSheet_() {
     sheetName: _cachedSheets.total.getName(),
     array_item: get_fy_items_(_cachedSheets.total, 2),
     col: 9,
+    colIndex: 8, // 0-origin
     footer: "（金額）",
   };
   const enrollmentStartDate =
