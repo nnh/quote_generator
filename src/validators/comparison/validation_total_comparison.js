@@ -46,16 +46,16 @@ function validationCheckQuoteSum_() {
   const discountValues = [];
 
   sheetConfigs.forEach((config) => {
-    const row = validationGetTargetRowNumber_(
-      config.sheet,
+    const row = validationFindRowNumber_(
+      config.sheet.getDataRange().getValues(),
       config.rowHeaderRow,
       config.rowLabel,
     );
-    const targetRowValues = validationGetRowValuesAsStrings_(
-      config.sheet,
-      config.colHeaderRow,
+    const col = validationFindColNumber_(
+      config.sheet.getDataRange().getValues(),
+      config.colHeaderRow - 1,
+      config.colLabel,
     );
-    const col = validationGetTargetColNumber_(targetRowValues, config.colLabel);
 
     amountValues.push(validationGetNormalizedValue_(config.sheet, row, col));
 
@@ -134,16 +134,21 @@ function validationCheckAmountByYearSheet_(sheetName, discountRate) {
  */
 function validationCompareTotalSheetTotalToVerticalTotal_() {
   const sheet = _cachedSheets.total;
+  const targetValues = sheet.getDataRange().getValues();
+  const targetRowIndex = 3;
 
-  const targetRowValues = validationGetRowValuesAsStrings_(sheet, 4);
-  const amountColumnIndex = validationGetTargetColIndex_(
-    targetRowValues,
+  // 金額の列のインデックスを取得する
+  const amountColumnIndex = validationFindColIndex_(
+    targetValues,
+    targetRowIndex,
     ITEM_LABELS.AMOUNT,
   );
+
   // 合計金額の列のインデックスを取得する
   const TOTAL_LABEL = "　合計金額";
-  const totalColumnIndex = validationGetTargetColIndex_(
-    targetRowValues,
+  const totalColumnIndex = validationFindColIndex_(
+    targetValues,
+    targetRowIndex,
     TOTAL_LABEL,
   );
 
@@ -229,13 +234,14 @@ class CompareTotal2Total3Sheet {
    * @returns {{rowIndex:number, colIndex:number}} 行インデックス・列インデックス
    */
   getRowCol(targetData, rowLabel, colLabel) {
-    const targetRowValues = validationGetRowValuesAsStrings_(
-      targetData.sheet,
-      targetData.termRowNumber,
-    );
+    const targetValues = targetData.sheet.getDataRange().getValues();
     return {
-      rowIndex: validationGetTargetRowIndex_(targetData.sheet, 1, rowLabel),
-      colIndex: validationGetTargetColIndex_(targetRowValues, colLabel),
+      rowIndex: validationFindRowIndex_(targetValues, 1, rowLabel),
+      colIndex: validationFindColIndex_(
+        targetValues,
+        targetData.termRowNumber - 1,
+        colLabel,
+      ),
     };
   }
 
