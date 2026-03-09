@@ -7,8 +7,6 @@
  * [1] 特別値引後合計が全シートで一致しているか
  */
 function validationCheckQuoteSum_() {
-  const getRowCol = new GetTargetRowCol();
-
   const sheetConfigs = [
     {
       sheet: _cachedSheets.quote,
@@ -48,17 +46,16 @@ function validationCheckQuoteSum_() {
   const discountValues = [];
 
   sheetConfigs.forEach((config) => {
-    const row = getRowCol.getTargetRow(
+    const row = test_validationGetTargetRow_(
       config.sheet,
       config.rowHeaderRow,
       config.rowLabel,
     );
-
-    const col = getRowCol.getTargetCol(
+    const targetRowValues = validationGetRowValuesAsStrings_(
       config.sheet,
       config.colHeaderRow,
-      config.colLabel,
     );
+    const col = validationGetTargetColNumber_(targetRowValues, config.colLabel);
 
     amountValues.push(validationGetNormalizedValue_(config.sheet, row, col));
 
@@ -137,15 +134,20 @@ function validationCheckAmountByYearSheet_(sheetName, discountRate) {
  */
 function validationCompareTotalSheetTotalToVerticalTotal_() {
   const sheet = _cachedSheets.total;
-  const rowColResolver = new GetTargetRowCol();
 
-  const amountColumnIndex = rowColResolver.getTargetCol(
-    sheet,
-    4,
+  const targetRowValues = validationGetRowValuesAsStrings_(sheet, 4);
+  const amountColumnIndex = validationGetTargetColIndex_(
+    targetRowValues,
     ITEM_LABELS.AMOUNT,
   );
+  // 合計金額の列のインデックスを取得する
+  const TOTAL_LABEL = "　合計金額";
+  const totalColumnIndex = validationGetTargetColIndex_(
+    targetRowValues,
+    TOTAL_LABEL,
+  );
 
-  const values = sheet.getDataRange().getValues();
+  const values = validationGetSheetValues_(sheet, sheet.getLastColumn());
 
   const totalRow = values.find((row) => row[1] === ITEM_LABELS.SUM);
 
@@ -156,13 +158,12 @@ function validationCompareTotalSheetTotalToVerticalTotal_() {
     ];
   }
 
-  const totalAmount = validationNormalizeValue_(
-    totalRow[amountColumnIndex - 1],
-  );
+  const totalAmount = validationNormalizeValue_(totalRow[amountColumnIndex]);
 
   const verticalTotal = validationCalculateVerticalTotal_(
     values,
-    amountColumnIndex,
+    totalColumnIndex,
+    TOTAL_LABEL,
   );
 
   const isValid = totalAmount === verticalTotal;
@@ -185,17 +186,14 @@ class CompareTotal2Total3Sheet {
 
     /** チェック対象シート情報 */
     this.targetSheets = [
-      { sheet: _cachedSheets.total2, termRowIdx: 3 },
-      { sheet: _cachedSheets.total3, termRowIdx: 2 },
+      { sheet: _cachedSheets.total2, termRowNumber: 4 },
+      { sheet: _cachedSheets.total3, termRowNumber: 3 },
     ];
-
-    /** 行・列インデックス取得用 */
-    this.rowColResolver = new GetTargetRowCol();
 
     /** シートデータを加工したオブジェクト */
     this.targets = this.targetSheets.map((info) => ({
       sheet: info.sheet,
-      termRowIdx: info.termRowIdx,
+      termRowNumber: info.termRowNumber,
       setupStartColIdx: 3,
       totalValues: info.sheet.getDataRange().getValues(),
     }));
@@ -231,13 +229,17 @@ class CompareTotal2Total3Sheet {
    * @returns {{row:number, col:number}} 行番号・列番号
    */
   getRowCol(targetData, rowLabel, colLabel) {
+    const targetRowValues = validationGetRowValuesAsStrings_(
+      targetData.sheet,
+      targetData.termRowNumber,
+    );
     return {
-      row: this.rowColResolver.getTargetRowIndex(targetData.sheet, 1, rowLabel),
-      col: this.rowColResolver.getTargetColIndex(
+      rowIndex: test_validationGetTargetRowIndex_(
         targetData.sheet,
-        targetData.termRowIdx,
-        colLabel,
+        1,
+        rowLabel,
       ),
+      colIndex: validationGetTargetColIndex_(targetRowValues, colLabel),
     };
   }
 
@@ -249,9 +251,14 @@ class CompareTotal2Total3Sheet {
    */
   compareTotalsExact(rowLabel = ITEM_LABELS.SUM, colLabel = ITEM_LABELS.SUM) {
     const results = this.targets.map((target) => {
-      const { row, col } = this.getRowCol(target, rowLabel, colLabel);
-      const horizontalTotal = this.getSum(target, row, col, "horizontal");
-      const verticalTotal = this.getSum(target, row, col, "vertical");
+      const { rowIndex, colIndex } = this.getRowCol(target, rowLabel, colLabel);
+      const horizontalTotal = this.getSum(
+        target,
+        rowIndex,
+        colIndex,
+        "horizontal",
+      );
+      const verticalTotal = this.getSum(target, rowIndex, colIndex, "vertical");
       return horizontalTotal === verticalTotal;
     });
 
@@ -280,12 +287,17 @@ class CompareTotal2Total3Sheet {
       );
 
       const verticalTotal =
-        this.getSum(target, sumRowCol.row, sumRowCol.col, "vertical") *
+        this.getSum(
+          target,
+          sumRowCol.rowIndex,
+          sumRowCol.colIndex,
+          "vertical",
+        ) *
         (1 - this.discountRate);
       const horizontalTotal = this.getSum(
         target,
-        discountRowCol.row,
-        discountRowCol.col,
+        discountRowCol.rowIndex,
+        discountRowCol.colIndex,
         "horizontal",
       );
 
