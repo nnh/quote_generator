@@ -56,12 +56,12 @@ function validationFindColIndex_(values, rowIndex, targetStr) {
  * 指定行から一致する文字列の列番号を取得する（1-based）
  *
  * @param {Array<Array<*>>} values シートの全データ
- * @param {number} rowIndex 検索対象行インデックス（0-based）
+ * @param {number} rowNumber 検索対象行番号（1-based）
  * @param {string} targetStr 検索する文字列
  * @returns {number} 列番号（1-based）。見つからない場合は 0
  */
-function validationFindColNumber_(values, rowIndex, targetStr) {
-  const colIndex = validationFindColIndex_(values, rowIndex, targetStr);
+function validationFindColNumber_(values, rowNumber, targetStr) {
+  const colIndex = validationFindColIndex_(values, rowNumber - 1, targetStr);
   return colIndex === -1 ? 0 : colIndex + 1;
 }
 
@@ -317,21 +317,23 @@ function validationAreAllValuesEqual_(values) {
  *   - discountValue: 特別値引後合計
  */
 function validationGetYearSheetTotals_(sheet) {
-  const sumRow = validationFindRowNumber_(
-    sheet.getDataRange().getValues(),
+  const targetValues = sheet.getDataRange().getValues();
+  const sumRowNumber = validationFindRowNumber_(
+    targetValues,
     2,
     ITEM_LABELS.SUM,
   );
-  const targetValues = sheet.getDataRange().getValues();
-  const targetRowIndex = 3;
-  const sumCol = validationFindColNumber_(
+  const targetRowNumber = 4;
+  const sumColNumber = validationFindColNumber_(
     targetValues,
-    targetRowIndex,
+    targetRowNumber,
     ITEM_LABELS.AMOUNT,
   );
 
-  const sumValue = sheet.getRange(sumRow, sumCol).getValue();
-  const discountValue = sheet.getRange(sumRow + 1, sumCol).getValue();
+  const sumValue = sheet.getRange(sumRowNumber, sumColNumber).getValue();
+  const discountValue = sheet
+    .getRange(sumRowNumber + 1, sumColNumber)
+    .getValue();
 
   return { sumValue, discountValue };
 }

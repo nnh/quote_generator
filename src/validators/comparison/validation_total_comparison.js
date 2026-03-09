@@ -46,24 +46,26 @@ function validationCheckQuoteSum_() {
   const discountValues = [];
 
   sheetConfigs.forEach((config) => {
-    const row = validationFindRowNumber_(
+    const rowNumber = validationFindRowNumber_(
       config.sheet.getDataRange().getValues(),
       config.rowHeaderRow,
       config.rowLabel,
     );
-    const col = validationFindColNumber_(
+    const colNumber = validationFindColNumber_(
       config.sheet.getDataRange().getValues(),
-      config.colHeaderRow - 1,
+      config.colHeaderRow,
       config.colLabel,
     );
 
-    amountValues.push(validationGetNormalizedValue_(config.sheet, row, col));
+    amountValues.push(
+      validationGetNormalizedValue_(config.sheet, rowNumber, colNumber),
+    );
 
     discountValues.push(
       validationGetNormalizedValue_(
         config.sheet,
-        row + config.discountOffset,
-        col,
+        rowNumber + config.discountOffset,
+        colNumber,
       ),
     );
   });
