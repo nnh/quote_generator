@@ -13,6 +13,8 @@ function check_output_values() {
 
   // 試験月数を計算してシートにセット
   const trialMonthsFromSheet = calculateTrialMonths_(rowOutput, colOutput);
+  // バリデーションコンテキストをリセット（シート値のキャッシュをクリア）
+  validationResetContext_();
 
   // Setup・Closing情報を取得
   const { setup_month, closing_month, setup_closing_months } =

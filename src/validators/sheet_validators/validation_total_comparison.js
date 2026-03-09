@@ -46,10 +46,7 @@ function validationCheckQuoteSum_() {
   const discountValues = [];
 
   sheetConfigs.forEach((config) => {
-    const targetValues = validationGetSheetValues_(
-      config.sheet,
-      config.sheet.getLastColumn(),
-    );
+    const targetValues = validationGetCachedSheetValues_(config.sheet);
     const rowIndex = validationFindRowIndex_(
       targetValues,
       config.rowHeaderIndex,
@@ -130,7 +127,7 @@ function validationCheckAmountByYearSheet_(sheetName, discountRate) {
  */
 function validationCompareTotalSheetTotalToVerticalTotal_() {
   const sheet = _cachedSheets.total;
-  const values = validationGetSheetValues_(sheet, sheet.getLastColumn());
+  const values = validationGetCachedSheetValues_(sheet);
   const targetRowIndex = 3;
 
   // 金額の列のインデックスを取得する
@@ -191,10 +188,7 @@ class Total2Total3Validator {
     ].map((info) => ({
       ...info,
       setupStartColIdx: SETUP_START_COL_INDEX,
-      totalValues: validationGetSheetValues_(
-        info.sheet,
-        info.sheet.getLastColumn(),
-      ),
+      totalValues: validationGetCachedSheetValues_(info.sheet),
     }));
   }
 

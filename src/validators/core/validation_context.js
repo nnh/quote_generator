@@ -1,4 +1,12 @@
 /**
+ * Validation context
+ * シートvaluesキャッシュ
+ */
+const _validationContext = {
+  sheetValues: new Map(),
+};
+
+/**
  * quotation request シートから
  * バリデーション用コンテキストを構築する。
  *
@@ -100,4 +108,28 @@ function buildQuotationRequestValidationContext_() {
     );
   }
   return quotationRequestValidationContext;
+}
+
+/**
+ * 指定シートの全セル値をキャッシュ付きで取得する
+ * 同一シートの getValues() を1回だけ実行するようにする
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet 対象シート
+ * @returns {Array<Array<*>>} シートの全セル値（2次元配列）
+ */
+function validationGetCachedSheetValues_(sheet) {
+  const sheetName = sheet.getName();
+
+  if (!_validationContext.sheetValues.has(sheetName)) {
+    const values = sheet.getDataRange().getValues();
+    _validationContext.sheetValues.set(sheetName, values);
+  }
+
+  return _validationContext.sheetValues.get(sheetName);
+}
+/**
+ * シート値のキャッシュをクリアする
+ */
+function validationResetContext_() {
+  _validationContext.sheetValues.clear();
 }

@@ -294,7 +294,7 @@ function validationAreAllValuesEqual_(values) {
  *   - discountValue: 特別値引後合計
  */
 function validationGetYearSheetTotals_(sheet) {
-  const targetValues = validationGetSheetValues_(sheet, sheet.getLastColumn());
+  const targetValues = validationGetCachedSheetValues_(sheet);
   const targetColIndex = 1;
   const sumRowIndex = validationFindRowIndex_(
     targetValues,
@@ -311,9 +311,4 @@ function validationGetYearSheetTotals_(sheet) {
   const discountValue = targetValues[sumRowIndex + 1][sumColIndex];
 
   return { sumValue, discountValue };
-}
-
-function validationGetSheetValues_(sheet, lastColumnNumber) {
-  const lastRowNumber = sheet.getLastRow();
-  return sheet.getRange(1, 1, lastRowNumber, lastColumnNumber).getValues();
 }
