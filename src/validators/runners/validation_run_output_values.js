@@ -26,8 +26,50 @@ function check_output_values() {
     setup_closing_months,
   );
 
+  // Totalシートの「合計金額」列とTotal2, Total3シートの「合計」列のインデックス及び値を取得
+  const totalSheetValues = validationGetCachedSheetValues_(_cachedSheets.total);
+  const total2SheetValues = validationGetCachedSheetValues_(
+    _cachedSheets.total2,
+  );
+  const total3SheetValues = validationGetCachedSheetValues_(
+    _cachedSheets.total3,
+  );
+  const TOTAL_HEADER_ROW_INDEX = 3; // Totalシートのヘッダー行（0-origin）
+  const TOTAL_HEADER_COL_INDEX = 1; // Totalシートのヘッダー列（0-origin）
+  const TOTAL3_HEADER_ROW_INDEX = 2; // Total3シートのヘッダー行（0-origin）
+  const totalSheetInfo = validationGetTotalSheetInfo_(
+    _cachedSheets.total,
+    TOTAL_HEADER_ROW_INDEX,
+    TOTAL_HEADER_COL_INDEX,
+    VALIDATION_LABELS.SUM,
+  );
+  const total2SheetInfo = validationGetTotalSheetInfo_(
+    _cachedSheets.total2,
+    TOTAL_HEADER_ROW_INDEX,
+    TOTAL_HEADER_COL_INDEX,
+    VALIDATION_LABELS.SUM,
+  );
+  const total3SheetInfo = validationGetTotalSheetInfo_(
+    _cachedSheets.total3,
+    TOTAL3_HEADER_ROW_INDEX,
+    TOTAL_HEADER_COL_INDEX,
+    VALIDATION_LABELS.SUM,
+  );
+
+  const totalTotalAmountValue =
+    totalSheetValues[totalSheetInfo.sumRowIndex][totalSheetInfo.amountColIndex];
+  const total2TotalAmountValue =
+    total2SheetValues[total2SheetInfo.sumRowIndex][total2SheetInfo.sumColIndex];
+  const total3TotalAmountValue =
+    total3SheetValues[total3SheetInfo.sumRowIndex][total3SheetInfo.sumColIndex];
+
   // 合計金額チェック
-  const updatedRow = validationCompareTotalAmounts_(rowOutput);
+  const updatedRow = validationCompareTotalAmounts_(
+    totalTotalAmountValue,
+    total2TotalAmountValue,
+    total3TotalAmountValue,
+    rowOutput,
+  );
 
   // 個別項目の中間解析・クロージング数取得
   const { interimCount, closingCount } =

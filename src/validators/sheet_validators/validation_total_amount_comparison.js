@@ -10,37 +10,24 @@
  *
  * @function validationCompareTotalAmounts_
  * @param {number} output_row - Checkシートに書き込む現在の行番号
+ * @param {number} totalTotalAmountValue - Totalシートの合計金額
+ * @param {number} total2TotalAmountValue - Total2シートの合計金額
+ * @param {number} total3TotalAmountValue - Total3シートの合計金額
  * @returns {number} 次に書き込む行番号
  */
-function validationCompareTotalAmounts_(output_row) {
-  const total_total_amount = getValidationTotalAmount_({
-    sheet: _cachedSheets.total,
-    item_cols: "B:B",
-    total_row_itemname: VALIDATION_LABELS.SUM,
-    header_row: 4,
-    total_col_itemname: VALIDATION_LABELS.AMOUNT,
-  });
-  const total2_total_amount = getValidationTotalAmount_({
-    sheet: _cachedSheets.total2,
-    item_cols: "B:B",
-    total_row_itemname: VALIDATION_LABELS.SUM,
-    header_row: 4,
-    total_col_itemname: VALIDATION_LABELS.SUM,
-  });
-  const total3_total_amount = getValidationTotalAmount_({
-    sheet: _cachedSheets.total3,
-    item_cols: "B:B",
-    total_row_itemname: VALIDATION_LABELS.SUM,
-    header_row: 3,
-    total_col_itemname: VALIDATION_LABELS.SUM,
-  });
+function validationCompareTotalAmounts_(
+  totalTotalAmountValue,
+  total2TotalAmountValue,
+  total3TotalAmountValue,
+  output_row,
+) {
   const amount_check = [null, "Total, Total2, Total3の合計金額チェック"];
   if (
-    (total_total_amount === total2_total_amount) &
-    (total_total_amount === total3_total_amount)
+    totalTotalAmountValue === total2TotalAmountValue &&
+    totalTotalAmountValue === total3TotalAmountValue
   ) {
     amount_check[0] = VALIDATION_STATUS.OK;
-    amount_check[1] = amount_check[1] + " ,想定値:" + total_total_amount;
+    amount_check[1] = amount_check[1] + " ,想定値:" + totalTotalAmountValue;
   } else {
     amount_check[0] = buildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH);
   }

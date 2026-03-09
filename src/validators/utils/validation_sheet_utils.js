@@ -312,3 +312,74 @@ function validationGetYearSheetTotals_(sheet) {
 
   return { sumValue, discountValue };
 }
+/**
+ * 指定シートの合計関連情報を取得する
+ *
+ * 取得内容
+ * - sheetValues
+ * - sumRowIndex
+ * - specialDiscountRowIndex
+ * - sumColIndex
+ * - amountColIndex
+ * - totalAmountColIndex
+ * - totalAmountValue
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet 対象シート
+ * @param {number} headerRowIndex ヘッダー行（0-based）
+ * @param {number} headerColIndex ヘッダー列（0-based）
+ * @param {string} sumColLabel 合計列ラベル
+ * @returns {Object}
+ */
+function validationGetTotalSheetInfo_(
+  sheet,
+  headerRowIndex,
+  headerColIndex,
+  sumColLabel,
+) {
+  const sheetValues = validationGetCachedSheetValues_(sheet);
+
+  const sumColIndex = validationFindColIndex_(
+    sheetValues,
+    headerRowIndex,
+    sumColLabel,
+  );
+
+  const amountColIndex = validationFindColIndex_(
+    sheetValues,
+    headerRowIndex,
+    VALIDATION_LABELS.AMOUNT,
+  );
+
+  const totalAmountColIndex = validationFindColIndex_(
+    sheetValues,
+    headerRowIndex,
+    VALIDATION_LABELS.TOTAL_AMOUNT,
+  );
+
+  const sumRowIndex = validationFindRowIndex_(
+    sheetValues,
+    headerColIndex,
+    VALIDATION_LABELS.SUM,
+  );
+
+  const specialDiscountRowIndex = validationFindRowIndex_(
+    sheetValues,
+    headerColIndex,
+    VALIDATION_LABELS.SPECIAL_DISCOUNT,
+  );
+
+  const totalAmountValue =
+    sumRowIndex !== -1 && sumColIndex !== -1
+      ? sheetValues[sumRowIndex][sumColIndex]
+      : null;
+
+  return {
+    sheetValues,
+    sumColIndex,
+    amountColIndex,
+    totalAmountColIndex,
+    sumRowIndex,
+    specialDiscountRowIndex,
+    totalAmountValue,
+  };
+}
