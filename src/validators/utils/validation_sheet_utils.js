@@ -408,25 +408,24 @@ function validationGetQuoteSheetInfo_() {
     );
   }
   const amountValue = sheetValues[amountRowIndex][amountColIndex];
-  const specialDiscountRowIndex = validationFindRowIndex_(
+  const discountTotalRowIndex = validationFindRowIndex_(
     sheetValues,
     headerColIndex,
     VALIDATION_LABELS.DISCOUNT_TOTAL,
   );
-  if (specialDiscountRowIndex === -1) {
+  if (discountTotalRowIndex === -1) {
     throw new Error(
       `Quoteシートの"${VALIDATION_LABELS.AMOUNT}"列に"${VALIDATION_LABELS.DISCOUNT_TOTAL}"が見つかりません。シートの構成が変更されていないか確認してください。`,
     );
   }
-  const specialDiscountValue =
-    sheetValues[specialDiscountRowIndex][amountColIndex];
+  const discountTotalValue = sheetValues[discountTotalRowIndex][amountColIndex];
 
   return {
     sheetValues,
     amountColIndex,
     amountRowIndex,
-    specialDiscountRowIndex,
+    discountTotalRowIndex,
     amountValue,
-    specialDiscountValue,
+    discountTotalValue,
   };
 }
