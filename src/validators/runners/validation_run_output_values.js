@@ -25,6 +25,8 @@ function check_output_values() {
     trialMonthsFromSheet,
     setup_closing_months,
   );
+  // Quoteシートの情報を取得
+  const quoteSheetInfo = validationGetQuoteSheetInfo_();
 
   // Totalシートの「合計金額」列とTotal2, Total3シートの「合計」列のインデックス及び値を取得
   const totalSheetValues = validationGetCachedSheetValues_(_cachedSheets.total);
@@ -58,10 +60,22 @@ function check_output_values() {
 
   const totalTotalAmountValue =
     totalSheetValues[totalSheetInfo.sumRowIndex][totalSheetInfo.amountColIndex];
+  const totalDiscountTotalValue =
+    totalSheetValues[totalSheetInfo.discountTotalRowIndex][
+      totalSheetInfo.amountColIndex
+    ];
   const total2TotalAmountValue =
     total2SheetValues[total2SheetInfo.sumRowIndex][total2SheetInfo.sumColIndex];
+  const total2DiscountTotalValue =
+    total2SheetValues[total2SheetInfo.discountTotalRowIndex][
+      total2SheetInfo.sumColIndex
+    ];
   const total3TotalAmountValue =
     total3SheetValues[total3SheetInfo.sumRowIndex][total3SheetInfo.sumColIndex];
+  const total3DiscountTotalValue =
+    total3SheetValues[total3SheetInfo.discountTotalRowIndex][
+      total3SheetInfo.sumColIndex
+    ];
 
   // 合計金額チェック
   const updatedRow = validationCompareTotalAmounts_(
@@ -106,15 +120,29 @@ function check_output_values() {
     targetTotalAmount.col,
   );
 
+  const res_validationCheckQuoteSum_ = validationCheckQuoteSum_(
+    quoteSheetInfo.amountValue,
+    totalTotalAmountValue,
+    total2TotalAmountValue,
+    total3TotalAmountValue,
+    quoteSheetInfo.discountTotalValue,
+    totalDiscountTotalValue,
+    total2DiscountTotalValue,
+    total3DiscountTotalValue,
+  );
+
   // 評価結果を計算
-  const outputValues = evaluateCheckItems_({
-    totalCheckItems: sortedTotalCheckItems,
-    totalAmountCheckItems,
-    targetTotal,
-    targetTotalAmount,
-    targetTotalColumnValues,
-    targetTotalAmountColumnValues,
-  });
+  const outputValues = evaluateCheckItems_(
+    {
+      totalCheckItems: sortedTotalCheckItems,
+      totalAmountCheckItems,
+      targetTotal,
+      targetTotalAmount,
+      targetTotalColumnValues,
+      targetTotalAmountColumnValues,
+    },
+    res_validationCheckQuoteSum_,
+  );
 
   // シートに書き込み
   writeOutputValues_(updatedRow + 1, outputValues);

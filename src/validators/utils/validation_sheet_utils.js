@@ -362,10 +362,10 @@ function validationGetTotalSheetInfo_(
     VALIDATION_LABELS.SUM,
   );
 
-  const specialDiscountRowIndex = validationFindRowIndex_(
+  const discountTotalRowIndex = validationFindRowIndex_(
     sheetValues,
     headerColIndex,
-    VALIDATION_LABELS.SPECIAL_DISCOUNT,
+    VALIDATION_LABELS.DISCOUNT_TOTAL,
   );
 
   const totalAmountValue =
@@ -379,7 +379,54 @@ function validationGetTotalSheetInfo_(
     amountColIndex,
     totalAmountColIndex,
     sumRowIndex,
-    specialDiscountRowIndex,
+    discountTotalRowIndex,
     totalAmountValue,
+  };
+}
+function validationGetQuoteSheetInfo_() {
+  const sheet = _cachedSheets.quote;
+  const sheetValues = validationGetCachedSheetValues_(sheet);
+  const headerRowIndex = 10;
+  const headerColIndex = 2;
+  const amountColIndex = headerColIndex + 1; // 金額列はヘッダー列の右隣
+  if (
+    sheetValues[headerRowIndex][amountColIndex] !== VALIDATION_LABELS.AMOUNT
+  ) {
+    throw new Error(
+      `Quoteシートのヘッダーセルに"${VALIDATION_LABELS.AMOUNT}"が見つかりません。シートの構成が変更されていないか確認してください。`,
+    );
+  }
+  const amountItemName = "小計";
+  const amountRowIndex = validationFindRowIndex_(
+    sheetValues,
+    headerColIndex,
+    amountItemName,
+  );
+  if (amountRowIndex === -1) {
+    throw new Error(
+      `Quoteシートの"${VALIDATION_LABELS.AMOUNT}"列に"${amountItemName}"が見つかりません。シートの構成が変更されていないか確認してください。`,
+    );
+  }
+  const amountValue = sheetValues[amountRowIndex][amountColIndex];
+  const specialDiscountRowIndex = validationFindRowIndex_(
+    sheetValues,
+    headerColIndex,
+    VALIDATION_LABELS.DISCOUNT_TOTAL,
+  );
+  if (specialDiscountRowIndex === -1) {
+    throw new Error(
+      `Quoteシートの"${VALIDATION_LABELS.AMOUNT}"列に"${VALIDATION_LABELS.DISCOUNT_TOTAL}"が見つかりません。シートの構成が変更されていないか確認してください。`,
+    );
+  }
+  const specialDiscountValue =
+    sheetValues[specialDiscountRowIndex][amountColIndex];
+
+  return {
+    sheetValues,
+    amountColIndex,
+    amountRowIndex,
+    specialDiscountRowIndex,
+    amountValue,
+    specialDiscountValue,
   };
 }

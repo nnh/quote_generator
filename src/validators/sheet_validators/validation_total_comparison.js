@@ -6,68 +6,27 @@
  * [0] 合計が全シートで一致しているか
  * [1] 特別値引後合計が全シートで一致しているか
  */
-function validationCheckQuoteSum_() {
-  const sheetConfigs = [
-    {
-      sheet: _cachedSheets.quote,
-      rowHeaderIndex: 2, // 3行目
-      rowLabel: "小計",
-      colHeaderIndex: 10, // 11行目
-      colLabel: VALIDATION_LABELS.AMOUNT,
-      discountOffset: 2,
-    },
-    {
-      sheet: _cachedSheets.total,
-      rowHeaderIndex: 1, // 2行目
-      rowLabel: VALIDATION_LABELS.SUM,
-      colHeaderIndex: 3, // 4行目
-      colLabel: VALIDATION_LABELS.AMOUNT,
-      discountOffset: 1,
-    },
-    {
-      sheet: _cachedSheets.total2,
-      rowHeaderIndex: 1,
-      rowLabel: VALIDATION_LABELS.SUM,
-      colHeaderIndex: 3,
-      colLabel: VALIDATION_LABELS.SUM,
-      discountOffset: 1,
-    },
-    {
-      sheet: _cachedSheets.total3,
-      rowHeaderIndex: 1,
-      rowLabel: VALIDATION_LABELS.SUM,
-      colHeaderIndex: 2, // 3行目
-      colLabel: VALIDATION_LABELS.SUM,
-      discountOffset: 1,
-    },
-  ];
+function validationCheckQuoteSum_(
+  quoteTotalAmountValue,
+  totalTotalAmountValue,
+  total2TotalAmountValue,
+  total3TotalAmountValue,
+  quoteDiscountTotalValue,
+  totalDiscountTotalValue,
+  total2DiscountTotalValue,
+  total3DiscountTotalValue,
+) {
+  const amountCheckFlag =
+    quoteTotalAmountValue === totalTotalAmountValue &&
+    quoteTotalAmountValue === total2TotalAmountValue &&
+    quoteTotalAmountValue === total3TotalAmountValue;
 
-  const amountValues = [];
-  const discountValues = [];
+  const discountTotalCheckFlag =
+    quoteDiscountTotalValue === totalDiscountTotalValue &&
+    quoteDiscountTotalValue === total2DiscountTotalValue &&
+    quoteDiscountTotalValue === total3DiscountTotalValue;
 
-  sheetConfigs.forEach((config) => {
-    const targetValues = validationGetCachedSheetValues_(config.sheet);
-    const rowIndex = validationFindRowIndex_(
-      targetValues,
-      config.rowHeaderIndex,
-      config.rowLabel,
-    );
-    const colIndex = validationFindColIndex_(
-      targetValues,
-      config.colHeaderIndex,
-      config.colLabel,
-    );
-    const amountCellValue = targetValues[rowIndex][colIndex];
-    const discountCellValue =
-      targetValues[rowIndex + config.discountOffset][colIndex];
-    amountValues.push(validationGetNormalizedValue_(amountCellValue));
-    discountValues.push(validationGetNormalizedValue_(discountCellValue));
-  });
-
-  return [
-    validationAreAllValuesEqual_(amountValues),
-    validationAreAllValuesEqual_(discountValues),
-  ];
+  return [amountCheckFlag, discountTotalCheckFlag];
 }
 
 /**
