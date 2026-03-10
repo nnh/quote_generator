@@ -109,20 +109,31 @@ function validationCompareTotalSheetTotalToVerticalTotal_(
  * Total2/Total3シートの縦計と横計を比較するクラス
  */
 class Total2Total3Validator {
-  constructor() {
+  constructor(
+    total2SheetInfo,
+    total3SheetInfo,
+    total2SheetValues,
+    total3SheetValues,
+  ) {
     /** 全体の割引率（TrialシートB47） */
     this.discountRate = _cachedSheets.trial.getRange("B47").getValue();
 
     const SETUP_START_COL_INDEX = 3;
 
     this.targets = [
-      { sheet: _cachedSheets.total2, termRowIndex: 3 },
-      { sheet: _cachedSheets.total3, termRowIndex: 2 },
-    ].map((info) => ({
-      ...info,
-      setupStartColIdx: SETUP_START_COL_INDEX,
-      totalValues: validationGetCachedSheetValues_(info.sheet),
-    }));
+      {
+        sheet: total2SheetInfo.sheet,
+        termRowIndex: 3,
+        setupStartColIdx: SETUP_START_COL_INDEX,
+        totalValues: total2SheetValues,
+      },
+      {
+        sheet: total3SheetInfo.sheet,
+        termRowIndex: 2,
+        setupStartColIdx: SETUP_START_COL_INDEX,
+        totalValues: total3SheetValues,
+      },
+    ];
   }
 
   /**
@@ -250,8 +261,7 @@ class Total2Total3Validator {
  * Total2, Total3の縦計と横計をチェック（誤差なし）
  * @returns {Array} ["OK"/"NG", チェック説明]
  */
-function total2Total3ValidatorVerticalTotalToHorizontalTotal_() {
-  const comparator = new Total2Total3Validator();
+function total2Total3ValidatorVerticalTotalToHorizontalTotal_(comparator) {
   return comparator.validateTotalsExact();
 }
 
@@ -259,8 +269,9 @@ function total2Total3ValidatorVerticalTotalToHorizontalTotal_() {
  * Total2, Total3の縦計×特別値引率と特別値引後横計をチェック（誤差±1円）
  * @returns {Array} ["OK"/"NG", チェック説明]
  */
-function total2Total3ValidatorVerticalTotalToHorizontalDiscountTotal_() {
-  const comparator = new Total2Total3Validator();
+function total2Total3ValidatorVerticalTotalToHorizontalDiscountTotal_(
+  comparator,
+) {
   const discountResults = comparator.validateTotalsWithDiscount();
   return toStatusFromBooleanArray_(
     discountResults,

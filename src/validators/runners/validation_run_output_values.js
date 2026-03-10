@@ -77,12 +77,25 @@ function check_output_values() {
       total3SheetInfo.sumColIndex
     ];
 
+  // Totalシートの縦計と合計金額のチェック
   const validationCompareTotalSheetTotalToVerticalTotalWithMessage =
     validationCompareTotalSheetTotalToVerticalTotal_(
       totalSheetValues,
       totalSheetInfo,
       totalTotalAmountValue,
     );
+  // Total2, Total3の縦計と横計をチェック（誤差なし）
+  const comparator = new Total2Total3Validator(
+    total2SheetInfo,
+    total3SheetInfo,
+    total2SheetValues,
+    total3SheetValues,
+  );
+  const total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage =
+    total2Total3ValidatorVerticalTotalToHorizontalTotal_(comparator);
+  // Total2, Total3の縦計と横計をチェック（特別値引後合計）
+  const total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage =
+    total2Total3ValidatorVerticalTotalToHorizontalDiscountTotal_(comparator);
 
   // 合計金額チェック
   const updatedRow = validationCompareTotalAmounts_(
@@ -150,6 +163,8 @@ function check_output_values() {
     },
     res_validationCheckQuoteSum_,
     validationCompareTotalSheetTotalToVerticalTotalWithMessage,
+    total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage,
+    total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
   );
 
   // シートに書き込み

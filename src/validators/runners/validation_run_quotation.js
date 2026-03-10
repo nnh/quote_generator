@@ -16,17 +16,3 @@ function checkDiscountByYearSheet_(targetSheetsName = null) {
   }
   return res;
 }
-
-/**
- * If the first arguments are all True, return True. Otherwise, it outputs a message and returns False.
- * @param {array} <boolean>
- * @param {string} Message to output.
- * @return {boolean}
- */
-function isAllTrue_(target, message) {
-  const res = target.every((x) => x);
-  if (!res) {
-    console.log(message);
-  }
-  return res;
-}

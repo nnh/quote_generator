@@ -2,6 +2,8 @@ function evaluateCheckItems_(
   params,
   res_validationCheckQuoteSum,
   validationCompareTotalSheetTotalToVerticalTotalWithMessage,
+  total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage,
+  total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
 ) {
   const {
     totalCheckItems,
@@ -29,9 +31,9 @@ function evaluateCheckItems_(
   const crossSheetValidationRows = [
     discount_byYear_message,
     validationCompareTotalSheetTotalToVerticalTotalWithMessage,
-    total2Total3ValidatorVerticalTotalToHorizontalTotal_(),
+    total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage,
     checkQuoteSum_message,
-    total2Total3ValidatorVerticalTotalToHorizontalDiscountTotal_(),
+    total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
   ];
 
   const totalValidationRows = evaluateItemChecks_(
