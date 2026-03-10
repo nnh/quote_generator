@@ -1,26 +1,25 @@
-function evaluateCheckItems_(
-  discount_byYear_message,
-  checkQuoteSum_message,
-  validationCompareTotalSheetTotalToVerticalTotalWithMessage,
-  total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage,
-  total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
+function validationEvaluateCheckItems_(
+  crossSheetMessages,
   totalValidationRows,
   totalAmountValidationRows,
 ) {
   const crossSheetValidationRows = [
-    discount_byYear_message,
-    validationCompareTotalSheetTotalToVerticalTotalWithMessage,
-    total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage,
-    checkQuoteSum_message,
-    total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
+    crossSheetMessages.discountByYear,
+    crossSheetMessages.totalVertical,
+    crossSheetMessages.total2Total3Horizontal,
+    crossSheetMessages.quoteSum,
+    crossSheetMessages.total2Total3Discount,
   ];
+
   return [
     ...totalValidationRows,
     ...totalAmountValidationRows,
     ...crossSheetValidationRows,
   ];
 }
-function evaluateItemChecks_(checkItems, target, columnValues) {
+
+function validationEvaluateValidationItems_(checkItems, target) {
+  const columnValues = getColumnValues_(target.sheet, target.col);
   return checkItems.map((item) =>
     validationValidateItemValue_(
       target.sheetName,
