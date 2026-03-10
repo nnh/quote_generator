@@ -20,3 +20,22 @@ function toStatusFromBooleanArray_(booleanResults, ngReason, label = "") {
 
   return [status, label];
 }
+
+/**
+ * バリデーションチェック関数を実行し、結果ステータスとメッセージの配列を作成する。
+ *
+ * checkFunc の実行結果（boolean配列）を `toStatusFromBooleanArray_` に渡し、
+ * ステータス文字列へ変換したうえで、指定したメッセージと組み合わせて返す。
+ *
+ * @param {Function} checkFunc バリデーションを実行する関数（boolean配列を返す関数）
+ * @param {string} message バリデーション結果に対応する説明メッセージ
+ * @return {[string, string]} [ステータス, メッセージ] の配列
+ */
+function validationBuildMessage_(checkFunc, message) {
+  const status = toStatusFromBooleanArray_(
+    checkFunc(),
+    VALIDATION_MESSAGES.VALUE_MISMATCH,
+  );
+
+  return [status, message];
+}

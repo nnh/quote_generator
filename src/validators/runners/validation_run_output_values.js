@@ -140,15 +140,21 @@ function check_output_values() {
     targetTotalAmount.col,
   );
 
-  const res_validationCheckQuoteSum_ = validationCheckQuoteSum_(
-    quoteSheetInfo.amountValue,
-    totalTotalAmountValue,
-    total2TotalAmountValue,
-    total3TotalAmountValue,
-    quoteSheetInfo.discountTotalValue,
-    totalDiscountTotalValue,
-    total2DiscountTotalValue,
-    total3DiscountTotalValue,
+  const validationCheckQuoteSum = () =>
+    validationCheckQuoteSum_(
+      quoteSheetInfo.amountValue,
+      totalTotalAmountValue,
+      total2TotalAmountValue,
+      total3TotalAmountValue,
+      quoteSheetInfo.discountTotalValue,
+      totalDiscountTotalValue,
+      total2DiscountTotalValue,
+      total3DiscountTotalValue,
+    );
+
+  const checkQuoteSum_message = validationBuildMessage_(
+    validationCheckQuoteSum,
+    "Quote, total, total2, total3の合計・特別値引後合計一致チェック",
   );
 
   // 評価結果を計算
@@ -161,7 +167,7 @@ function check_output_values() {
       targetTotalColumnValues,
       targetTotalAmountColumnValues,
     },
-    res_validationCheckQuoteSum_,
+    checkQuoteSum_message,
     validationCompareTotalSheetTotalToVerticalTotalWithMessage,
     total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage,
     total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
