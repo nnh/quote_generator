@@ -77,6 +77,13 @@ function check_output_values() {
       total3SheetInfo.sumColIndex
     ];
 
+  const validationCompareTotalSheetTotalToVerticalTotalWithMessage =
+    validationCompareTotalSheetTotalToVerticalTotal_(
+      totalSheetValues,
+      totalSheetInfo,
+      totalTotalAmountValue,
+    );
+
   // 合計金額チェック
   const updatedRow = validationCompareTotalAmounts_(
     totalTotalAmountValue,
@@ -142,6 +149,7 @@ function check_output_values() {
       targetTotalAmountColumnValues,
     },
     res_validationCheckQuoteSum_,
+    validationCompareTotalSheetTotalToVerticalTotalWithMessage,
   );
 
   // シートに書き込み

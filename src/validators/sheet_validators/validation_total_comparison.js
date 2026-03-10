@@ -84,50 +84,24 @@ function validationCheckAmountByYearSheet_(sheetName, discountRate) {
  * @returns {[string, string]}
  *   [ステータス, メッセージ]
  */
-function validationCompareTotalSheetTotalToVerticalTotal_() {
-  const sheet = _cachedSheets.total;
-  const values = validationGetCachedSheetValues_(sheet);
-  const targetRowIndex = 3;
-
-  // 金額の列のインデックスを取得する
-  const amountColumnIndex = validationFindColIndex_(
-    values,
-    targetRowIndex,
-    VALIDATION_LABELS.AMOUNT,
-  );
-
-  // 合計金額の列のインデックスを取得する
+function validationCompareTotalSheetTotalToVerticalTotal_(
+  totalSheetValues,
+  totalSheetInfo,
+  totalTotalAmountValue,
+) {
   const TOTAL_LABEL = VALIDATION_LABELS.TOTAL_AMOUNT;
-  const totalColumnIndex = validationFindColIndex_(
-    values,
-    targetRowIndex,
-    TOTAL_LABEL,
-  );
-
-  const totalRow = values.find((row) => row[1] === VALIDATION_LABELS.SUM);
-
-  if (!totalRow) {
-    return [
-      buildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH),
-      "合計金額行が見つかりません",
-    ];
-  }
-
-  const totalAmount = validationNormalizeValue_(totalRow[amountColumnIndex]);
-
   const verticalTotal = validationCalculateVerticalTotal_(
-    values,
-    totalColumnIndex,
+    totalSheetValues,
+    totalSheetInfo.totalAmountColIndex,
     TOTAL_LABEL,
   );
 
-  const isValid = totalAmount === verticalTotal;
-
+  const isValid = totalTotalAmountValue === verticalTotal;
   return [
     isValid
       ? VALIDATION_STATUS.OK
       : buildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH),
-    `Totalシートの縦計と合計金額のチェック, 縦計: ${verticalTotal}, 合計金額: ${totalAmount}`,
+    `Totalシートの縦計と合計金額のチェック, 縦計: ${verticalTotal}, 合計金額: ${totalTotalAmountValue}`,
   ];
 }
 
