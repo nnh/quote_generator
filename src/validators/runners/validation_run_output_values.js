@@ -156,21 +156,31 @@ function check_output_values() {
     validationCheckQuoteSum,
     "Quote, total, total2, total3の合計・特別値引後合計一致チェック",
   );
+  const discount_byYear_message = validationBuildMessage_(
+    checkDiscountByYearSheet_,
+    "Setup〜Closingシートの特別値引後合計のチェック",
+  );
+  const totalValidationRows = evaluateItemChecks_(
+    sortedTotalCheckItems,
+    targetTotal,
+    targetTotalColumnValues,
+  );
+
+  const totalAmountValidationRows = evaluateItemChecks_(
+    totalAmountCheckItems,
+    targetTotalAmount,
+    targetTotalAmountColumnValues,
+  );
 
   // 評価結果を計算
   const outputValues = evaluateCheckItems_(
-    {
-      totalCheckItems: sortedTotalCheckItems,
-      totalAmountCheckItems,
-      targetTotal,
-      targetTotalAmount,
-      targetTotalColumnValues,
-      targetTotalAmountColumnValues,
-    },
+    discount_byYear_message,
     checkQuoteSum_message,
     validationCompareTotalSheetTotalToVerticalTotalWithMessage,
     total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage,
     total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
+    totalValidationRows,
+    totalAmountValidationRows,
   );
 
   // シートに書き込み

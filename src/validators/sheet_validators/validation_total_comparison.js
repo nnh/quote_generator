@@ -208,16 +208,14 @@ class Total2Total3Validator {
 
     return horizontalTotal === verticalTotal;
   }
-  validateTotalsExact(rowLabel = ITEM_LABELS.SUM, colLabel = ITEM_LABELS.SUM) {
+  validateTotalsExact(
+    rowLabel = VALIDATION_LABELS.SUM,
+    colLabel = VALIDATION_LABELS.SUM,
+  ) {
     const results = this.targets.map((target) =>
       this.compareSheetTotalsExact(target, rowLabel, colLabel),
     );
-
-    return toStatusFromBooleanArray_(
-      results,
-      VALIDATION_MESSAGES.VALUE_MISMATCH,
-      "Total2, Total3の縦計と横計のチェック",
-    );
+    return results;
   }
 
   /**
@@ -262,7 +260,11 @@ class Total2Total3Validator {
  * @returns {Array} ["OK"/"NG", チェック説明]
  */
 function total2Total3ValidatorVerticalTotalToHorizontalTotal_(comparator) {
-  return comparator.validateTotalsExact();
+  const validateTotals = () => comparator.validateTotalsExact();
+  return validationBuildMessage_(
+    validateTotals,
+    "Total2, Total3の縦計と横計のチェック",
+  );
 }
 
 /**
@@ -272,10 +274,9 @@ function total2Total3ValidatorVerticalTotalToHorizontalTotal_(comparator) {
 function total2Total3ValidatorVerticalTotalToHorizontalDiscountTotal_(
   comparator,
 ) {
-  const discountResults = comparator.validateTotalsWithDiscount();
-  return toStatusFromBooleanArray_(
+  const discountResults = () => comparator.validateTotalsWithDiscount();
+  return validationBuildMessage_(
     discountResults,
-    VALIDATION_MESSAGES.TOTAL_MISMATCH,
     "Total2, Total3の縦計*特別値引率と特別値引後合計の横計のチェック",
   );
 }

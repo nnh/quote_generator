@@ -1,24 +1,12 @@
 function evaluateCheckItems_(
-  params,
+  discount_byYear_message,
   checkQuoteSum_message,
   validationCompareTotalSheetTotalToVerticalTotalWithMessage,
   total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage,
   total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
+  totalValidationRows,
+  totalAmountValidationRows,
 ) {
-  const {
-    totalCheckItems,
-    totalAmountCheckItems,
-    targetTotal,
-    targetTotalAmount,
-    targetTotalColumnValues,
-    targetTotalAmountColumnValues,
-  } = params;
-
-  const discount_byYear_message = validationBuildMessage_(
-    checkDiscountByYearSheet_,
-    "Setup〜Closingシートの特別値引後合計のチェック",
-  );
-
   const crossSheetValidationRows = [
     discount_byYear_message,
     validationCompareTotalSheetTotalToVerticalTotalWithMessage,
@@ -26,19 +14,6 @@ function evaluateCheckItems_(
     checkQuoteSum_message,
     total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
   ];
-
-  const totalValidationRows = evaluateItemChecks_(
-    totalCheckItems,
-    targetTotal,
-    targetTotalColumnValues,
-  );
-
-  const totalAmountValidationRows = evaluateItemChecks_(
-    totalAmountCheckItems,
-    targetTotalAmount,
-    targetTotalAmountColumnValues,
-  );
-
   return [
     ...totalValidationRows,
     ...totalAmountValidationRows,
