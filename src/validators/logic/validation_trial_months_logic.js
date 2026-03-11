@@ -10,7 +10,7 @@
  * @param {number} col - 数式を書き込む列番号（Checkシート）
  * @returns {number} 試験月数（月）
  */
-function calculateTrialMonths_(row, col) {
+function validationCalculateTrialMonths_(row, col) {
   const formulaTrialMonths = '=DATEDIF(C2,D2,"M") + IF(DAY(C2)<=DAY(D2),1,2)';
   const checkSheet = _cachedSheets.check;
   checkSheet.getRange(row, col).setFormula(formulaTrialMonths);

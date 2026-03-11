@@ -204,7 +204,7 @@ class SetTestValues {
 }
 
 /** 指定列の値を1次元配列で取得 */
-function getColumnValues_(sheet, col) {
+function validationGetColumnValues_(sheet, col) {
   return sheet.getRange(1, col, sheet.getLastRow(), 1).getValues().flat();
 }
 
@@ -217,7 +217,7 @@ function getColumnValues_(sheet, col) {
  * @param {Array<{itemname:string,value:number}>} totalCheckItems
  * @returns {Array<{itemname:string,value:number}>} 並び順を修正した配列
  */
-function alignTotalCheckItemsToSheet_(totalCheckItems) {
+function validationAlignTotalCheckItemsToSheet_(totalCheckItems) {
   const itemsSheetValues = _cachedSheets.items
     .getRange(1, 2, _cachedSheets.items.getLastRow(), 1)
     .getValues()

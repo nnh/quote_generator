@@ -16,11 +16,11 @@ const _validationContext = {
  * - 各項目は get_quotation_request_value_ を通じて取得する
  * - 取得値に null が含まれる場合は不整合として例外をスローする
  *
- * @function buildQuotationRequestValidationContext_
+ * @function validationBuildQuotationRequestValidationContext_
  * @returns {Object} quotation request のバリデーション用コンテキスト
  * @throws {Error} 項目値に null が含まれる場合
  */
-function buildQuotationRequestValidationContext_() {
+function validationBuildQuotationRequestValidationContext_() {
   const quotationRequestValidationContext = {
     timestamp: get_quotation_request_value_("タイムスタンプ"),
 
@@ -237,15 +237,18 @@ function validationBuildTrialContext_(
   colOutput,
   quotationRequestValidationContext,
 ) {
-  const trialMonthsFromSheet = calculateTrialMonths_(rowOutput, colOutput);
+  const trialMonthsFromSheet = validationCalculateTrialMonths_(
+    rowOutput,
+    colOutput,
+  );
 
   // バリデーションコンテキストをリセット（シート値のキャッシュをクリア）
   validationResetContext_();
 
   const { setup_month, closing_month, setup_closing_months } =
-    calculateSetupAndClosingMonths(quotationRequestValidationContext);
+    validationCalculateSetupAndClosingMonths(quotationRequestValidationContext);
 
-  const trialInfo = calculateTrialDurationDetails_(
+  const trialInfo = validationCalculateTrialDurationDetails_(
     trialMonthsFromSheet,
     setup_closing_months,
   );

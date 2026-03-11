@@ -47,7 +47,8 @@ function validationBuildSortedCheckItems_(params) {
       closingCount,
     });
 
-  const sortedTotalCheckItems = alignTotalCheckItemsToSheet_(totalCheckItems);
+  const sortedTotalCheckItems =
+    validationAlignTotalCheckItemsToSheet_(totalCheckItems);
 
   return {
     sortedTotalCheckItems,

@@ -16,7 +16,9 @@
  *   setup_closing_months: number
  * }} セットアップ・クローズ月数および合計月数
  */
-function calculateSetupAndClosingMonths(quotationRequestValidationContext) {
+function validationCalculateSetupAndClosingMonths(
+  quotationRequestValidationContext,
+) {
   const trialType = quotationRequestValidationContext.trialType;
   const hasReportSupport =
     quotationRequestValidationContext.reportSupport ===

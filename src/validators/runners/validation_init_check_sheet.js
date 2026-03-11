@@ -7,7 +7,7 @@ function validationInitContext_() {
   validationInitializeCheckSheet_();
 
   const quotationRequestValidationContext =
-    buildQuotationRequestValidationContext_();
+    validationBuildQuotationRequestValidationContext_();
   const facilities_value = quotationRequestValidationContext.facilities;
   const number_of_cases_value =
     quotationRequestValidationContext.number_of_cases;
