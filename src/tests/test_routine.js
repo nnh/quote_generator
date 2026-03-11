@@ -343,23 +343,20 @@ class RoutineTest {
     this.setTestInterimValues(this.sheets.setup, interimCount);
     total2_3_add_del_cols();
   }
-  execRoutineTest(targetValues, targetIdx) {
-    const res = targetValues.map((_, idx) => {
-      if (idx == targetIdx) {
-        setQuotationRequestValuesForTest(idx);
-        this.setQuote();
-        check_output_values();
-        return this.getCheckResult_();
-      } else {
-        return true;
-      }
-    });
-    return res;
+  execRoutineTest(targetRow = null) {
+    if (!targetRow) {
+      return;
+    }
+    setQuotationRequestValuesForTest(targetRow);
+    this.setQuote();
+    check_output_values();
+    return this.getCheckResult_();
   }
-  execTestMain(idx, discountValue) {
-    this.trialSheet.getRange("B46").setValue(discountValue);
-    const targetValues = getQuotationRequestValues_();
-    const testResults = this.execRoutineTest(targetValues, idx);
+  execTestMain(idx, targetRow = null) {
+    if (!targetRow) {
+      return;
+    }
+    const testResults = this.execRoutineTest(targetRow);
     const expected = ROUTINE_TEST_EXPECTED[idx];
 
     if (expected) {
@@ -368,10 +365,11 @@ class RoutineTest {
       return isMatch;
     }
 
-    const res = testResults.every((x) => x);
-    res
-      ? console.log("*** test ok. ***")
-      : console.log("!!! execTestMain ng. " + testResults + " !!!");
+    const results = Array.isArray(testResults) ? testResults : [testResults];
+    const res = results.every((x) => x === VALIDATION_STATUS.OK);
+    console.log(
+      res ? "*** test ok. ***" : `!!! execTestMain ng. ${results} !!!`,
+    );
     return res;
   }
   routineTestDiscountInit() {
@@ -446,18 +444,21 @@ function routineTest() {
   initial_process();
   const test = new RoutineTest();
   const targetValues = getQuotationRequestValues_();
+  const discountValue = "";
+  test.trialSheet.getRange("B46").setValue(discountValue);
+
   const testResults = targetValues.map((_, idx) => {
-    if (idx > 0) {
-      if (idx === 9 || idx === 10) {
-        // test9は終了日がエラー、test10はcrf項目数がエラーのデータ、テスト対象から除外
-        return true;
-      }
-      console.log("test" + idx);
-      const res = test.execTestMain(idx, "");
-      return res;
-    } else {
+    if (idx === 0) {
       return true;
     }
+    if (idx === 9 || idx === 10) {
+      // test9は終了日がエラー、test10はcrf項目数がエラーのデータ、テスト対象から除外
+      return true;
+    }
+    console.log(`test${idx}`);
+    const targetRow = [targetValues[0], targetValues[idx]];
+    const res = test.execTestMain(idx + 1, targetRow);
+    return res;
   });
   testResults.every((x) => x)
     ? console.log("*** All tests OK. ***")
