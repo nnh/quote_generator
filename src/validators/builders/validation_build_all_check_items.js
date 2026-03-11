@@ -1,7 +1,7 @@
 /**
  * すべてのチェック項目を生成するラッパー関数。
  *
- * {@link buildTotalCheckItems_} の結果から
+ * {@link validationBuildTotalCheckItems_} の結果から
  * totalCheckItems と totalAmountCheckItems を抽出して返す。
  *
  * @param {Object} params チェック項目生成に必要なパラメータ
@@ -12,7 +12,7 @@
  */
 function validationBuildAllCheckItems_(params) {
   const { totalCheckItems, totalAmountCheckItems } =
-    buildTotalCheckItems_(params);
+    validationBuildTotalCheckItems_(params);
 
   return { totalCheckItems, totalAmountCheckItems };
 }

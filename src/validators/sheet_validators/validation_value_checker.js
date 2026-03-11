@@ -25,7 +25,7 @@ function validationValidateItemValue_(
 
   if (!(row > 0)) {
     return [
-      buildNgMessage_(VALIDATION_MESSAGES.NG_ITEM_NOT_FOUND),
+      validationBuildNgMessage_(VALIDATION_MESSAGES.NG_ITEM_NOT_FOUND),
       baseMessage,
     ];
   }
@@ -34,7 +34,7 @@ function validationValidateItemValue_(
 
   if (actualValue !== expectedValue) {
     return [
-      buildNgMessage_(VALIDATION_MESSAGES.VALUE_MISMATCH),
+      validationBuildNgMessage_(VALIDATION_MESSAGES.VALUE_MISMATCH),
       `${baseMessage},実際の値:${actualValue}`,
     ];
   }

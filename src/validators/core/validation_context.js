@@ -133,3 +133,128 @@ function validationGetCachedSheetValues_(sheet) {
 function validationResetContext_() {
   _validationContext.sheetValues.clear();
 }
+
+/**
+ * Total, Total2, Total3シートから合計値チェックに必要な値を収集する
+ * @returns {{
+ *   totalSheetValues: any[][],
+ *   total2SheetValues: any[][],
+ *   total3SheetValues: any[][],
+ *   totalSheetInfo: any,
+ *   total2SheetInfo: any,
+ *   total3SheetInfo: any,
+ *   totalTotalAmountValue: number,
+ *   totalDiscountTotalValue: number,
+ *   total2TotalAmountValue: number,
+ *   total2DiscountTotalValue: number,
+ *   total3TotalAmountValue: number,
+ *   total3DiscountTotalValue: number
+ * }}
+ */
+function validationCollectTotalSheetValues_() {
+  const TOTAL_HEADER_ROW_INDEX = 3;
+  const TOTAL_HEADER_COL_INDEX = 1;
+  const TOTAL3_HEADER_ROW_INDEX = 2;
+
+  const totalSheetValues = validationGetCachedSheetValues_(_cachedSheets.total);
+  const total2SheetValues = validationGetCachedSheetValues_(
+    _cachedSheets.total2,
+  );
+  const total3SheetValues = validationGetCachedSheetValues_(
+    _cachedSheets.total3,
+  );
+
+  const totalSheetInfo = validationGetTotalSheetInfo_(
+    _cachedSheets.total,
+    TOTAL_HEADER_ROW_INDEX,
+    TOTAL_HEADER_COL_INDEX,
+    VALIDATION_LABELS.SUM,
+  );
+
+  const total2SheetInfo = validationGetTotalSheetInfo_(
+    _cachedSheets.total2,
+    TOTAL_HEADER_ROW_INDEX,
+    TOTAL_HEADER_COL_INDEX,
+    VALIDATION_LABELS.SUM,
+  );
+
+  const total3SheetInfo = validationGetTotalSheetInfo_(
+    _cachedSheets.total3,
+    TOTAL3_HEADER_ROW_INDEX,
+    TOTAL_HEADER_COL_INDEX,
+    VALIDATION_LABELS.SUM,
+  );
+
+  const totalTotalAmountValue =
+    totalSheetValues[totalSheetInfo.sumRowIndex][totalSheetInfo.amountColIndex];
+
+  const totalDiscountTotalValue =
+    totalSheetValues[totalSheetInfo.discountTotalRowIndex][
+      totalSheetInfo.amountColIndex
+    ];
+
+  const total2TotalAmountValue =
+    total2SheetValues[total2SheetInfo.sumRowIndex][total2SheetInfo.sumColIndex];
+
+  const total2DiscountTotalValue =
+    total2SheetValues[total2SheetInfo.discountTotalRowIndex][
+      total2SheetInfo.sumColIndex
+    ];
+
+  const total3TotalAmountValue =
+    total3SheetValues[total3SheetInfo.sumRowIndex][total3SheetInfo.sumColIndex];
+
+  const total3DiscountTotalValue =
+    total3SheetValues[total3SheetInfo.discountTotalRowIndex][
+      total3SheetInfo.sumColIndex
+    ];
+
+  return {
+    totalSheetValues,
+    total2SheetValues,
+    total3SheetValues,
+    totalSheetInfo,
+    total2SheetInfo,
+    total3SheetInfo,
+    totalTotalAmountValue,
+    totalDiscountTotalValue,
+    total2TotalAmountValue,
+    total2DiscountTotalValue,
+    total3TotalAmountValue,
+    total3DiscountTotalValue,
+  };
+}
+
+/**
+ * 値チェックに必要な試験年月等の試験情報を構築する。
+ * @param {*} rowOutput
+ * @param {*} colOutput
+ * @param {*} quotationRequestValidationContext
+ * @returns
+ */
+function validationBuildTrialContext_(
+  rowOutput,
+  colOutput,
+  quotationRequestValidationContext,
+) {
+  const trialMonthsFromSheet = calculateTrialMonths_(rowOutput, colOutput);
+
+  // バリデーションコンテキストをリセット（シート値のキャッシュをクリア）
+  validationResetContext_();
+
+  const { setup_month, closing_month, setup_closing_months } =
+    calculateSetupAndClosingMonths(quotationRequestValidationContext);
+
+  const trialInfo = calculateTrialDurationDetails_(
+    trialMonthsFromSheet,
+    setup_closing_months,
+  );
+
+  return {
+    trialMonthsFromSheet,
+    setup_month,
+    closing_month,
+    setup_closing_months,
+    ...trialInfo,
+  };
+}

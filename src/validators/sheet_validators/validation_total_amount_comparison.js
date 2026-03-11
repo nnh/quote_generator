@@ -20,7 +20,9 @@ function validationCompareTotalAmounts_(
     amount_check[0] = VALIDATION_STATUS.OK;
     amount_check[1] = amount_check[1] + " ,想定値:" + totalTotalAmountValue;
   } else {
-    amount_check[0] = buildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH);
+    amount_check[0] = validationBuildNgMessage_(
+      VALIDATION_MESSAGES.TOTAL_MISMATCH,
+    );
   }
 
   return amount_check;

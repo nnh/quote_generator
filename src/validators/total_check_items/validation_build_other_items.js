@@ -1,11 +1,11 @@
-function buildAuditItems_() {
+function validationBuildAuditItems_() {
   return [
     { itemname: "監査計画書作成", value: 0 },
     { itemname: "施設監査", value: 0 },
     { itemname: "監査報告書作成", value: 0 },
   ];
 }
-function buildPublicationItems_() {
+function validationBuildPublicationItems_() {
   return [
     { itemname: "国内学会発表", value: 0 },
     { itemname: "国際学会発表", value: 0 },
@@ -26,7 +26,7 @@ function buildPublicationItems_() {
  * @param {number} params.trial_year
  * @returns {Array<{itemname:string,value:number}>}
  */
-function buildOtherItems_(params) {
+function validationBuildOtherItems_(params) {
   const {
     quotationRequestValidationContext: ctx,
     facilities_value,

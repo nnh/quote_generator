@@ -383,6 +383,17 @@ function validationGetTotalSheetInfo_(
     totalAmountValue,
   };
 }
+/**
+ * Quoteシートの合計関連情報を取得する
+ * @returns {{
+ *   sheetValues: any[][],
+ *   amountColIndex: number,
+ *   amountRowIndex: number,
+ *   discountTotalRowIndex: number,
+ *   amountValue: number,
+ *   discountTotalValue: number
+ * }}
+ */
 function validationGetQuoteSheetInfo_() {
   const sheet = _cachedSheets.quote;
   const sheetValues = validationGetCachedSheetValues_(sheet);
@@ -428,4 +439,16 @@ function validationGetQuoteSheetInfo_() {
     amountValue,
     discountTotalValue,
   };
+}
+
+/**
+ * バリデーションの結果をチェックシートに書き込む
+ * @param {number} startRow 書き込み開始行（1-based）
+ * @param {string[][]} outputValues 書き込む2次元配列
+ * @returns {void}
+ */
+function validationWriteRowsToCheckSheet_(startRow, outputValues) {
+  _cachedSheets.check
+    .getRange(startRow, 1, outputValues.length, outputValues[0].length)
+    .setValues(outputValues);
 }

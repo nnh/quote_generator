@@ -1,206 +1,41 @@
+/**
+ * 出力値のvalidationを実行し、Checkシートに結果を書き込むエントリーポイント
+ *
+ * validationInitContext_ で検証用コンテキストを生成し、
+ * validationRunOutputValidationPipeline_ で各種検証処理を実行する。
+ * 生成された結果を Check シートへ書き込む。
+ */
 function check_output_values() {
-  const params = initCheckSheet_();
+  const params = validationInitContext_();
 
   const { results, updatedRow } =
     validationRunOutputValidationPipeline_(params);
 
-  writeOutputValues_(updatedRow, results);
-}
-
-/** 出力値をシートに書き込む */
-function writeOutputValues_(startRow, outputValues) {
-  _cachedSheets.check
-    .getRange(startRow, 1, outputValues.length, outputValues[0].length)
-    .setValues(outputValues);
-}
-function validationCollectTotalSheetValues_() {
-  const TOTAL_HEADER_ROW_INDEX = 3;
-  const TOTAL_HEADER_COL_INDEX = 1;
-  const TOTAL3_HEADER_ROW_INDEX = 2;
-
-  const totalSheetValues = validationGetCachedSheetValues_(_cachedSheets.total);
-  const total2SheetValues = validationGetCachedSheetValues_(
-    _cachedSheets.total2,
-  );
-  const total3SheetValues = validationGetCachedSheetValues_(
-    _cachedSheets.total3,
-  );
-
-  const totalSheetInfo = validationGetTotalSheetInfo_(
-    _cachedSheets.total,
-    TOTAL_HEADER_ROW_INDEX,
-    TOTAL_HEADER_COL_INDEX,
-    VALIDATION_LABELS.SUM,
-  );
-
-  const total2SheetInfo = validationGetTotalSheetInfo_(
-    _cachedSheets.total2,
-    TOTAL_HEADER_ROW_INDEX,
-    TOTAL_HEADER_COL_INDEX,
-    VALIDATION_LABELS.SUM,
-  );
-
-  const total3SheetInfo = validationGetTotalSheetInfo_(
-    _cachedSheets.total3,
-    TOTAL3_HEADER_ROW_INDEX,
-    TOTAL_HEADER_COL_INDEX,
-    VALIDATION_LABELS.SUM,
-  );
-
-  const totalTotalAmountValue =
-    totalSheetValues[totalSheetInfo.sumRowIndex][totalSheetInfo.amountColIndex];
-
-  const totalDiscountTotalValue =
-    totalSheetValues[totalSheetInfo.discountTotalRowIndex][
-      totalSheetInfo.amountColIndex
-    ];
-
-  const total2TotalAmountValue =
-    total2SheetValues[total2SheetInfo.sumRowIndex][total2SheetInfo.sumColIndex];
-
-  const total2DiscountTotalValue =
-    total2SheetValues[total2SheetInfo.discountTotalRowIndex][
-      total2SheetInfo.sumColIndex
-    ];
-
-  const total3TotalAmountValue =
-    total3SheetValues[total3SheetInfo.sumRowIndex][total3SheetInfo.sumColIndex];
-
-  const total3DiscountTotalValue =
-    total3SheetValues[total3SheetInfo.discountTotalRowIndex][
-      total3SheetInfo.sumColIndex
-    ];
-
-  return {
-    totalSheetValues,
-    total2SheetValues,
-    total3SheetValues,
-    totalSheetInfo,
-    total2SheetInfo,
-    total3SheetInfo,
-    totalTotalAmountValue,
-    totalDiscountTotalValue,
-    total2TotalAmountValue,
-    total2DiscountTotalValue,
-    total3TotalAmountValue,
-    total3DiscountTotalValue,
-  };
-}
-function validationBuildTrialContext_(
-  rowOutput,
-  colOutput,
-  quotationRequestValidationContext,
-) {
-  const trialMonthsFromSheet = calculateTrialMonths_(rowOutput, colOutput);
-
-  // バリデーションコンテキストをリセット（シート値のキャッシュをクリア）
-  validationResetContext_();
-
-  const { setup_month, closing_month, setup_closing_months } =
-    calculateSetupAndClosingMonths(quotationRequestValidationContext);
-
-  const trialInfo = calculateTrialDurationDetails_(
-    trialMonthsFromSheet,
-    setup_closing_months,
-  );
-
-  return {
-    trialMonthsFromSheet,
-    setup_month,
-    closing_month,
-    setup_closing_months,
-    ...trialInfo,
-  };
-}
-function validationBuildSortedCheckItems_(params) {
-  const {
-    quotationRequestValidationContext,
-    facilities_value,
-    number_of_cases_value,
-    trialContext,
-    interimCount,
-    closingCount,
-  } = params;
-
-  const { totalCheckItems, totalAmountCheckItems } =
-    validationBuildAllCheckItems_({
-      quotationRequestValidationContext,
-      facilities_value,
-      number_of_cases_value,
-      trial_months: trialContext.trialMonthsFromSheet,
-      total_months: trialContext.totalMonths,
-      trial_year: trialContext.fullYears,
-      trial_ceil_year: trialContext.ceilYears,
-      setup_month: trialContext.setup_month,
-      closing_month: trialContext.closing_month,
-      interimCount,
-      closingCount,
-    });
-
-  const sortedTotalCheckItems = alignTotalCheckItemsToSheet_(totalCheckItems);
-
-  return {
-    sortedTotalCheckItems,
-    totalAmountCheckItems,
-  };
+  validationWriteRowsToCheckSheet_(updatedRow, results);
 }
 
 /**
+ * 出力値validationのパイプライン処理を実行する
  *
- * @param {Object} totals
- * @param {Object} quoteSheetInfo
- * @returns {ValidationRow[]}
+ * 以下の処理を順に実行する。
+ * 1. 試験期間情報の取得
+ * 2. Quote / Total / Total2 / Total3 シートの情報取得
+ * 3. シート間整合性チェック
+ * 4. Totalシートの検証項目生成
+ * 5. 検証結果をCheckシート出力用データとして生成
+ *
+ * @param {Object} params validationInitContext_ が返す検証用コンテキスト
+ * @param {number} params.facilities_value 施設数
+ * @param {number} params.number_of_cases_value 症例数
+ * @param {Object} params.targetTotal Totalシート件数検証対象
+ * @param {Object} params.targetTotalAmount Totalシート金額検証対象
+ * @param {Array<Array<string>>} params.trial_start_end Checkシートの初期行
+ * @param {Object} params.quotationRequestValidationContext 見積依頼の検証コンテキスト
+ *
+ * @returns {Object}
+ * @returns {Array<Array<any>>} returns.results Checkシートに書き込む検証結果行
+ * @returns {number} returns.updatedRow 書き込み開始行
  */
-function validationRunCrossSheetValidations_(totals, quoteSheetInfo) {
-  const validationCompareTotalSheetTotalToVerticalTotalWithMessage =
-    validationCompareTotalSheetTotalToVerticalTotal_(
-      totals.totalSheetValues,
-      totals.totalSheetInfo,
-      totals.totalTotalAmountValue,
-    );
-
-  const comparator = new Total2Total3Validator(
-    totals.total2SheetInfo,
-    totals.total3SheetInfo,
-    totals.total2SheetValues,
-    totals.total3SheetValues,
-  );
-
-  const total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage =
-    total2Total3ValidatorVerticalTotalToHorizontalTotal_(comparator);
-
-  const total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage =
-    total2Total3ValidatorVerticalTotalToHorizontalDiscountTotal_(comparator);
-
-  const checkQuoteSum_message = validationBuildMessage_(
-    () =>
-      validationCheckQuoteSum_(
-        quoteSheetInfo.amountValue,
-        totals.totalTotalAmountValue,
-        totals.total2TotalAmountValue,
-        totals.total3TotalAmountValue,
-        quoteSheetInfo.discountTotalValue,
-        totals.totalDiscountTotalValue,
-        totals.total2DiscountTotalValue,
-        totals.total3DiscountTotalValue,
-      ),
-    "Quote, total, total2, total3の合計・特別値引後合計一致チェック",
-  );
-
-  const discount_byYear_message = validationBuildMessage_(
-    checkDiscountByYearSheet_,
-    "Setup〜Closingシートの特別値引後合計のチェック",
-  );
-
-  return [
-    discount_byYear_message,
-    validationCompareTotalSheetTotalToVerticalTotalWithMessage,
-    total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage,
-    checkQuoteSum_message,
-    total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
-  ];
-}
-
 function validationRunOutputValidationPipeline_(params) {
   const {
     facilities_value,

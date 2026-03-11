@@ -22,7 +22,7 @@
  *   value: number
  * }[]} モニタリング関連チェック項目配列
  */
-function buildMonitoringItems_(params) {
+function validationBuildMonitoringItems_(params) {
   const {
     facilities_value,
     number_of_cases_value,

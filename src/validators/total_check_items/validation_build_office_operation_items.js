@@ -22,7 +22,7 @@
  * @param {number} params.closingCount
  * @return {Array<Object>}
  */
-function buildOfficeOperationItems_(params) {
+function validationBuildOfficeOperationItems_(params) {
   const {
     quotationRequestValidationContext,
     facilities_value,

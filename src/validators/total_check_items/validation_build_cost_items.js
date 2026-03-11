@@ -18,7 +18,7 @@
  * @return {Array<Object>} return.totalCheckItems
  * @return {Array<Object>} return.totalAmountCheckItems
  */
-function buildCostItems_(params) {
+function validationBuildCostItems_(params) {
   const { quotationRequestValidationContext, trial_year } = params;
 
   const totalCheckItems = [];

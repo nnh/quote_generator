@@ -100,15 +100,21 @@ function validationCompareTotalSheetTotalToVerticalTotal_(
   return [
     isValid
       ? VALIDATION_STATUS.OK
-      : buildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH),
+      : validationBuildNgMessage_(VALIDATION_MESSAGES.TOTAL_MISMATCH),
     `Totalシートの縦計と合計金額のチェック, 縦計: ${verticalTotal}, 合計金額: ${totalTotalAmountValue}`,
   ];
 }
 
 /**
- * Total2/Total3シートの縦計と横計を比較するクラス
+ * Total2 / Total3 シートの縦計と横計の整合性を検証するクラス
+ *
+ * 以下のチェックを行う。
+ * - 縦計と横計が完全一致しているか
+ * - 割引適用後の金額が縦計 × (1 - 割引率) と一致しているか（±1円許容）
+ *
+ * @class
  */
-class Total2Total3Validator {
+class ValidationTotal2Total3Validator {
   constructor(
     total2SheetInfo,
     total3SheetInfo,
@@ -120,6 +126,7 @@ class Total2Total3Validator {
 
     const SETUP_START_COL_INDEX = 3;
 
+    /** @type {Array<Object>} 検証対象シート情報 */
     this.targets = [
       {
         sheet: total2SheetInfo.sheet,
@@ -184,7 +191,14 @@ class Total2Total3Validator {
       ),
     };
   }
-
+  /**
+   * 縦計と横計が完全一致するかを検証する
+   *
+   * @param {Object} target 対象シート
+   * @param {string} rowLabel
+   * @param {string} colLabel
+   * @returns {boolean}
+   */
   compareSheetTotalsExact(target, rowLabel, colLabel) {
     const { rowIndex, colIndex } = this.findRowColIndex(
       target,
@@ -208,6 +222,13 @@ class Total2Total3Validator {
 
     return horizontalTotal === verticalTotal;
   }
+  /**
+   * Total2 / Total3 の縦計と横計を検証する
+   *
+   * @param {string} [rowLabel]
+   * @param {string} [colLabel]
+   * @returns {boolean[]}
+   */
   validateTotalsExact(
     rowLabel = VALIDATION_LABELS.SUM,
     colLabel = VALIDATION_LABELS.SUM,
@@ -259,7 +280,9 @@ class Total2Total3Validator {
  * Total2, Total3の縦計と横計をチェック（誤差なし）
  * @returns {Array} ["OK"/"NG", チェック説明]
  */
-function total2Total3ValidatorVerticalTotalToHorizontalTotal_(comparator) {
+function validationTotal2Total3ValidatorVerticalTotalToHorizontalTotal_(
+  comparator,
+) {
   const validateTotals = () => comparator.validateTotalsExact();
   return validationBuildMessage_(
     validateTotals,
@@ -271,7 +294,7 @@ function total2Total3ValidatorVerticalTotalToHorizontalTotal_(comparator) {
  * Total2, Total3の縦計×特別値引率と特別値引後横計をチェック（誤差±1円）
  * @returns {Array} ["OK"/"NG", チェック説明]
  */
-function total2Total3ValidatorVerticalTotalToHorizontalDiscountTotal_(
+function validationTotal2Total3ValidatorVerticalTotalToHorizontalDiscountTotal_(
   comparator,
 ) {
   const discountResults = () => comparator.validateTotalsWithDiscount();

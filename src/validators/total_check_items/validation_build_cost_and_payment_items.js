@@ -11,7 +11,7 @@
  *   amountCheckItems: Array<{itemname:string,value:number}>
  * }}
  */
-function buildCostAndPaymentItems_(params) {
+function validationBuildCostAndPaymentItems_(params) {
   const {
     quotationRequestValidationContext: ctx,
     facilities_value,

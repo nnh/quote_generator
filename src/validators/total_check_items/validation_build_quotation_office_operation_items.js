@@ -15,7 +15,7 @@
  * @param {string} params.quotationRequestValidationContext.fundingSource 資金源
  * @returns {Array<{itemname:string,value:number}>} 事務局運営チェック項目
  */
-function buildQuotationOfficeOperationItems_(params) {
+function validationBuildQuotationOfficeOperationItems_(params) {
   const {
     setup_month,
     trial_months,

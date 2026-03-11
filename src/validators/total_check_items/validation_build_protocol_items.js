@@ -11,7 +11,7 @@
  * @param {number} params.total_months 契約期間（月数）
  * @return {Array<Object>}
  */
-function buildProtocolItems_(params) {
+function validationBuildProtocolItems_(params) {
   const { quotationRequestValidationContext, facilities_value, total_months } =
     params;
 

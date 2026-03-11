@@ -1,48 +1,50 @@
-function buildTotalCheckItems_(params) {
+function validationBuildTotalCheckItems_(params) {
   const totalCheckItems = [];
   const totalAmountCheckItems = [];
 
   /** ==============================
    * Protocol
    ============================== */
-  totalCheckItems.push(...buildProtocolItems_(params));
+  totalCheckItems.push(...validationBuildProtocolItems_(params));
 
   /** ==============================
    * Monitoring
    ============================== */
-  totalCheckItems.push(...buildMonitoringItems_(params));
+  totalCheckItems.push(...validationBuildMonitoringItems_(params));
   /** ==============================
    * Office / DM
    ============================== */
-  totalCheckItems.push(...buildQuotationOfficeOperationItems_(params));
-  totalCheckItems.push(...buildOfficeOperationItems_(params));
+  totalCheckItems.push(
+    ...validationBuildQuotationOfficeOperationItems_(params),
+  );
+  totalCheckItems.push(...validationBuildOfficeOperationItems_(params));
 
   /** ==============================
    * Statistical
    ============================== */
-  totalCheckItems.push(...buildStatisticalItems_(params));
+  totalCheckItems.push(...validationBuildStatisticalItems_(params));
 
   /** ==============================
    * Audit
    ============================== */
-  totalCheckItems.push(...buildAuditItems_());
+  totalCheckItems.push(...validationBuildAuditItems_());
 
   /** ==============================
    * Research Funding
    ============================== */
-  const costAndPayment = buildCostAndPaymentItems_(params);
+  const costAndPayment = validationBuildCostAndPaymentItems_(params);
   totalCheckItems.push(...costAndPayment.checkItems);
   totalAmountCheckItems.push(...costAndPayment.amountCheckItems);
 
   /** ==============================
    * Publication
    ============================== */
-  totalCheckItems.push(...buildPublicationItems_());
+  totalCheckItems.push(...validationBuildPublicationItems_());
 
   /** ==============================
    * Cost
    ============================== */
-  const costItems = buildCostItems_(params);
+  const costItems = validationBuildCostItems_(params);
 
   totalCheckItems.push(...costItems.totalCheckItems);
   totalAmountCheckItems.push(...costItems.totalAmountCheckItems);
@@ -50,7 +52,7 @@ function buildTotalCheckItems_(params) {
   /** ==============================
    * Other
    ============================== */
-  totalCheckItems.push(...buildOtherItems_(params));
+  totalCheckItems.push(...validationBuildOtherItems_(params));
 
   return {
     totalCheckItems,

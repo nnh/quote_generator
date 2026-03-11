@@ -11,7 +11,7 @@
  * @param {string} finalRequest 最終解析業務の依頼の値
  * @return {number} 必要な統計解析ドキュメントセット数
  */
-function countStatisticalDocumentSets_(interimRequest, finalRequest) {
+function validationCountStatisticalDocumentSets_(interimRequest, finalRequest) {
   return (
     Number(interimRequest === COMMON_EXISTENCE_LABELS.YES) +
     Number(finalRequest === COMMON_EXISTENCE_LABELS.YES)
@@ -42,7 +42,7 @@ function countStatisticalDocumentSets_(interimRequest, finalRequest) {
  * @return {number} return[].value 作業量（数量）
  */
 
-function buildStatisticalItems_(params) {
+function validationBuildStatisticalItems_(params) {
   const trialType = params.quotationRequestValidationContext.trialType;
   const interimAnalysisRequest =
     params.quotationRequestValidationContext.interimAnalysisRequest;
@@ -68,7 +68,7 @@ function buildStatisticalItems_(params) {
   items.push({
     itemname:
       "統計解析計画書・出力計画書・解析データセット定義書・解析仕様書作成",
-    value: countStatisticalDocumentSets_(
+    value: validationCountStatisticalDocumentSets_(
       interimAnalysisRequest,
       finalAnalysisRequest,
     ),
