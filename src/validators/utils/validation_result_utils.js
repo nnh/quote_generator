@@ -1,3 +1,17 @@
+/**
+ * Validation結果
+ *
+ * @typedef {[string, string]} ValidationRow
+ * [0] status (OK / NG)
+ * [1] message
+ */
+
+/**
+ *
+ * NGメッセージを生成するユーティリティ関数。
+ * @param {string} message
+ * @returns {string} NGメッセージ
+ */
 function buildNgMessage_(message) {
   return VALIDATION_STATUS.NG + "：" + message;
 }

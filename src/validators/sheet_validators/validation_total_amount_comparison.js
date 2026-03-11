@@ -1,3 +1,11 @@
+/**
+ * Total / Total2 / Total3 の合計金額チェック
+ *
+ * @param {number} totalTotalAmountValue Totalの合計金額
+ * @param {number} total2TotalAmountValue Total2の合計金額
+ * @param {number} total3TotalAmountValue Total3の合計金額
+ * @returns {ValidationRow}
+ */
 function validationCompareTotalAmounts_(
   totalTotalAmountValue,
   total2TotalAmountValue,

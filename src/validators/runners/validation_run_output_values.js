@@ -1,10 +1,10 @@
 function check_output_values() {
   const params = initCheckSheet_();
 
-  const { outputValues, updatedRow } =
+  const { results, updatedRow } =
     validationRunOutputValidationPipeline_(params);
 
-  writeOutputValues_(updatedRow, outputValues);
+  writeOutputValues_(updatedRow, results);
 }
 
 /** 出力値をシートに書き込む */
@@ -145,6 +145,12 @@ function validationBuildSortedCheckItems_(params) {
   };
 }
 
+/**
+ *
+ * @param {Object} totals
+ * @param {Object} quoteSheetInfo
+ * @returns {ValidationRow[]}
+ */
 function validationRunCrossSheetValidations_(totals, quoteSheetInfo) {
   const validationCompareTotalSheetTotalToVerticalTotalWithMessage =
     validationCompareTotalSheetTotalToVerticalTotal_(
@@ -186,15 +192,13 @@ function validationRunCrossSheetValidations_(totals, quoteSheetInfo) {
     "Setup〜Closingシートの特別値引後合計のチェック",
   );
 
-  return {
-    discountByYear: discount_byYear_message,
-    totalVertical: validationCompareTotalSheetTotalToVerticalTotalWithMessage,
-    total2Total3Horizontal:
-      total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage,
-    quoteSum: checkQuoteSum_message,
-    total2Total3Discount:
-      total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
-  };
+  return [
+    discount_byYear_message,
+    validationCompareTotalSheetTotalToVerticalTotalWithMessage,
+    total2Total3ValidatorVerticalTotalToHorizontalTotalWithMessage,
+    checkQuoteSum_message,
+    total2Total3ValidatorVerticalTotalToHorizontalDiscountTotalWithMessage,
+  ];
 }
 
 function validationRunOutputValidationPipeline_(params) {
@@ -218,16 +222,20 @@ function validationRunOutputValidationPipeline_(params) {
   const quoteSheetInfo = validationGetQuoteSheetInfo_();
   const totals = validationCollectTotalSheetValues_();
 
-  const crossSheetMessages = validationRunCrossSheetValidations_(
-    totals,
-    quoteSheetInfo,
-  );
+  const results = [];
 
   const totalAmountRow = validationCompareTotalAmounts_(
     totals.totalTotalAmountValue,
     totals.total2TotalAmountValue,
     totals.total3TotalAmountValue,
   );
+  results.push(totalAmountRow);
+
+  const crossSheetMessages = validationRunCrossSheetValidations_(
+    totals,
+    quoteSheetInfo,
+  );
+  results.push(...crossSheetMessages);
 
   const { interimCount, closingCount } = validationGetTargetCounts_(
     targetTotal,
@@ -254,18 +262,13 @@ function validationRunOutputValidationPipeline_(params) {
     targetTotalAmount,
   );
 
-  const outputValues = [
-    totalAmountRow,
-    ...validationEvaluateCheckItems_(
-      crossSheetMessages,
-      totalValidationRows,
-      totalAmountValidationRows,
-    ),
-  ];
+  results.push(...totalValidationRows);
+  results.push(...totalAmountValidationRows);
+
   const updatedRow = rowOutput + 1;
 
   return {
-    outputValues,
+    results,
     updatedRow,
   };
 }
