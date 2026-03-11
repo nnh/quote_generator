@@ -73,9 +73,7 @@ class RoutineTest {
         true,
         true,
       ];
-      const isMatch =
-        testResults.length === expectedResults.length &&
-        testResults.every((v, i) => v === expectedResults[i]);
+      const isMatch = routineTestArrayEqual_(testResults, expectedResults);
       isMatch
         ? console.log("*** testResults match expected for idx 11. ***")
         : console.log("!!! testResults do not match expected for idx 11. !!!");
@@ -117,9 +115,7 @@ class RoutineTest {
         true,
         true,
       ];
-      const isMatch =
-        testResults.length === expectedResults.length &&
-        testResults.every((v, i) => v === expectedResults[i]);
+      const isMatch = routineTestArrayEqual_(testResults, expectedResults);
       isMatch
         ? console.log("*** testResults match expected for idx 12. ***")
         : console.log("!!! testResults do not match expected for idx 12. !!!");
@@ -161,9 +157,7 @@ class RoutineTest {
         true,
         true,
       ];
-      const isMatch =
-        testResults.length === expectedResults.length &&
-        testResults.every((v, i) => v === expectedResults[i]);
+      const isMatch = routineTestArrayEqual_(testResults, expectedResults);
       isMatch
         ? console.log("***  研究協力費金額の比較をスキップ idx 13. ***")
         : console.log("!!! testResults do not match expected for idx 13. !!!");
@@ -205,9 +199,7 @@ class RoutineTest {
         true,
         true,
       ];
-      const isMatch =
-        testResults.length === expectedResults.length &&
-        testResults.every((v, i) => v === expectedResults[i]);
+      const isMatch = routineTestArrayEqual_(testResults, expectedResults);
       isMatch
         ? console.log("***  研究協力費金額の比較をスキップ idx 18. ***")
         : console.log("!!! testResults do not match expected for idx 18. !!!");
@@ -249,9 +241,7 @@ class RoutineTest {
         true,
         true,
       ];
-      const isMatch =
-        testResults.length === expectedResults.length &&
-        testResults.every((v, i) => v === expectedResults[i]);
+      const isMatch = routineTestArrayEqual_(testResults, expectedResults);
       isMatch
         ? console.log("***  研究協力費金額の比較をスキップ idx 24. ***")
         : console.log("!!! testResults do not match expected for idx 24. !!!");
@@ -293,9 +283,7 @@ class RoutineTest {
         true,
         true,
       ];
-      const isMatch =
-        testResults.length === expectedResults.length &&
-        testResults.every((v, i) => v === expectedResults[i]);
+      const isMatch = routineTestArrayEqual_(testResults, expectedResults);
       isMatch
         ? console.log(
             "***  研究協力費金額の比較をスキップ, 治験薬運搬は別途issueにあげる idx 29. ***",
@@ -339,9 +327,7 @@ class RoutineTest {
         true,
         true,
       ];
-      const isMatch =
-        testResults.length === expectedResults.length &&
-        testResults.every((v, i) => v === expectedResults[i]);
+      const isMatch = routineTestArrayEqual_(testResults, expectedResults);
       isMatch
         ? console.log("*** testResults match expected for idx 20. ***")
         : console.log("!!! testResults do not match expected for idx 20. !!!");
@@ -383,9 +369,7 @@ class RoutineTest {
         true,
         true,
       ];
-      const isMatch =
-        testResults.length === expectedResults.length &&
-        testResults.every((v, i) => v === expectedResults[i]);
+      const isMatch = routineTestArrayEqual_(testResults, expectedResults);
       isMatch
         ? console.log("*** testResults match expected for idx 26. ***")
         : console.log("!!! testResults do not match expected for idx 26. !!!");
@@ -516,4 +500,15 @@ function clearSheetsForTest() {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(x);
     sheet.getRange("F6:F94").clearContent();
   });
+}
+
+/**
+ * 2つの配列が同じ内容かを比較する
+ *
+ * @param {Array<any>} a
+ * @param {Array<any>} b
+ * @returns {boolean}
+ */
+function routineTestArrayEqual_(a, b) {
+  return a.length === b.length && a.every((v, i) => v === b[i]);
 }
