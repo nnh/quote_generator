@@ -471,29 +471,7 @@ function routineTest() {
     allOk ? "*** All tests OK. ***" : `NG tests: ${testResults.join(", ")}`,
   );
 }
-class RoutineTestIndividual extends RoutineTest {
-  execRoutineTest(targetValues) {
-    this.quotationRequestSheet.clearContents();
-    this.quotationRequestSheet
-      .getRange(1, 1, targetValues.length, targetValues[0].length)
-      .setValues(targetValues);
-    this.setQuote();
-    check_output_values();
-    return this.getCheckResult_();
-  }
-}
-function routineTest_individual() {
-  const targetIdx = 1;
-  initial_process();
-  const test = new RoutineTestIndividual();
-  const targetValues = getQuotationRequestValues_().filter(
-    (_, idx) => idx == 0 || idx == targetIdx,
-  );
-  const testResults = test.execRoutineTest(targetValues);
-  testResults
-    ? console.log("*** test OK. ***")
-    : console.log("!!! test NG !!!");
-}
+
 function clearSheetsForTest() {
   const targetSheetsName = getTargetSheetNameForTest_();
   targetSheetsName.forEach((x) => {
