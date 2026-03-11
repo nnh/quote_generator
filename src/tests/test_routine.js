@@ -327,7 +327,9 @@ const ROUTINE_TEST_EXPECTED = {
 
 class RoutineTest {
   constructor() {
-    this.sheets = get_sheets();
+    initial_process();
+    this.checkSheet = _cachedSheets.check;
+    this.setupSheet = _cachedSheets.setup;
     this.trialSheet = _cachedSheets.trial;
     this.quotationRequestSheet =
       _cachedSheets[normalizeSheetName_(QUOTATION_REQUEST_SHEET.NAME)];
@@ -342,7 +344,7 @@ class RoutineTest {
       COMMON_EXISTENCE_LABELS.YES
         ? 1
         : "";
-    this.setTestInterimValues(this.sheets.setup, interimCount);
+    this.setTestInterimValues(this.setupSheet, interimCount);
     total2_3_add_del_cols();
   }
   execRoutineTest(targetRow = null) {
@@ -375,7 +377,6 @@ class RoutineTest {
   routineTestDiscountInit() {
     const setVal = new SetTestValues();
     const targetSheetsName = setVal.getTrialYearsItemsName();
-    //setVal.delDiscountAllPeriod();
     targetSheetsName.forEach((_, idx) => {
       setVal.delDiscountByYear(idx);
     });
@@ -413,26 +414,37 @@ class RoutineTest {
     targetSheet.getRange("F55").setValue(tableCount);
     targetSheet.getRange("F56").setValue(interimValue);
   }
+  /**
+   * Checkシートの検証結果を確認し、全てのステータスが OK か判定する。
+   *
+   * A列: 検証ステータス（OK / NG）
+   * B列: チェック内容
+   *
+   * B列が特定の文言で始まる行（中間解析プログラム作成のチェック）は
+   * テスト対象外のため判定から除外する。
+   *
+   * 判定対象行で、空でないステータスが VALIDATION_STATUS.OK 以外の場合は
+   * false を返す。すべて OK の場合は true を返す。
+   *
+   * @return {boolean|string[]} すべての検証ステータスが OK の場合 true、それ以外は NG のステータスの配列
+   */
   getCheckResult_() {
-    const checkSheet = this.sheets.check;
-    // Items not checked
-    const exclusionIdx1 = checkSheet
-      .getRange("B:B")
-      .getValues()
-      .map((x, idx) =>
-        x[0].startsWith(
-          "シート名:Total,項目名:中間解析プログラム作成、解析実施（シングル）,想定値:回数がQuotation Requestシートの中間解析に必要な図表数*Quotation Requestシートの中間解析の頻度であることを確認",
-        )
-          ? idx
-          : null,
-      )
-      .filter((x) => x)[0];
-    const checkSheetValue = checkSheet
-      .getRange("A:A")
-      .getValues()
-      .filter((x, idx) => idx > 0 && x[0] != "" && idx != exclusionIdx1);
+    const rows = this.checkSheet
+      .getRange(1, 1, this.checkSheet.getLastRow(), 2)
+      .getValues();
 
-    return checkSheetValue.every((x) => x[0] === VALIDATION_STATUS.OK);
+    const exclusionText =
+      "シート名:Total,項目名:中間解析プログラム作成、解析実施（シングル）,想定値:回数がQuotation Requestシートの中間解析に必要な図表数*Quotation Requestシートの中間解析の頻度であることを確認";
+
+    const exclusionIdx = rows.findIndex((row) =>
+      row[1]?.startsWith(exclusionText),
+    );
+
+    const checkValues = rows
+      .filter((row, idx) => idx > 0 && row[0] !== "" && idx !== exclusionIdx)
+      .map((row) => row[0] === VALIDATION_STATUS.OK);
+    const allOk = checkValues.every((x) => x);
+    return allOk ? true : checkValues;
   }
 }
 /**
@@ -441,7 +453,6 @@ class RoutineTest {
  * @return none.
  */
 function routineTest() {
-  initial_process();
   const routineTest = new RoutineTest();
   const targetValues = getQuotationRequestValues_();
   const discountValue = "";
