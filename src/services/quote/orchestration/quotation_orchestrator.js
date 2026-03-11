@@ -3,39 +3,6 @@
  */
 
 /**
- * Quotation request シートから見積処理に必要な入力データを読み込む
- *
- * - 1〜2行目を対象として値を取得する
- * - A2セルが空白の場合は、Quotation request が未入力と判断し処理を中断する
- * - 未入力時はメッセージを表示し、null を返す
- *
- * quote_script_main などの見積処理の前段で呼び出される想定
- *
- * @return {Array<Array>|null}
- *   Quotation request シートの1〜2行目の値配列
- *   未入力の場合は null
- */
-function loadQuotationRequest_() {
-  const quotationRequestSheetName = normalizeSheetName_(
-    QUOTATION_REQUEST_SHEET.NAME,
-  );
-  const sheet = _cachedSheets[quotationRequestSheetName];
-  if (!sheet) {
-    throw new Error("Quotation request シートが取得できません");
-  }
-  const lastCol = sheet.getDataRange().getLastColumn();
-  const values = sheet.getRange(1, 1, 2, lastCol).getValues();
-  // Quotation requestシートのA2セルが空白の場合、Quotation requestが入っていないものと判断して処理を終了する
-  if (values[1][0] === "") {
-    Browser.msgBox(
-      "Quotation requestシートの2行目に情報を貼り付けて再実行してください。",
-    );
-    return null;
-  }
-  return values;
-}
-
-/**
  * 試験期間が設定されており、見積計算の対象となる年度別シート一覧を取得する
  *
  * - Setup〜Closing のいずれかの期間が存在するシートのみを対象とする

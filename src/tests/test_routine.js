@@ -11,12 +11,6 @@ class RoutineTest {
   setQuote() {
     this.routineTestInit();
     quote_script_main();
-    const quotation_request_last_col = this.quotationRequestSheet
-      .getDataRange()
-      .getLastColumn();
-    const array_quotation_request = this.quotationRequestSheet
-      .getRange(1, 1, 2, quotation_request_last_col)
-      .getValues();
     const interimCount =
       get_quotation_request_value_("中間解析業務の依頼") ==
       COMMON_EXISTENCE_LABELS.YES
@@ -432,12 +426,6 @@ class RoutineTest {
     return res;
   }
   setTestInterimValues(targetSheet, interimValue) {
-    const quotation_request_last_col = this.quotationRequestSheet
-      .getDataRange()
-      .getLastColumn();
-    const array_quotation_request = this.quotationRequestSheet
-      .getRange(1, 1, 2, quotation_request_last_col)
-      .getValues();
     const tableCount =
       interimValue != ""
         ? get_quotation_request_value_("中間解析に必要な図表数")
