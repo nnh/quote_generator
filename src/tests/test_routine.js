@@ -335,6 +335,8 @@ class RoutineTest {
   setQuote() {
     this.routineTestInit();
     quote_script_main();
+    const trialName = get_quotation_request_value_("試験実施番号");
+    console.log(`Trial Name: ${trialName}`);
     const interimCount =
       get_quotation_request_value_("中間解析業務の依頼") ==
       COMMON_EXISTENCE_LABELS.YES
@@ -365,12 +367,10 @@ class RoutineTest {
       return isMatch;
     }
 
-    const results = Array.isArray(testResults) ? testResults : [testResults];
-    const res = results.every((x) => x === VALIDATION_STATUS.OK);
     console.log(
-      res ? "*** test ok. ***" : `!!! execTestMain ng. ${results} !!!`,
+      testResults ? "*** test ok. ***" : `!!! execTestMain ng. ${results} !!!`,
     );
-    return res;
+    return testResults;
   }
   routineTestDiscountInit() {
     const setVal = new SetTestValues();
@@ -432,7 +432,7 @@ class RoutineTest {
       .getValues()
       .filter((x, idx) => idx > 0 && x[0] != "" && idx != exclusionIdx1);
 
-    return checkSheetValue.every((x) => x[0] === "OK");
+    return checkSheetValue.every((x) => x[0] === VALIDATION_STATUS.OK);
   }
 }
 /**
@@ -442,27 +442,34 @@ class RoutineTest {
  */
 function routineTest() {
   initial_process();
-  const test = new RoutineTest();
+  const routineTest = new RoutineTest();
   const targetValues = getQuotationRequestValues_();
   const discountValue = "";
-  test.trialSheet.getRange("B46").setValue(discountValue);
+  routineTest.trialSheet.getRange("B46").setValue(discountValue);
 
-  const testResults = targetValues.map((_, idx) => {
+  const header = targetValues[0];
+
+  const testResults = targetValues.map((row, idx) => {
     if (idx === 0) {
-      return true;
+      return VALIDATION_STATUS.OK;
     }
+
     if (idx === 9 || idx === 10) {
       // test9は終了日がエラー、test10はcrf項目数がエラーのデータ、テスト対象から除外
-      return true;
+      return VALIDATION_STATUS.OK;
     }
+
     console.log(`test${idx}`);
-    const targetRow = [targetValues[0], targetValues[idx]];
-    const res = test.execTestMain(idx + 1, targetRow);
-    return res;
+
+    const targetRow = [header, row];
+    return routineTest.execTestMain(idx, targetRow);
   });
-  testResults.every((x) => x)
-    ? console.log("*** All tests OK. ***")
-    : console.log(testResults);
+
+  const allOk = testResults.every((x) => x === VALIDATION_STATUS.OK);
+
+  console.log(
+    allOk ? "*** All tests OK. ***" : `NG tests: ${testResults.join(", ")}`,
+  );
 }
 class RoutineTestIndividual extends RoutineTest {
   execRoutineTest(targetValues) {
