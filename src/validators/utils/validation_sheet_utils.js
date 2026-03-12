@@ -100,7 +100,7 @@ class SetTestValues {
     this.trialYearsDiscountCol = 7;
     this.trialYearsDiscountRateCol = 8;
     this.const_itemsDiscount = 1100000;
-    this.constDiscountAllPeriodRangeAddr = "B46";
+    this.constDiscountAllPeriodRangeAddr = `${TRIAL_SHEET.COLNAMES.VALUE}${TRIAL_SHEET.ROWS.DISCOUNT_VALUE}`;
     this.trialSheet = _cachedSheets.trial;
     if (!this.trialSheet) {
       throw new Error("Trial sheet not found in cache.");

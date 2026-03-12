@@ -69,6 +69,9 @@ const QUOTATION_REQUEST_SHEET = {
     TRIAL_END_DATE: "試験終了日",
     FACILITIES: ITEM_LABELS.FACILITIES,
     NUMBER_OF_CASES: ITEM_LABELS.NUMBER_OF_CASES,
+    INTERIM_ANALYSIS_REQUEST: "中間解析業務の依頼",
+    INTERIM_ANALYSIS_REQUIRED_TABLE_FIGURE_COUNT: "中間解析に必要な図表数",
+    INTERIM_ANALYSIS_FREQUENCY: "中間解析の頻度",
   },
 };
 
@@ -148,6 +151,8 @@ const ITEMS_SHEET = {
     VALIDATION_REPORT: "バリデーション報告書",
     INPUT_GUIDE_CREATION: "入力の手引作成",
     DRUG_MANAGEMENT_CENTRAL: "治験薬管理（中央）",
+    INTERIM_ANALYSIS_PROGRAM_SINGLE:
+      "中間解析プログラム作成、解析実施（シングル）",
   },
   UNITS: {
     PER_CASE: "件",
@@ -175,6 +180,7 @@ const TRIAL_SHEET = {
     FACILITIES: 29,
     TRIAL_SETUP: 32,
     TRIAL_CLOSING: 39,
+    DISCOUNT_VALUE: 46,
   },
   RANGES: {
     COMMENT: "B12:B26",
