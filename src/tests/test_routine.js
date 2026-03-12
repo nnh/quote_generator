@@ -6,322 +6,50 @@ const ROUTINE_TEST_EXPECTED = {
   11: {
     messageOk: "*** testResults match expected for idx 11. ***",
     messageNg: "!!! testResults do not match expected for idx 11. !!!",
-    values: [
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      false,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-    ],
+    falseRowNumbers: [27], // モニタリング関連
   },
 
   12: {
     messageOk: "*** testResults match expected for idx 12. ***",
     messageNg: "!!! testResults do not match expected for idx 12. !!!",
-    values: [
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      false,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-    ],
+    falseRowNumbers: [27], // モニタリング関連
   },
 
   13: {
     messageOk: "***  研究協力費金額の比較をスキップ idx 13. ***",
     messageNg: "!!! testResults do not match expected for idx 13. !!!",
-    values: [
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      false,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-    ],
+    falseRowNumbers: [70], // 研究協力費金額
   },
 
   18: {
     messageOk: "***  研究協力費金額の比較をスキップ idx 18. ***",
     messageNg: "!!! testResults do not match expected for idx 18. !!!",
-    values: [
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      false,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-    ],
+    falseRowNumbers: [70], // 研究協力費金額
   },
 
   24: {
     messageOk: "***  研究協力費金額の比較をスキップ idx 24. ***",
     messageNg: "!!! testResults do not match expected for idx 24. !!!",
-    values: [
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      false,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-    ],
+    falseRowNumbers: [70], // 研究協力費金額
   },
 
   29: {
     messageOk:
       "***  研究協力費金額の比較をスキップ, 治験薬運搬は別途issueにあげる idx 29. ***",
     messageNg: "!!! testResults do not match expected for idx 29. !!!",
-    values: [
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      false,
-      true,
-      true,
-      true,
-    ],
+    falseRowNumbers: [65, 70], // 治験薬運搬, 研究協力費金額
   },
 
   20: {
     messageOk: "*** testResults match expected for idx 20. ***",
     messageNg: "!!! testResults do not match expected for idx 20. !!!",
-    values: [
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      false,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-    ],
+    falseRowNumbers: [27], // モニタリング関連
   },
 
   26: {
     messageOk: "*** testResults match expected for idx 26. ***",
     messageNg: "!!! testResults do not match expected for idx 26. !!!",
-    values: [
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      false,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-    ],
+    falseRowNumbers: [27], // モニタリング関連
   },
 };
 
@@ -347,31 +75,32 @@ class RoutineTest {
     this.setTestInterimValues(this.setupSheet, interimCount);
     total2_3_add_del_cols();
   }
-  execRoutineTest(targetRow = null) {
+  execRoutineTest(targetRow = null, falseRowNumbers = []) {
     if (!targetRow) {
       return;
     }
     setQuotationRequestValuesForTest(targetRow);
     this.setQuote();
     check_output_values();
-    return this.getCheckResult_();
+    return this.getCheckResult_(falseRowNumbers);
   }
   execTestMain(idx, targetRow = null) {
     if (!targetRow) {
       return;
     }
-    const testResults = this.execRoutineTest(targetRow);
-    const expected = ROUTINE_TEST_EXPECTED[idx];
 
-    if (expected) {
-      const isMatch = routineTestArrayEqual_(testResults, expected.values);
-      console.log(isMatch ? expected.messageOk : expected.messageNg);
-      return isMatch;
-    }
+    const {
+      falseRowNumbers,
+      messageOk = "*** test ok. ***",
+      messageNg,
+    } = ROUTINE_TEST_EXPECTED[idx] ?? {};
 
-    console.log(
-      testResults ? "*** test ok. ***" : `!!! execTestMain ng. ${results} !!!`,
-    );
+    const testResults = this.execRoutineTest(targetRow, falseRowNumbers);
+
+    const messageOK = messageOk;
+    const messageNG = messageNg ?? `!!! execTestMain ng. ${testResults} !!!`;
+
+    console.log(testResults ? messageOK : messageNG);
     return testResults;
   }
   routineTestDiscountInit() {
@@ -428,20 +157,28 @@ class RoutineTest {
    *
    * @return {boolean|string[]} すべての検証ステータスが OK の場合 true、それ以外は NG のステータスの配列
    */
-  getCheckResult_() {
+  getCheckResult_(falseRowNumbers = []) {
     const rows = this.checkSheet
       .getRange(1, 1, this.checkSheet.getLastRow(), 2)
       .getValues();
 
-    const exclusionText =
+    const exclusion1Text =
       "シート名:Total,項目名:中間解析プログラム作成、解析実施（シングル）,想定値:回数がQuotation Requestシートの中間解析に必要な図表数*Quotation Requestシートの中間解析の頻度であることを確認";
 
-    const exclusionIdx = rows.findIndex((row) =>
-      row[1]?.startsWith(exclusionText),
+    const exclusion1RowIndex = rows.findIndex((row) =>
+      row[1]?.startsWith(exclusion1Text),
     );
 
+    const exclusion2RowIndex = falseRowNumbers.map((num) => num - 1); // 行番号をインデックスに変換
+
     const checkValues = rows
-      .filter((row, idx) => idx > 0 && row[0] !== "" && idx !== exclusionIdx)
+      .filter(
+        (row, idx) =>
+          idx > 0 &&
+          row[0] !== "" &&
+          idx !== exclusion1RowIndex &&
+          !exclusion2RowIndex.includes(idx),
+      )
       .map((row) => row[0] === VALIDATION_STATUS.OK);
     const allOk = checkValues.every((x) => x);
     return allOk ? true : checkValues;
@@ -462,12 +199,12 @@ function routineTest() {
 
   const testResults = targetValues.map((row, idx) => {
     if (idx === 0) {
-      return VALIDATION_STATUS.OK;
+      return true;
     }
 
     if (idx === 9 || idx === 10) {
       // test9は終了日がエラー、test10はcrf項目数がエラーのデータ、テスト対象から除外
-      return VALIDATION_STATUS.OK;
+      return true;
     }
 
     console.log(`test${idx}`);
@@ -476,7 +213,7 @@ function routineTest() {
     return routineTest.execTestMain(idx, targetRow);
   });
 
-  const allOk = testResults.every((x) => x === VALIDATION_STATUS.OK);
+  const allOk = testResults.every((x) => x === true);
 
   console.log(
     allOk ? "*** All tests OK. ***" : `NG tests: ${testResults.join(", ")}`,
