@@ -1,3 +1,17 @@
+const RESEARCH_SUPPORT_ITEM_MAPPINGS = [
+  {
+    requestKey: QUOTATION_REQUEST_SHEET.ITEMNAMES.PREPARE_FEE,
+    itemName: ITEMS_SHEET.ITEMNAMES.PREPARE_FEE,
+  },
+  {
+    requestKey: QUOTATION_REQUEST_SHEET.ITEMNAMES.REGISTRATION_FEE,
+    itemName: ITEMS_SHEET.ITEMNAMES.REGISTRATION_FEE,
+  },
+  {
+    requestKey: QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE,
+    itemName: ITEMS_SHEET.ITEMNAMES.REPORT_FEE,
+  },
+];
 function applyItemPrices_(itemSheet) {
   // 保険料
   processInsuranceFee_(itemSheet);
@@ -42,42 +56,46 @@ function processInsuranceFee_(itemSheet) {
  * @return {void}
  */
 function processResearchSupportFee_(itemSheet) {
+  const itemUnitColNumber = getColumnNumber_(ITEMS_SHEET.COLUMNS.UNIT);
+  const itemRows = {};
+  const itemUnits = {};
+  const quotationValues = {};
+
+  RESEARCH_SUPPORT_ITEM_MAPPINGS.forEach(({ requestKey, itemName }) => {
+    const row = get_row_num_matched_value_(itemSheet, 2, itemName);
+
+    itemRows[itemName] = row;
+
+    if (row) {
+      itemUnits[itemName] = itemSheet
+        .getRange(row, itemUnitColNumber)
+        .getValue();
+    }
+
+    quotationValues[requestKey] = get_quotation_request_value_(requestKey);
+  });
+
   const totalPrice = get_quotation_request_value_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_SUPPORT_FEE,
   );
   const get_s_p = PropertiesService.getScriptProperties();
-  const cost_of_cooperation_item_name = [
-    [
-      QUOTATION_REQUEST_SHEET.ITEMNAMES.PREPARE_FEE,
-      ITEMS_SHEET.ITEMNAMES.PREPARE_FEE,
-    ],
-    [
-      QUOTATION_REQUEST_SHEET.ITEMNAMES.REGISTRATION_FEE,
-      ITEMS_SHEET.ITEMNAMES.REGISTRATION_FEE,
-    ],
-    [
-      QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE,
-      ITEMS_SHEET.ITEMNAMES.REPORT_FEE,
-    ],
-  ];
   const numberOfCases = Number(
     get_s_p.getProperty(SCRIPT_PROPERTY_KEYS.NUMBER_OF_CASES),
   );
   const facilities = Number(
     get_s_p.getProperty(SCRIPT_PROPERTY_KEYS.FACILITIES_VALUE),
   );
-  const enabledItemCount = countEnabledItems_(cost_of_cooperation_item_name);
+  const enabledItemCount = Object.values(quotationValues).filter(
+    (v) => v === COMMON_EXISTENCE_LABELS.YES,
+  ).length;
   const basePrice = calculateBasePrice_(totalPrice, enabledItemCount);
 
-  const itemUnitColNumber = getColumnNumber_(ITEMS_SHEET.COLUMNS.UNIT);
-  cost_of_cooperation_item_name.forEach(([requestKey, itemName]) => {
-    const items_row = get_row_num_matched_value_(itemSheet, 2, itemName);
+  RESEARCH_SUPPORT_ITEM_MAPPINGS.forEach(({ requestKey, itemName }) => {
+    const items_row = itemRows[itemName];
     if (!items_row) return;
 
-    if (
-      get_quotation_request_value_(requestKey) === COMMON_EXISTENCE_LABELS.YES
-    ) {
-      const unit = itemSheet.getRange(items_row, itemUnitColNumber).getValue();
+    if (quotationValues[requestKey] === COMMON_EXISTENCE_LABELS.YES) {
+      const unit = itemUnits[itemName];
       const price = calculatePriceByUnit_(
         basePrice,
         unit,
@@ -90,21 +108,7 @@ function processResearchSupportFee_(itemSheet) {
     }
   });
 }
-/**
- * 見積依頼シートの値をもとに、有効（「あり」）な項目数をカウントする。
- *
- * @param {Array<Array<string>>} itemMappings
- *   見積依頼シートの項目名を含む配列。
- *   例: [[requestItemName, itemSheetName], ...]
- * @return {number}
- *   値が「あり」となっている項目の数
- */
-function countEnabledItems_(itemMappings) {
-  return itemMappings.filter(
-    ([requestKey]) =>
-      get_quotation_request_value_(requestKey) === COMMON_EXISTENCE_LABELS.YES,
-  ).length;
-}
+
 /**
  * 合計金額を有効項目数で按分し、各項目の基準金額を算出する。
  *
