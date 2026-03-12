@@ -52,7 +52,7 @@ function ssToPdf() {
   // フィルタ：0を非表示にする
   hideFilterVisibility();
   // Total2, Total3シートの合計0円の列を非表示に、0円以上の列を表示にする
-  total2_3_show_hidden_cols();
+  total2_3ShowHiddenCols_();
   const output_folder = DriveApp.getRootFolder();
   const ss = getSpreadsheet_();
   const const_page_fit = 4;

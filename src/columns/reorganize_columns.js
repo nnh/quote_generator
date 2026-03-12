@@ -4,11 +4,11 @@
  * @param {sheet} target_sheet シート名
  * @return none
  */
-function show_hidden_cols(target_sheet) {
+function showHiddenCols_(target_sheet) {
   // 「合計」行を取得
-  const goukei_row = get_goukei_row(target_sheet);
+  const goukei_row = getGoukeiRow_(target_sheet);
   // 「合計」列を取得
-  const goukei_col = get_years_target_col(target_sheet, ITEM_LABELS.SUM);
+  const goukei_col = getYearsTargetCol_(target_sheet, ITEM_LABELS.SUM);
   // 「Setup」列を取得
   const add_del = new AddDelColumns(target_sheet);
   const header_t = add_del.getSetupClosingHeader();
@@ -25,22 +25,16 @@ function show_hidden_cols(target_sheet) {
     const col = setup_col + offset;
     const value = values[offset];
 
-    // 列全体のRangeを取得（1列ぶん）
-    const colRange = target_sheet.getRange(
-      1,
-      col,
-      target_sheet.getMaxRows(),
-      1,
-    );
+    const lastRow = target_sheet.getLastRow();
+    const colRange = target_sheet.getRange(1, col, lastRow, 1);
 
     value > 0
       ? target_sheet.unhideColumn(colRange)
       : target_sheet.hideColumn(colRange);
   }
 }
-function total2_3_show_hidden_cols() {
-  const target_sheets = extract_target_sheet_();
-  target_sheets.forEach((x) => show_hidden_cols(x));
+function total2_3ShowHiddenCols_(target_sheets) {
+  target_sheets.forEach((x) => showHiddenCols_(x));
 }
 /**
  * 引数に与えた文字列があるセルの列番号を返す。
@@ -48,22 +42,19 @@ function total2_3_show_hidden_cols() {
  * @param {string} target_str 検索する文字列
  * @return {number}
  */
-function get_years_target_col(sheet, target_str) {
-  const target_row = sheet.getName().includes(QUOTATION_SHEET_NAMES.TOTAL2)
-    ? 4
-    : sheet.getName().includes(QUOTATION_SHEET_NAMES.TOTAL3)
-      ? 3
-      : null;
-
-  if (!target_row) return null;
+function getYearsTargetCol_(sheet, target_str) {
+  const config = getTotalSheetConfig_(sheet.getName());
+  if (!config) return null;
 
   const lastCol = sheet.getLastColumn();
-  const rowValues = sheet.getRange(target_row, 1, 1, lastCol).getValues()[0];
+
+  const rowValues = sheet
+    .getRange(config.headerRow, 1, 1, lastCol)
+    .getValues()[0];
 
   const idx = rowValues.indexOf(target_str);
-  if (idx < 0) return null;
 
-  return idx + 1; // 列番号（1始まり）
+  return idx >= 0 ? idx + 1 : null;
 }
 
 /**
@@ -71,26 +62,20 @@ function get_years_target_col(sheet, target_str) {
  * @param {sheet} sheet Total2/Total3を指定
  * @return {number}
  */
-function get_goukei_row(sheet) {
-  const target_col = sheet.getName().includes(QUOTATION_SHEET_NAMES.TOTAL2)
-    ? 2
-    : sheet.getName().includes(QUOTATION_SHEET_NAMES.TOTAL3)
-      ? 2
-      : null;
-
-  if (!target_col) return null;
+function getGoukeiRow_(sheet) {
+  const config = getTotalSheetConfig_(sheet.getName());
+  if (!config) return null;
 
   const lastRow = sheet.getLastRow();
-  const values = sheet.getRange(1, target_col, lastRow, 1).getValues();
 
-  // 先頭から順に探して、見つかった瞬間に返す
+  const values = sheet.getRange(1, config.sumLabelCol, lastRow, 1).getValues();
+
   for (let i = 0; i < values.length; i++) {
     if (values[i][0] === ITEM_LABELS.SUM) {
-      return i + 1; // 行番号は1始まり
+      return i + 1;
     }
   }
 
-  // 見つからなかった場合
   return null;
 }
 
@@ -103,7 +88,8 @@ function total2_3_add_del_cols() {
   initial_process();
   //　フィルタを解除し全行表示する
   resetFilterVisibility();
-  const target_sheets = extract_target_sheet_();
+  // Total2/Total3系シートを取得する
+  const target_sheets = extractTargetSheets_();
   // 列を初期化する
   target_sheets.forEach((x) => new AddDelColumns(x).initCols());
   // Trialシートの試験期間、見出し、試験期間年数を取得する
@@ -121,34 +107,36 @@ function total2_3_add_del_cols() {
     });
   }
   // 合計0円の年度を非表示にする
-  total2_3_show_hidden_cols();
+  total2_3ShowHiddenCols_(target_sheets);
   //　0の行を非表示にするフィルタをセット
   hideFilterVisibility();
 }
 /**
- * Total2, Total3シートの列構成用
- * 対象のシートオブジェクトの配列を返す
- * @return {[Sheet]}
+ * Total2 / Total3 系シートを取得
+ * @return {Sheet[]}
  */
-function extract_target_sheet_() {
-  const totalNames = [
-    QUOTATION_SHEET_NAMES.TOTAL2.toLowerCase(),
-    QUOTATION_SHEET_NAMES.TOTAL3.toLowerCase(),
-  ];
+function extractTargetSheets_() {
+  const sheets = get_sheets();
 
-  const suffixes = ["", `_${ORG.NMC}`, `_${ORG.OSCR}`];
+  return Object.entries(sheets)
+    .filter(([name]) => name.startsWith("total2") || name.startsWith("total3"))
+    .map(([, sheet]) => sheet);
+}
 
-  const result = [];
+function getTotalSheetConfig_(sheetName) {
+  if (sheetName.includes(QUOTATION_SHEET_NAMES.TOTAL2)) {
+    return {
+      headerRow: 4,
+      sumLabelCol: 2,
+    };
+  }
 
-  // total2 / total3 × 接尾辞 の組み合わせをすべて試す
-  totalNames.forEach((base) => {
-    suffixes.forEach((suffix) => {
-      const sheetObj = _cachedSheets[base + suffix];
-      if (sheetObj) {
-        result.push(sheetObj);
-      }
-    });
-  });
+  if (sheetName.includes(QUOTATION_SHEET_NAMES.TOTAL3)) {
+    return {
+      headerRow: 3,
+      sumLabelCol: 2,
+    };
+  }
 
-  return result;
+  return null;
 }

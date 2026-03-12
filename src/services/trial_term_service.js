@@ -28,15 +28,16 @@ function get_years_(start_date, end_date) {
  * @return {Array.<string>} the trial period, heading, and number of years of trial period on the Trial sheet.
  */
 function getTrialTermInfo_() {
-  // Trialシートの試験期間年数列
-  const trialTermCol = 3;
-
   if (!_cachedSheets || !_cachedSheets.trial) {
     throw new Error("Trial シートが取得できません");
   }
 
   const trialSheet = _cachedSheets.trial;
 
+  const trialYearsColumnNumber = TRIAL_SHEET.COLUMNS.TRIAL_YEARS;
+  if (isNaN(trialYearsColumnNumber)) {
+    throw new Error("trial_years_column が正しく設定されていません");
+  }
   const setupRow = TRIAL_SHEET.ROWS.TRIAL_SETUP;
   const closingRow = TRIAL_SHEET.ROWS.TRIAL_CLOSING;
 
@@ -56,7 +57,9 @@ function getTrialTermInfo_() {
     );
   }
 
-  return trialSheet.getRange(startRow, 1, rowCount, trialTermCol).getValues();
+  return trialSheet
+    .getRange(startRow, 1, rowCount, trialYearsColumnNumber)
+    .getValues();
 }
 
 class GetArrayDividedItemsCount {
