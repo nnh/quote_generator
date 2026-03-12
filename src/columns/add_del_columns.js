@@ -1,23 +1,44 @@
 /**
- * Setup~Closingの間で見出しが空白の行は削除する。
- * @param {sheet} sheet Total2/Total3を指定
- * @param {number} term_row Total2/Total3シートの年度の上の行
- * @return {boolean}
+ * Setup〜Closing の列構造を整理するクラス。
+ *
+ * 以下の処理を行う：
+ * - Setup〜Closing の範囲外の列を無視
+ * - 見出しが空白の列を削除
+ * - 重複している見出し列を1列に統一
+ * - 必要に応じて列を追加
  */
-class Add_del_columns {
+class AddDelColumns {
+  /**
+   * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet 対象シート（Total2 / Total3）
+   */
   constructor(sheet) {
+    /** @type {GoogleAppsScript.Spreadsheet.Sheet} */
     this.sheet = sheet;
+
+    /** @type {number} 見出し行番号 */
     this.term_row = 2;
+
+    /** @type {string} Setup〜Closing外の列を示すダミー文字列 */
     this.dummy_str = "***dummy***";
 
+    /** @type {string} Setup列の見出し名 */
     this.setupName = QUOTATION_SHEET_NAMES.SETUP;
+
+    /** @type {string} Closing列の見出し名 */
     this.closingName = QUOTATION_SHEET_NAMES.CLOSING;
+
+    /** @type {string[] | null} Setup〜Closing範囲の見出しキャッシュ */
     this._cachedHeader = null;
   }
   /**
-   * 見出し行の文字列を取得する。Setupより左、Closingより右の情報はダミー文字列に置き換える。
+   * 見出し行の文字列を取得する。
+   *
+   * Setup より左、Closing より右の列はダミー文字列に置き換える。
+   * 一度取得した結果はキャッシュされる。
+   *
+   * @returns {string[] | undefined} 見出し配列（Setup〜Closing範囲外はダミー文字列）
    */
-  get_setup_closing_range() {
+  getSetupClosingHeader() {
     // すでに取得済みならキャッシュを返す
     if (this._cachedHeader) return this._cachedHeader;
 
@@ -40,25 +61,41 @@ class Add_del_columns {
     return this._cachedHeader;
   }
   /**
-   * ヘッダキャッシュを無効化する
+   * ヘッダキャッシュを無効化する。
+   *
+   * 列構造が変更された場合に呼び出す。
+   *
+   * @returns {void}
    */
-  invalidate_cache() {
+  invalidateCache() {
     this._cachedHeader = null;
   }
 
   /**
-   * 列の初期化を行う。
+   * 列の初期化処理を行う。
+   *
+   * 以下の処理を順番に実行する：
+   * 1. 見出しが空白の列を削除
+   * 2. 重複している列を削除
+   *
+   * @returns {void}
    */
-  init_cols() {
-    this.remove_cols_without_header();
-    this.remove_col();
+  initCols() {
+    this.removeColsWithoutHeader();
+    this.removeCol();
   }
+
   /**
-   * Setup~Closingを一列ずつにする（重複列を削除）
+   * Setup〜Closing範囲で重複している見出し列を削除する。
+   *
+   * 同じ見出しが複数ある場合は
+   * 最初の1列だけ残して残りを削除する。
+   *
+   * @returns {void}
    */
-  remove_col() {
+  removeCol() {
     // Setup、Closingの見出しがなければ処理しない
-    const header_t = this.get_setup_closing_range();
+    const header_t = this.getSetupClosingHeader();
     if (!header_t) return;
 
     // ダミーを除いた対象ヘッダ（元のインデックス付きで保持）
@@ -90,32 +127,44 @@ class Add_del_columns {
       .sort((a, b) => b - a)
       .forEach((col) => {
         this.sheet.deleteColumn(col);
-        this.invalidate_cache(); // キャッシュ無効化
+        this.invalidateCache(); // キャッシュ無効化
       });
   }
   /**
-   * Setup~Closingの間で見出しが空白の列を削除する。
+   * Setup〜Closing範囲で見出しが空白の列を削除する。
+   *
+   * 空白列がなくなるまで繰り返し削除する。
+   *
+   * @returns {void}
    */
-  remove_cols_without_header() {
+  removeColsWithoutHeader() {
     while (true) {
-      const header_t = this.get_setup_closing_range();
+      const header_t = this.getSetupClosingHeader();
       if (!header_t) return;
 
       const emptyIndex = header_t.indexOf("");
       if (emptyIndex < 0) return;
 
       this.sheet.deleteColumn(emptyIndex + 1);
-      this.invalidate_cache(); // 列構成が変わったのでキャッシュ破棄
+      this.invalidateCache(); // 列構成が変わったのでキャッシュ破棄
     }
   }
 
   /**
-   * 列の追加を行う。
-   * @param {[string, number]} 追加対象列情報  [シート名, 必要列数]
+   * 指定された見出しの列を必要数まで追加する。
+   *
+   * 既存の列数が不足している場合、
+   * 最初の列をコピーして追加する。
+   *
+   * @param {[string, number]} param0
+   * @param {string} param0[0] 対象の見出し名
+   * @param {number} param0[1] 必要な列数
+   *
+   * @returns {void}
    */
-  add_cols([target_head, target_columns_count]) {
+  addCols([target_head, target_columns_count]) {
     // Setup、Closingの見出しがなければ処理しない
-    let header_t = this.get_setup_closing_range();
+    let header_t = this.getSetupClosingHeader();
     if (!header_t) return;
 
     // 現在の列数を取得
@@ -137,7 +186,7 @@ class Add_del_columns {
     // まとめて追加
     for (let i = 0; i < needToAdd; i++) {
       this.sheet.insertColumnAfter(baseColNumber + i);
-      this.invalidate_cache(); // 列構成が変わったのでキャッシュ破棄
+      this.invalidateCache(); // 列構成が変わったのでキャッシュ破棄
 
       this.sheet
         .getRange(1, baseColNumber, this.sheet.getLastRow(), 1)

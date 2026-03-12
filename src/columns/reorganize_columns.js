@@ -10,8 +10,8 @@ function show_hidden_cols(target_sheet) {
   // 「合計」列を取得
   const goukei_col = get_years_target_col(target_sheet, ITEM_LABELS.SUM);
   // 「Setup」列を取得
-  const add_del = new Add_del_columns(target_sheet);
-  const header_t = add_del.get_setup_closing_range();
+  const add_del = new AddDelColumns(target_sheet);
+  const header_t = add_del.getSetupClosingHeader();
   if (!header_t) return;
   const setup_col = header_t.indexOf(QUOTATION_SHEET_NAMES.SETUP) + 1;
   // 「Setup」〜「合計」直前までの合計行を一括取得
@@ -105,7 +105,7 @@ function total2_3_add_del_cols() {
   resetFilterVisibility();
   const target_sheets = extract_target_sheet_();
   // 列を初期化する
-  target_sheets.forEach((x) => new Add_del_columns(x).init_cols());
+  target_sheets.forEach((x) => new AddDelColumns(x).initCols());
   // Trialシートの試験期間、見出し、試験期間年数を取得する
   const trial_term_info = getTrialTermInfo_();
   // 列の追加
@@ -114,9 +114,9 @@ function total2_3_add_del_cols() {
   );
   if (add_columns.length > 0) {
     target_sheets.forEach((sheet) => {
-      const add_del = new Add_del_columns(sheet);
+      const add_del = new AddDelColumns(sheet);
       add_columns.forEach(([sheetName, _, count]) => {
-        add_del.add_cols([sheetName, count], sheet);
+        add_del.addCols([sheetName, count], sheet);
       });
     });
   }
