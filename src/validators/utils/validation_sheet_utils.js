@@ -129,12 +129,6 @@ class SetTestValues {
       new Date(2021 + this.idx, 2, 31),
     );
   }
-  delTrialYears(idx) {
-    this.idx = idx;
-    const yearStartRange = this.getTrialYearStartRange(this.idx);
-    this.delTestValue(yearStartRange);
-    this.delTestValue(yearStartRange.offset(0, 1));
-  }
   setDiscountByYear(idx, setPrice = null) {
     this.idx = idx;
     const setPrice_ = setPrice
@@ -146,15 +140,6 @@ class SetTestValues {
         this.trialYearsDiscountCol,
       ),
       setPrice_,
-    );
-  }
-  delDiscountByYear(idx) {
-    this.idx = idx;
-    this.delTestValue(
-      this.trialSheet.getRange(
-        this.trialYearsStartRow + this.idx,
-        this.trialYearsDiscountCol,
-      ),
     );
   }
   getDiscountRateValue(idx) {

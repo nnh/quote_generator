@@ -56,10 +56,24 @@ function convertColumnLetterToIndexForTest_(columnLetter) {
 /**
  * テスト用に Trial シートのデータを保存・復元するクラス
  */
-class TrialDatesBackupForTest_ {
+class TrialDatesEditForTest_ {
   constructor() {
     this.sheetName = "Trial";
     this.rangeA1 = "D32:E40";
+    this.discountRangeA1 = "G32:G40";
+    this.trialSheet = getSheetByNameCached_(this.sheetName);
+  }
+  /**
+   * Trialシートのクリア
+   */
+  clearSheet() {
+    this.trialSheet.getRange(this.rangeA1).clearContent();
+    this.trialSheet.getRange(this.discountRangeA1).clearContent();
+  }
+}
+class TrialDatesBackupForTest_ extends TrialDatesEditForTest_ {
+  constructor() {
+    super();
     this.propertyKey = "trial_dates_for_test";
     this.scriptProps = PropertiesService.getScriptProperties();
   }
@@ -68,15 +82,7 @@ class TrialDatesBackupForTest_ {
    * Trial シートの D32:E40 を ScriptProperties に保存する
    */
   save() {
-    const trialSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      this.sheetName,
-    );
-
-    if (!trialSheet) {
-      throw new Error(`${this.sheetName} シートが見つかりません`);
-    }
-
-    const values = trialSheet.getRange(this.rangeA1).getValues();
+    const values = this.trialSheet.getRange(this.rangeA1).getValues();
     this.scriptProps.setProperty(this.propertyKey, JSON.stringify(values));
   }
 
@@ -84,6 +90,10 @@ class TrialDatesBackupForTest_ {
    * 保存しておいた値を Trial シートの D32:E40 に復元する
    */
   restore() {
+    if (!this.trialSheet) {
+      throw new Error(`${this.sheetName} シートが見つかりません`);
+    }
+
     const saved = this.scriptProps.getProperty(this.propertyKey);
 
     if (!saved) {
@@ -105,16 +115,7 @@ class TrialDatesBackupForTest_ {
         return cell;
       }),
     );
-
-    const trialSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      this.sheetName,
-    );
-
-    if (!trialSheet) {
-      throw new Error(`${this.sheetName} シートが見つかりません`);
-    }
-
-    trialSheet.getRange(this.rangeA1).setValues(values);
+    this.trialSheet.getRange(this.rangeA1).setValues(values);
   }
 
   /**
