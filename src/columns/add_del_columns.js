@@ -16,7 +16,7 @@ class AddDelColumns {
     this.sheet = sheet;
 
     /** @type {number} 見出し行番号 */
-    this.term_row = 2;
+    this.term_row_number = 2;
 
     /** @type {string} Setup〜Closing外の列を示すダミー文字列 */
     this.dummy_str = "***dummy***";
@@ -43,7 +43,7 @@ class AddDelColumns {
     if (this._cachedHeader) return this._cachedHeader;
 
     const header_t = this.sheet
-      .getRange(this.term_row, 1, 1, this.sheet.getLastColumn())
+      .getRange(this.term_row_number, 1, 1, this.sheet.getLastColumn())
       .getValues()[0];
 
     const setup_idx = header_t.indexOf(this.setupName);
