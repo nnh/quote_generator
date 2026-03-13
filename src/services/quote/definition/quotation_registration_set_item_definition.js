@@ -1,16 +1,4 @@
 /**
- * Registrationシート用の項目と値のリストを生成する（入口関数）
- * Setup の buildSetupSetItems_ とインターフェースを揃える
- *
- * @param {string} sheetName
- * @return {Array<Array>}
- */
-function buildRegistrationSetItems_(sheetName) {
-  return buildRegistrationItems_({
-    sheetName,
-  });
-}
-/**
  * 登録期関連の設定項目を生成する
  * @param {Object} params
  * @param {string} params.sheetName

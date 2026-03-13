@@ -86,7 +86,9 @@ function applyRegistrationItems_(context, input_values) {
     return input_values;
   }
 
-  const setItemsList = buildRegistrationSetItems_(context.sheetname);
+  const setItemsList = buildRegistrationItems_({
+    sheetName: context.sheetname,
+  });
 
   return getSetValues_(context, setItemsList, input_values);
 }
