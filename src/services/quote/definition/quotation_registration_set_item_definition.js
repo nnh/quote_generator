@@ -1,5 +1,5 @@
 /**
- * 登録期関連の設定項目を生成する
+ * Registration関連の設定項目を生成する
  * @param {Object} params
  * @param {string} params.sheetName
  * @returns {Array<Array>}
