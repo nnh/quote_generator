@@ -34,15 +34,33 @@ function testInsuranceFee_(quotationRequestValue, expectedValue, testName) {
 
   // ダミー値セット
   itemSheet.getRange(insuranceFeeBasePriceCell).setValue(9999999);
-
-  const array_quotation_request = createTestQuotationRequestArrayWithColumn_(
-    null,
-    "R",
-    insuranceFeeItemName,
-    quotationRequestValue,
+  // Quotation Requestシートに値をセット
+  const quotationRequestSheetName = QUOTATION_REQUEST_SHEET.NAME;
+  if (!quotationRequestSheetName) {
+    throw new Error("Quotation Requestシート名が定義されていません");
+  }
+  const quotationRequestSheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+      quotationRequestSheetName,
+    );
+  const quotationRequestValues = quotationRequestSheet
+    .getDataRange()
+    .getValues();
+  const insuranceFeeColumnIndex = quotationRequestValues[0].findIndex(
+    (cell) => cell === insuranceFeeItemName,
   );
+  if (insuranceFeeColumnIndex === -1) {
+    throw new Error(
+      `Quotation Requestシートに「${insuranceFeeItemName}」の列が見つかりません`,
+    );
+  }
+  quotationRequestSheet
+    .getRange(2, insuranceFeeColumnIndex + 1, 1, 1)
+    .setValue(quotationRequestValue);
+  SpreadsheetApp.flush();
 
-  processInsuranceFee_(array_quotation_request, itemSheet);
+  buildQuotationRequestMap_();
+  processInsuranceFee_(itemSheet);
   SpreadsheetApp.flush();
 
   const actual = {
@@ -310,12 +328,6 @@ function testResearchSupportFee_(
       "Quotation Requestシートの研究協力費、負担軽減費項目名が定義されていません",
     );
   }
-  let array_quotation_request = createTestQuotationRequestArrayWithColumn_(
-    null,
-    "AG",
-    quotationRequestSheetItemNameResearchSupportFee,
-    researchSupportFeeValue,
-  );
   const quotationRequestSheetItemNamePrepareFee =
     QUOTATION_REQUEST_SHEET.ITEMNAMES.PREPARE_FEE;
   if (!quotationRequestSheetItemNamePrepareFee) {
@@ -323,13 +335,6 @@ function testResearchSupportFee_(
       "Quotation Requestシートの試験開始準備費用項目名が定義されていません",
     );
   }
-
-  array_quotation_request = createTestQuotationRequestArrayWithColumn_(
-    array_quotation_request,
-    "AH",
-    quotationRequestSheetItemNamePrepareFee,
-    targetValueMap.get("prepareFee"),
-  );
   const quotationRequestSheetItemNameCaseRegistrationFee =
     QUOTATION_REQUEST_SHEET.ITEMNAMES.REGISTRATION_FEE;
   if (!quotationRequestSheetItemNameCaseRegistrationFee) {
@@ -337,12 +342,6 @@ function testResearchSupportFee_(
       "Quotation Requestシートの症例登録毎の支払項目名が定義されていません",
     );
   }
-  array_quotation_request = createTestQuotationRequestArrayWithColumn_(
-    array_quotation_request,
-    "AI",
-    quotationRequestSheetItemNameCaseRegistrationFee,
-    targetValueMap.get("caseRegistrationFee"),
-  );
   const quotationRequestSheetItemNameFinalReportFee =
     QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE;
   if (!quotationRequestSheetItemNameFinalReportFee) {
@@ -350,12 +349,6 @@ function testResearchSupportFee_(
       "Quotation Requestシートの症例最終報告書提出毎の支払項目名が定義されていません",
     );
   }
-  array_quotation_request = createTestQuotationRequestArrayWithColumn_(
-    array_quotation_request,
-    "AJ",
-    quotationRequestSheetItemNameFinalReportFee,
-    targetValueMap.get("finalReportFee"),
-  );
   const quotationRequestSheetItemNameFacilities =
     QUOTATION_REQUEST_SHEET.ITEMNAMES.FACILITIES;
   if (!quotationRequestSheetItemNameFacilities) {
@@ -363,12 +356,6 @@ function testResearchSupportFee_(
       "Quotation Requestシートの実施施設数項目名が定義されていません",
     );
   }
-  array_quotation_request = createTestQuotationRequestArrayWithColumn_(
-    array_quotation_request,
-    "W",
-    quotationRequestSheetItemNameFacilities,
-    targetValueMap.get("facilities"),
-  );
   const quotationRequestSheetItemNameTargetCases =
     QUOTATION_REQUEST_SHEET.ITEMNAMES.NUMBER_OF_CASES;
   if (!quotationRequestSheetItemNameTargetCases) {
@@ -376,12 +363,85 @@ function testResearchSupportFee_(
       "Quotation Requestシートの目標症例数項目名が定義されていません",
     );
   }
-  array_quotation_request = createTestQuotationRequestArrayWithColumn_(
-    array_quotation_request,
-    "V",
-    quotationRequestSheetItemNameTargetCases,
-    targetValueMap.get("targetCases"),
+  // Quotation Requestシートに値をセット
+  const quotationRequestSheetName = QUOTATION_REQUEST_SHEET.NAME;
+  if (!quotationRequestSheetName) {
+    throw new Error("Quotation Requestシート名が定義されていません");
+  }
+  const quotationRequestSheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+      quotationRequestSheetName,
+    );
+  const quotationRequestValues = quotationRequestSheet
+    .getDataRange()
+    .getValues();
+  const researchSupportFeeColumnIndex = quotationRequestValues[0].findIndex(
+    (header) => header === quotationRequestSheetItemNameResearchSupportFee,
   );
+  if (researchSupportFeeColumnIndex === -1) {
+    throw new Error(
+      `Quotation Requestシートに「${quotationRequestSheetItemNameResearchSupportFee}」の列が見つかりません`,
+    );
+  }
+  const prepareFeeColumnIndex = quotationRequestValues[0].findIndex(
+    (header) => header === quotationRequestSheetItemNamePrepareFee,
+  );
+  if (prepareFeeColumnIndex === -1) {
+    throw new Error(
+      `Quotation Requestシートに「${quotationRequestSheetItemNamePrepareFee}」の列が見つかりません`,
+    );
+  }
+  const caseRegistrationFeeColumnIndex = quotationRequestValues[0].findIndex(
+    (header) => header === quotationRequestSheetItemNameCaseRegistrationFee,
+  );
+  if (caseRegistrationFeeColumnIndex === -1) {
+    throw new Error(
+      `Quotation Requestシートに「${quotationRequestSheetItemNameCaseRegistrationFee}」の列が見つかりません`,
+    );
+  }
+  const finalReportFeeColumnIndex = quotationRequestValues[0].findIndex(
+    (header) => header === quotationRequestSheetItemNameFinalReportFee,
+  );
+  if (finalReportFeeColumnIndex === -1) {
+    throw new Error(
+      `Quotation Requestシートに「${quotationRequestSheetItemNameFinalReportFee}」の列が見つかりません`,
+    );
+  }
+  const facilitiesColumnIndex = quotationRequestValues[0].findIndex(
+    (header) => header === quotationRequestSheetItemNameFacilities,
+  );
+  if (facilitiesColumnIndex === -1) {
+    throw new Error(
+      `Quotation Requestシートに「${quotationRequestSheetItemNameFacilities}」の列が見つかりません`,
+    );
+  }
+  const caseTargetColumnIndex = quotationRequestValues[0].findIndex(
+    (header) => header === quotationRequestSheetItemNameTargetCases,
+  );
+  if (caseTargetColumnIndex === -1) {
+    throw new Error(
+      `Quotation Requestシートに「${quotationRequestSheetItemNameTargetCases}」の列が見つかりません`,
+    );
+  }
+  quotationRequestSheet
+    .getRange(2, researchSupportFeeColumnIndex + 1, 1, 1)
+    .setValue(researchSupportFeeValue);
+  quotationRequestSheet
+    .getRange(2, prepareFeeColumnIndex + 1, 1, 1)
+    .setValue(targetValueMap.get("prepareFee"));
+  quotationRequestSheet
+    .getRange(2, caseRegistrationFeeColumnIndex + 1, 1, 1)
+    .setValue(targetValueMap.get("caseRegistrationFee"));
+  quotationRequestSheet
+    .getRange(2, finalReportFeeColumnIndex + 1, 1, 1)
+    .setValue(targetValueMap.get("finalReportFee"));
+  quotationRequestSheet
+    .getRange(2, facilitiesColumnIndex + 1, 1, 1)
+    .setValue(targetValueMap.get("facilities"));
+  quotationRequestSheet
+    .getRange(2, caseTargetColumnIndex + 1, 1, 1)
+    .setValue(targetValueMap.get("targetCases"));
+  SpreadsheetApp.flush();
 
   // プロパティ設定
   PropertiesService.getScriptProperties().setProperty(
@@ -394,7 +454,8 @@ function testResearchSupportFee_(
   );
 
   // 実行
-  processResearchSupportFee_(array_quotation_request, itemSheet);
+  buildQuotationRequestMap_();
+  processResearchSupportFee_(itemSheet);
   SpreadsheetApp.flush();
 
   // --- actual / expected をまとめる ---
