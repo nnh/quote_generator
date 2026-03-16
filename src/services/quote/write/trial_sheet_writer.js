@@ -257,9 +257,9 @@ function resolveTrialFieldValue_(key, fieldValue, context) {
  * quotation_requestシートの内容からtrialシート, itemsシートを設定する
  * @return {void}
  * @example
- *   set_trial_sheet_();
+ *   applyQuotationRequestToSheets_();
  */
-function set_trial_sheet_() {
+function applyQuotationRequestToSheets_() {
   const const_facilities = ITEM_LABELS.FACILITIES;
   const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
   const trialSheet = _cachedSheets.trial;

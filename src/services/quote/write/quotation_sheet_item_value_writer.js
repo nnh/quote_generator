@@ -1,31 +1,31 @@
-function getSetValues_(context, target_items, input_values) {
+function getSetValues_(context, target_items, inputValues) {
   return buildSheetValuesWithTargetItems_(
-    context.sheetname,
+    context.sheetName,
     target_items,
-    input_values,
+    inputValues,
   );
 }
 function getTargetRange_(context) {
-  return getTargetCountRange_(context.sheetname, context.target_col);
+  return getColumnRange_(context.sheetName, context.target_col);
 }
 function getSheetValues_(context) {
-  return getTargetCountValues_(context.sheetname, context.target_col);
+  return getTargetCountValues_(context.sheetName, context.target_col);
 }
 function getItemCountFromContext_(context, itemname) {
-  return getTargetItemCount_(context.sheetname, itemname);
+  return getTargetItemCount_(context.sheetName, itemname);
 }
-function applySetupItems_(context, input_values) {
-  if (context.sheetname !== QUOTATION_SHEET_NAMES.SETUP) {
-    return input_values;
+function applySetupItems_(context, inputValues) {
+  if (context.sheetName !== QUOTATION_SHEET_NAMES.SETUP) {
+    return inputValues;
   }
 
-  const clinical_trials_office = context.clinicalTrialsOfficeFlg
+  const clinicalTrialsOffice = context.clinicalTrialsOfficeFlg
     ? setSetupClinicalTrialsOffice_(context)
     : "";
 
-  const set_items_list = buildSetupSetItems_(clinical_trials_office);
+  const setItemsList = buildSetupSetItems_(clinicalTrialsOffice);
 
-  return getSetValues_(context, set_items_list, input_values);
+  return getSetValues_(context, setItemsList, inputValues);
 }
 function setSetupClinicalTrialsOffice_(context) {
   if (!context.clinicalTrialsOfficeFlg) {
@@ -67,42 +67,42 @@ function setSetupTerm_(context, property_name) {
 
   return consumed;
 }
-function applyClosingItems_(context, input_values) {
-  if (context.sheetname !== QUOTATION_SHEET_NAMES.CLOSING) {
-    return input_values;
+function applyClosingItems_(context, inputValues) {
+  if (context.sheetName !== QUOTATION_SHEET_NAMES.CLOSING) {
+    return inputValues;
   }
 
-  const clinical_trials_office = context.clinicalTrialsOfficeFlg ? 1 : "";
+  const clinicalTrialsOffice = context.clinicalTrialsOfficeFlg ? 1 : "";
 
-  const set_items_list = buildClosingSetItems_(clinical_trials_office);
+  const setItemsList = buildClosingSetItems_(clinicalTrialsOffice);
 
-  return getSetValues_(context, set_items_list, input_values);
+  return getSetValues_(context, setItemsList, inputValues);
 }
-function applyRegistrationItems_(context, input_values) {
+function applyRegistrationItems_(context, inputValues) {
   if (
-    context.sheetname === QUOTATION_SHEET_NAMES.SETUP ||
-    context.sheetname === QUOTATION_SHEET_NAMES.CLOSING
+    context.sheetName === QUOTATION_SHEET_NAMES.SETUP ||
+    context.sheetName === QUOTATION_SHEET_NAMES.CLOSING
   ) {
-    return input_values;
+    return inputValues;
   }
 
   const setItemsList = buildRegistrationItems_({
-    sheetName: context.sheetname,
+    sheetName: context.sheetName,
     clinicalTrialsOfficeFlg: context.clinicalTrialsOfficeFlg,
   });
 
-  return getSetValues_(context, setItemsList, input_values);
+  return getSetValues_(context, setItemsList, inputValues);
 }
-function applyCommonItems_(context, input_values) {
+function applyCommonItems_(context, inputValues) {
   const setItemsList = buildCommonSetItems_(context.trialTargetTerms);
 
-  return getSetValues_(context, setItemsList, input_values);
+  return getSetValues_(context, setItemsList, inputValues);
 }
-function applyNonSetupItems_(context, input_values) {
+function applyNonSetupItems_(context, inputValues) {
   const scriptProperties = PropertiesService.getScriptProperties();
 
   // Setupシートだけ特別処理
-  if (context.sheetname === QUOTATION_SHEET_NAMES.SETUP) {
+  if (context.sheetName === QUOTATION_SHEET_NAMES.SETUP) {
     setSetupTerm_(context, SCRIPT_PROPERTY_KEYS.REG1_SETUP_DATABASE_MANAGEMENT);
   }
 
@@ -112,16 +112,16 @@ function applyNonSetupItems_(context, input_values) {
 
   if (
     shouldSkipDatabaseManagement_(
-      context.sheetname,
+      context.sheetName,
       context.trialTargetTerms,
       setupTerm,
     )
   ) {
-    return input_values;
+    return inputValues;
   }
 
   const databaseManagementTerm = calculateDatabaseManagementTerm_(
-    context.sheetname,
+    context.sheetName,
     context.trialTargetTerms,
     scriptProperties,
   );
@@ -130,9 +130,9 @@ function applyNonSetupItems_(context, input_values) {
     [ITEMS_SHEET.ITEMNAMES.DATABASE_MANAGEMENT_FEE, databaseManagementTerm],
   ];
 
-  return getSetValues_(context, setItemsList, input_values);
+  return getSetValues_(context, setItemsList, inputValues);
 }
-function applyRegistrationTermItems_(context, input_values) {
+function applyRegistrationTermItems_(context, inputValues) {
   const scriptProperties = PropertiesService.getScriptProperties();
 
   const setupTermLimit = Number(
@@ -144,13 +144,13 @@ function applyRegistrationTermItems_(context, input_values) {
 
   if (
     shouldSkipRegistrationTermItems_(
-      context.sheetname,
+      context.sheetName,
       context.trialTargetTerms,
       setupTermLimit,
       closingTermLimit,
     )
   ) {
-    return input_values;
+    return inputValues;
   }
 
   const registrationDateList = {
@@ -161,13 +161,13 @@ function applyRegistrationTermItems_(context, input_values) {
     trialTargetEndDate: context.trialTargetEndDate,
   };
 
-  const target_items = buildRegistrationTermItems_({
+  const targetItems = buildRegistrationTermItems_({
     registrationDateList,
-    sheetname: context.sheetname,
+    sheetName: context.sheetName,
     clinicalTrialsOfficeFlg: context.clinicalTrialsOfficeFlg,
   });
 
-  return getSetValues_(context, target_items, input_values);
+  return getSetValues_(context, targetItems, inputValues);
 }
 function applyInterimAnalysis_(context) {
   const scriptProperties = PropertiesService.getScriptProperties();
@@ -192,5 +192,5 @@ function applyInterimAnalysis_(context) {
 
   const values = getSetValues_(context, setItems, null);
 
-  setTargetCountValues_(context.sheetname, context.target_col, values);
+  setColumnValues_(context.sheetName, context.columnName, values);
 }

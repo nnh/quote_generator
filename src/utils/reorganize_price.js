@@ -5,7 +5,7 @@ class CopyItemsSheet {
   constructor() {
     this.itemsSheetName = QUOTATION_SHEET_NAMES.ITEMS;
     if (this.itemsSheetName === null) {
-      initial_process();
+      runInitialProcess_();
       this.itemsSheetName = QUOTATION_SHEET_NAMES.ITEMS;
     }
     this.itemsSheet = getSheetByNameCached_(this.itemsSheetName);

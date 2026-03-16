@@ -40,11 +40,7 @@ function applyQuotationToSheet_(sheetName) {
   values = applyClosingItems_(context, values);
   values = applyNonSetupItems_(context, values);
   values = applyCommonItems_(context, values);
-  setTargetCountValues_(
-    (sheetname = sheetName),
-    (target_col = context.target_col),
-    (values = values),
-  );
+  setColumnValues_(sheetName, context.columnName, values);
 }
 
 /**
@@ -60,7 +56,7 @@ function applyQuotationToSheet_(sheetName) {
  */
 function postProcessQuotation_() {
   setImbalanceValues_();
-  get_target_term_sheets().forEach((sheet) =>
+  getTargetTermSheets_().forEach((sheet) =>
     sheet.getRange("B2").getValue() === ""
       ? sheet.hideSheet()
       : sheet.showSheet(),
@@ -71,7 +67,7 @@ function postProcessQuotation_() {
  * Quotation request を元に、各年度別シートへ見積項目を反映する
  */
 function quote_script_main() {
-  initial_process();
+  runInitialProcess_();
   if (!_quotationRequestMap.has("タイムスタンプ")) {
     throw new Error(
       "Quotation request が未入力です。Quotation requestシートの1〜2行目に必要な情報を入力してください。",
@@ -81,7 +77,7 @@ function quote_script_main() {
   // フィルタや非表示設定を初期状態に戻す
   resetFilterVisibility();
   // Trial シートに試験情報（開始日・終了日・期間など）を反映
-  set_trial_sheet_();
+  applyQuotationRequestToSheets_();
   // 試験期間が存在し、見積計算の対象となる年度別シートを抽出
   const targetSheetList = getActiveTrialTermSheets_();
   // 抽出された各シートに対し、Quotation request の値を元に見積項目を設定

@@ -33,12 +33,12 @@ function test_get_sheets_returns_all_required_sheets() {
 
   assertEquals_(actual, expected, "get_sheets: returns all required sheets");
 }
-function test_get_target_term_sheets_returns_valid_sheets() {
+function test_getTargetTermSheets__returns_valid_sheets() {
   resetSheetCache_();
 
   const sheets = get_sheets();
 
-  const actual = get_target_term_sheets()
+  const actual = getTargetTermSheets_()
     .map((s) => s.getName())
     .sort();
 
@@ -56,7 +56,7 @@ function test_get_target_term_sheets_returns_valid_sheets() {
   assertEquals_(
     actual,
     expected,
-    "get_target_term_sheets: contains required sheets",
+    "getTargetTermSheets_: contains required sheets",
   );
 }
 function test_getSheetByNameCached_can_fetch_all_required_sheets() {

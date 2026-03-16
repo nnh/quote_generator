@@ -56,6 +56,15 @@ function test_isClinicalTrialsOfficeRequired_withProperty_(
   }
   const investigatorInitiatedTrialType =
     requireTestInvestigatorInitiatedTrialType_();
+  const quotationRequestSheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+      QUOTATION_REQUEST_SHEET.NAME,
+    );
+  if (!quotationRequestSheet) {
+    throw new Error(
+      `Sheet named ${QUOTATION_REQUEST_SHEET.NAME} is not found in the spreadsheet`,
+    );
+  }
 
   try {
     // --- テスト用プロパティを設定 ---
@@ -94,6 +103,13 @@ function test_isClinicalTrialsOfficeRequired_withProperty_(
         if (officeExistence === value_yes) {
           expectedValue = true;
         }
+        quotationRequestSheet
+          .getRange(2, 1, 1, array_quotation_request[0].length)
+          .setValues([array_quotation_request[1]]);
+        SpreadsheetApp.flush();
+        _quotationRequestMap = null; // キャッシュをリセット
+        buildQuotationRequestMap_(); // キャッシュを再構築
+
         const actualValue = isClinicalTrialsOfficeRequired_(
           array_quotation_request,
         );

@@ -22,7 +22,7 @@ function test_buildSheetValuesWithTargetItems() {
       },
     },
     () => {
-      // --- CASE 1 : input_valuesあり ---
+      // --- CASE 1 : inputValuesあり ---
       const actualValueWithInput = buildSheetValuesWithTargetItems_(
         sheetName,
         target_items,
@@ -32,10 +32,10 @@ function test_buildSheetValuesWithTargetItems() {
       assertEquals_(
         actualValueWithInput,
         expectedValue,
-        `input_valuesありの場合、input_valuesが使用されること`,
+        `inputValuesありの場合、inputValuesが使用されること`,
       );
 
-      // --- CASE 2 : input_valuesなし ---
+      // --- CASE 2 : inputValuesなし ---
       const actualValueWithoutInput = buildSheetValuesWithTargetItems_(
         sheetName,
         target_items,
@@ -45,7 +45,7 @@ function test_buildSheetValuesWithTargetItems() {
       assertEquals_(
         actualValueWithoutInput,
         expectedValue,
-        `input_valuesなしの場合、getTargetCountValues_の結果が使用されること`,
+        `inputValuesなしの場合、getTargetCountValues_の結果が使用されること`,
       );
     },
   );

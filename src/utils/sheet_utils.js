@@ -1,32 +1,32 @@
 /**
- * 対象シートのカウント列Rangeを取得
- * @param {string} sheetname
- * @param {string} target_col 列記号（例："E"）
- * @return {Range}
+ * 対象シートの指定列のRangeを取得
+ * @param {string} sheetName
+ * @param {string} columnName 列記号（例："E"）
+ * @return {GoogleAppsScript.Spreadsheet.Range}
  */
-function getTargetCountRange_(sheetname, target_col) {
-  const sheet = getSheetByNameCached_(sheetname);
-  return sheet.getRange(target_col + ":" + target_col);
+function getColumnRange_(sheetName, columnName) {
+  const sheet = getSheetByNameCached_(sheetName);
+  return sheet.getRange(`${columnName}:${columnName}`);
 }
-
 /**
  * 対象シートのカウント列の値を取得
  * @param {string} sheetname
  * @param {string} target_col
  * @return {Array<Array<any>>}
  */
-function getTargetCountValues_(sheetname, target_col) {
-  return getTargetCountRange_(sheetname, target_col).getValues();
+function getTargetCountValues_(sheetName, columnName) {
+  return getColumnRange_(sheetName, columnName).getValues();
 }
 
 /**
- * 対象シートのカウント列に値をセット
- * @param {string} sheetname
- * @param {string} target_col
+ * 対象シートの指定列に値をセット
+ * @param {string} sheetName
+ * @param {string} columnName
  * @param {Array<Array<any>>} values
+ * @return {void}
  */
-function setTargetCountValues_(sheetname, target_col, values) {
-  getTargetCountRange_(sheetname, target_col).setValues(values);
+function setColumnValues_(sheetName, columnName, values) {
+  getColumnRange_(sheetName, columnName).setValues(values);
 }
 
 /**

@@ -55,7 +55,7 @@ const ROUTINE_TEST_EXPECTED = {
 
 class QuoteRoutineTestRunner {
   constructor() {
-    initial_process();
+    runInitialProcess_();
     this.checkSheet = _cachedSheets.check;
     this.setupSheet = _cachedSheets.setup;
     this.trialSheet = _cachedSheets.trial;

@@ -2,16 +2,16 @@
  * 対象シートの値に target_items を反映した配列を返す
  * @param {string} sheetname
  * @param {Array<Array>} target_items
- * @param {Array<Array>|null} input_values
+ * @param {Array<Array>|null} inputValues
  * @return {Array<Array>}
  */
 function buildSheetValuesWithTargetItems_(
   sheetname,
   target_items,
-  input_values,
+  inputValues,
 ) {
-  const array_count = input_values
-    ? input_values
+  const array_count = inputValues
+    ? inputValues
     : getTargetCountValues_(sheetname, initTargetColumn_());
 
   const target_sheet = getSheetByNameCached_(sheetname);

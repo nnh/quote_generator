@@ -36,10 +36,14 @@ function resetFilterVisibility() {
 function hideFilterVisibility() {
   new FilterVisibleHidden().hideFilterVisibility();
 }
+
 /**
- * Set script properties and sheet protection permissions. Wait 10 seconds after setting the script properties.
+ * 初期処理をまとめた関数
+ *
+ * - シートのキャッシュ取得
+ * - quotation_request のヘッダー→値 Map を構築
  */
-function initial_process() {
-  const dummy_get_sheets = get_sheets();
-  const dummy_build_quotation_request_map = buildQuotationRequestMap_();
+function runInitialProcess_() {
+  get_sheets();
+  buildQuotationRequestMap_();
 }

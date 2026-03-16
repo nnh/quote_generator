@@ -170,26 +170,28 @@ function initSetSheetItemTrialDates_(trial_term_values) {
   const dates = buildTrialDatesPure_(trial_term_values, props);
   return dates;
 }
+
 /**
  * シート処理用のコンテキストを生成する
- * （SetSheetItemValues の constructor 相当）
+ * @param {string} sheetName
+ * @return {Object}
  */
-function buildSheetContext_(sheetname) {
-  const trialTerm = getTrialTerm_(sheetname);
-  const trialDates = initSetSheetItemTrialDates_(trialTerm.trial_term_values);
+function buildSheetContext_(sheetName) {
+  const trialTerm = getTrialTerm_(sheetName);
+  const trialDates = initSetSheetItemTrialDates_(trialTerm.trialTermValues);
 
   return {
-    sheetname,
+    sheetName,
 
     trialTargetTerms: trialTerm.trialTargetTerms,
-    trial_term_values: trialTerm.trial_term_values,
+    trialTermValues: trialTerm.trialTermValues,
 
     trialTargetStartDate: trialDates.trialTargetStartDate,
     trialTargetEndDate: trialDates.trialTargetEndDate,
     trialStartDate: trialDates.trialStartDate,
     trialEndDate: trialDates.trialEndDate,
 
-    target_col: initTargetColumn_(),
+    columnName: initTargetColumn_(),
 
     clinicalTrialsOfficeFlg: isClinicalTrialsOfficeRequired_(),
   };
