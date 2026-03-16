@@ -335,61 +335,71 @@ function test_expectedValue_setup_clinical_trials_office_(trialType, obj) {
  * getSetupTrialTypeConfig_ の単体テスト
  */
 function getExpectedSetupTrialTypeConfigForTest_(trialType) {
-  const investigator_initiated_trial_type =
+  const investigatorInitiatedTrialType =
     requireTestInvestigatorInitiatedTrialType_();
-  const specified_clinical_trial_type =
-    requireTestSpecifiedClinicalTrialType_();
-  const irb_approval_confirmation_and_facility_management =
+
+  const specifiedClinicalTrialType = requireTestSpecifiedClinicalTrialType_();
+
+  const irbApprovalConfirmationAndFacilityManagement =
     ITEMS_SHEET.ITEMNAMES.IRB_APPROVAL_CONFIRMATION_AND_FACILITY_MANAGEMENT;
-  if (!irb_approval_confirmation_and_facility_management) {
+
+  if (!irbApprovalConfirmationAndFacilityManagement) {
     throw new Error("IRB承認確認、施設管理の項目名が定義されていません");
   }
-  const irb_preparation_and_approval_confirmation =
+
+  const irbPreparationAndApprovalConfirmation =
     ITEMS_SHEET.ITEMNAMES.IRB_PREPARATION_AND_APPROVAL_CONFIRMATION;
-  if (!irb_preparation_and_approval_confirmation) {
+
+  if (!irbPreparationAndApprovalConfirmation) {
     throw new Error("IRB準備・承認確認の項目名が定義されていません");
   }
-  const initial_account_setup = ITEMS_SHEET.ITEMNAMES.INITIAL_ACCOUNT_SETUP;
-  if (!initial_account_setup) {
+
+  const initialAccountSetup = ITEMS_SHEET.ITEMNAMES.INITIAL_ACCOUNT_SETUP;
+
+  if (!initialAccountSetup) {
     throw new Error(
       "初期アカウント設定（施設・ユーザー）の項目名が定義されていません",
     );
   }
-  const initial_account_setup_and_irb_approval_confirmation =
+
+  const initialAccountSetupAndIrbApprovalConfirmation =
     ITEMS_SHEET.ITEMNAMES.INITIAL_ACCOUNT_SETUP_AND_IRB_APPROVAL_CONFIRMATION;
-  if (!initial_account_setup_and_irb_approval_confirmation) {
+
+  if (!initialAccountSetupAndIrbApprovalConfirmation) {
     throw new Error(
       "初期アカウント設定（施設・ユーザー）、IRB承認確認の項目名が定義されていません",
     );
   }
 
-  if (trialType === investigator_initiated_trial_type) {
+  if (trialType === investigatorInitiatedTrialType) {
     return {
-      sop: 1,
-      office_irb_str: irb_approval_confirmation_and_facility_management,
-      office_irb: FUNCTION_FORMULAS.FACILITIES,
-      set_accounts: initial_account_setup,
-      drug_support: FUNCTION_FORMULAS.FACILITIES,
-      specified_clinical_support: 0,
+      sopValue: 1,
+      officeIrbItemName: irbApprovalConfirmationAndFacilityManagement,
+      officeIrbValue: FUNCTION_FORMULAS.FACILITIES,
+      setAccountsItemName: initialAccountSetup,
+      drugSupportValue: FUNCTION_FORMULAS.FACILITIES,
+      specifiedClinicalSupportValue: 0,
     };
-  } else if (trialType === specified_clinical_trial_type) {
+  }
+
+  if (trialType === specifiedClinicalTrialType) {
     return {
-      sop: 0,
-      office_irb_str: irb_preparation_and_approval_confirmation,
-      office_irb: 0,
-      set_accounts: initial_account_setup_and_irb_approval_confirmation,
-      drug_support: 0,
-      specified_clinical_support: FUNCTION_FORMULAS.FACILITIES,
+      sopValue: 0,
+      officeIrbItemName: irbPreparationAndApprovalConfirmation,
+      officeIrbValue: 0,
+      setAccountsItemName: initialAccountSetupAndIrbApprovalConfirmation,
+      drugSupportValue: 0,
+      specifiedClinicalSupportValue: FUNCTION_FORMULAS.FACILITIES,
     };
   }
 
   return {
-    sop: 0,
-    office_irb_str: irb_preparation_and_approval_confirmation,
-    office_irb: 0,
-    set_accounts: initial_account_setup_and_irb_approval_confirmation,
-    drug_support: 0,
-    specified_clinical_support: 0,
+    sopValue: 0,
+    officeIrbItemName: irbPreparationAndApprovalConfirmation,
+    officeIrbValue: 0,
+    setAccountsItemName: initialAccountSetupAndIrbApprovalConfirmation,
+    drugSupportValue: 0,
+    specifiedClinicalSupportValue: 0,
   };
 }
 function test_getSetupTrialTypeConfig() {
