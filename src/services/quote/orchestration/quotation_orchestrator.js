@@ -3,24 +3,6 @@
  */
 
 /**
- * 試験期間が設定されており、見積計算の対象となる年度別シート一覧を取得する
- *
- * - Setup〜Closing のいずれかの期間が存在するシートのみを対象とする
- * - 見積処理メイン（quote_script_main）から呼び出される
- *
- * @return {Array<Array>} 見積対象シート情報の配列
- *   [0]: シート名
- *   [1]: 試験期間情報（内部判定用）
- *   [2]: 対象有無判定用フラグ（空文字以外＝対象）
- */
-function getActiveTrialTermSheets_() {
-  const COUNT_IDX = 2;
-  return getTrialTermInfo_()
-    .map((x, idx) => x.concat(idx))
-    .filter((x) => x[COUNT_IDX] !== "");
-}
-
-/**
  * 指定された年度別シートに対して、Quotation request の内容を反映する
  *
  * - Setup / 登録期間 / Closing などの見積項目を順に設定する
@@ -50,30 +32,33 @@ function applyQuotationToSheet_(sheetName) {
  * - Setup〜Closing の内容に応じたシート表示／非表示制御
  * - 見積全体に関わる横断的な処理を担当
  *
- * quote_script_main の最終フェーズで呼び出される
+ * runQuotationProcess の最終フェーズで呼び出される
  *
  * @return {void}
  */
 function postProcessQuotation_() {
   setImbalanceValues_();
-  getTargetTermSheets_().forEach((sheet) =>
-    sheet.getRange("B2").getValue() === ""
-      ? sheet.hideSheet()
-      : sheet.showSheet(),
-  );
+  getTargetTermSheets_().forEach((sheet) => {
+    const value = sheet.getRange("B2").getValue();
+
+    if (value === "") {
+      sheet.hideSheet();
+    } else {
+      sheet.showSheet();
+    }
+  });
 }
 /**
  * 見積処理メインエントリ
  * Quotation request を元に、各年度別シートへ見積項目を反映する
  */
-function quote_script_main() {
+function runQuotationProcess() {
   runInitialProcess_();
   if (!_quotationRequestMap.has("タイムスタンプ")) {
     throw new Error(
       "Quotation request が未入力です。Quotation requestシートの1〜2行目に必要な情報を入力してください。",
     );
   }
-  const SHEETNAME_IDX = 0;
   // フィルタや非表示設定を初期状態に戻す
   resetFilterVisibility();
   // Trial シートに試験情報（開始日・終了日・期間など）を反映
@@ -81,7 +66,7 @@ function quote_script_main() {
   // 試験期間が存在し、見積計算の対象となる年度別シートを抽出
   const targetSheetList = getActiveTrialTermSheets_();
   // 抽出された各シートに対し、Quotation request の値を元に見積項目を設定
-  targetSheetList.forEach((x) => applyQuotationToSheet_(x[SHEETNAME_IDX]));
+  targetSheetList.forEach((x) => applyQuotationToSheet_(x.sheetName));
   // 全シート反映後に行う後処理（不均等項目・表示制御など）
   postProcessQuotation_();
 }

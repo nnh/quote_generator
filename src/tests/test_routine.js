@@ -72,7 +72,7 @@ class QuoteRoutineTestRunner {
    *
    * 以下の処理を順に実行する。
    * 1. ルーチンテスト用の初期化処理を行う（必要なシート値をクリア）。
-   * 2. 見積作成メイン処理（quote_script_main）を実行する。
+   * 2. 見積作成メイン処理（runQuotationProcess）を実行する。
    * 3. Quotation Request シートの試験名（Acronym）をログ出力する。
    * 4. 中間解析の実施有無を確認し、実施する場合は Setup シートに
    *    テスト用の中間解析回数を設定する。
@@ -82,7 +82,7 @@ class QuoteRoutineTestRunner {
    */
   setQuote() {
     this.routineTestInit();
-    quote_script_main();
+    runQuotationProcess();
     const trialName = get_quotation_request_value_(ITEM_LABELS.ACRONYM);
     console.log(`Trial Name: ${trialName}`);
     const interimCount =

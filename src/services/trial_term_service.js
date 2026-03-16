@@ -143,3 +143,25 @@ class GetArrayDividedItemsCountAdd extends GetArrayDividedItemsCount {
     return this.dividedItemCount_(totalNumber, target);
   }
 }
+
+/**
+ * 試験期間が設定されており、見積計算の対象となる年度別シート一覧を取得する
+ *
+ * - Setup〜Closing のいずれかの期間が存在するシートのみを対象とする
+ * - 見積処理メイン（runQuotationProcess）から呼び出される
+ *
+ * @return {Array<Object>} 見積対象シート情報の配列
+ *   各オブジェクトは以下のプロパティを持つ:
+ *     sheetName: シート名
+ *     termInfo: 試験期間情報（内部判定用）
+ *     active: 対象有無判定用フラグ（true＝対象）
+ */
+function getActiveTrialTermSheets_() {
+  return getTrialTermInfo_()
+    .map(([sheetName, termInfo, flag]) => ({
+      sheetName,
+      termInfo,
+      active: flag !== "",
+    }))
+    .filter((x) => x.active);
+}

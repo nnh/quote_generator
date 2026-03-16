@@ -9,7 +9,7 @@ function onOpen() {
       return;
     }
   }
-  const arr = [{ name: "見積項目設定", functionName: "quote_script_main" }];
+  const arr = [{ name: "見積項目設定", functionName: "runQuotationProcess" }];
   const arr2 = [
     { name: "フィルタ:0を非表示", functionName: "hideFilterVisibility" },
     { name: "フィルタ:全て表示", functionName: "resetFilterVisibility" },
