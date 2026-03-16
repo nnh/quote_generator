@@ -210,11 +210,18 @@ function test_createItemsByQuotationRequest_(
           quotation_request_itemName,
           quotation_request_item_value,
         );
+      const quotationRequestSheet =
+        SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+          QUOTATION_REQUEST_SHEET.NAME,
+        );
+      quotationRequestSheet
+        .getRange(2, 1, 1, array_quotation_request[0].length)
+        .setValues([array_quotation_request[1]]);
+      SpreadsheetApp.flush();
+      _quotationRequestMap = null; // キャッシュクリア
+      buildQuotationRequestMap_();
 
-      const actualItems = createItemsFunc(
-        array_quotation_request,
-        clinical_trials_office,
-      );
+      const actualItems = createItemsFunc(clinical_trials_office);
 
       const actualValue =
         actualItems instanceof Map

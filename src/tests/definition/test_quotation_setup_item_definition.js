@@ -290,8 +290,21 @@ function test_createSetupItemsList_trialType_clinical_trials_office_(obj) {
     quotation_request_cofficient_item,
     cofficient_value,
   );
+  const quotation_request_sheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+      QUOTATION_REQUEST_SHEET.NAME,
+    );
+  if (!quotation_request_sheet) {
+    throw new Error("quotation_requestシートが見つかりません");
+  }
+  quotation_request_sheet
+    .getRange(2, 1, 1, array_quotation_request[0].length)
+    .setValues([array_quotation_request[1]]);
+  SpreadsheetApp.flush();
+  _quotationRequestMap = null; // キャッシュクリア
+  buildQuotationRequestMap_();
   const officeFlag = test_getClinicalTrialsOfficeFlg_(obj);
-  const items = createSetupItemsList_(array_quotation_request, officeFlag);
+  const items = createSetupItemsList_(officeFlag);
   const item_office_setup = ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_SETUP;
   if (!item_office_setup) {
     throw new Error("事務局運営（試験開始前）の項目名が定義されていません");
@@ -357,26 +370,26 @@ function getExpectedSetupTrialTypeConfigForTest_(trialType) {
       office_irb: FUNCTION_FORMULAS.FACILITIES,
       set_accounts: initial_account_setup,
       drug_support: FUNCTION_FORMULAS.FACILITIES,
-      specified_clinical_support: "",
+      specified_clinical_support: 0,
     };
   } else if (trialType === specified_clinical_trial_type) {
     return {
-      sop: "",
+      sop: 0,
       office_irb_str: irb_preparation_and_approval_confirmation,
-      office_irb: "",
+      office_irb: 0,
       set_accounts: initial_account_setup_and_irb_approval_confirmation,
-      drug_support: "",
+      drug_support: 0,
       specified_clinical_support: FUNCTION_FORMULAS.FACILITIES,
     };
   }
 
   return {
-    sop: "",
+    sop: 0,
     office_irb_str: irb_preparation_and_approval_confirmation,
-    office_irb: "",
+    office_irb: 0,
     set_accounts: initial_account_setup_and_irb_approval_confirmation,
-    drug_support: "",
-    specified_clinical_support: "",
+    drug_support: 0,
+    specified_clinical_support: 0,
   };
 }
 function test_getSetupTrialTypeConfig() {

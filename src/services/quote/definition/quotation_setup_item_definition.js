@@ -1,30 +1,31 @@
 /**
  * Setupシート用の項目と値のリストを生成する
- * @param {boolean|number|string} clinical_trials_office
+ * @param {boolean|number|string} clinicalTrialsOfficeSetupValue
  * @return {Array<Array>}
  */
-function buildSetupSetItems_(clinical_trials_office) {
-  const setupItemsList = createSetupItemsList_(clinical_trials_office);
+function buildSetupSetItems_(clinicalTrialsOfficeSetupValue) {
+  const setupItemsList = createSetupItemsList_(clinicalTrialsOfficeSetupValue);
   return convertItemsMapToList_(setupItemsList);
 }
 function getSetupTrialTypeConfig_() {
-  const get_s_p = PropertiesService.getScriptProperties();
+  const scriptProps = PropertiesService.getScriptProperties();
 
   const config = {
-    sop: "",
+    sop: 0,
     office_irb_str:
       ITEMS_SHEET.ITEMNAMES.IRB_PREPARATION_AND_APPROVAL_CONFIRMATION,
-    office_irb: "",
+    office_irb: 0,
     set_accounts:
       ITEMS_SHEET.ITEMNAMES.INITIAL_ACCOUNT_SETUP_AND_IRB_APPROVAL_CONFIRMATION,
-    drug_support: "",
-    specified_clinical_support: "",
+    drug_support: 0,
+    specified_clinical_support: 0,
   };
 
-  if (
-    get_s_p.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
-    TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
-  ) {
+  const trialType = scriptProps.getProperty(
+    SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+  );
+
+  if (trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED) {
     config.sop = 1;
     config.office_irb_str =
       ITEMS_SHEET.ITEMNAMES.IRB_APPROVAL_CONFIRMATION_AND_FACILITY_MANAGEMENT;
@@ -32,33 +33,18 @@ function getSetupTrialTypeConfig_() {
     config.set_accounts = ITEMS_SHEET.ITEMNAMES.INITIAL_ACCOUNT_SETUP;
     config.drug_support = FUNCTION_FORMULAS.FACILITIES;
   }
-  if (
-    get_s_p.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
-    TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL
-  ) {
+  if (trialType === TRIAL_TYPE_LABELS.SPECIFIED_CLINICAL) {
     config.specified_clinical_support = FUNCTION_FORMULAS.FACILITIES;
   }
 
   return config;
 }
 function buildDmIrbFormula_() {
-  return (
-    "=if(isblank(" +
-    TRIAL_SHEET.NAME +
-    "!C" +
-    TRIAL_SHEET.ROWS.FACILITIES +
-    "), " +
-    TRIAL_SHEET.NAME +
-    "!B" +
-    TRIAL_SHEET.ROWS.FACILITIES +
-    "," +
-    TRIAL_SHEET.NAME +
-    "!C" +
-    TRIAL_SHEET.ROWS.TRIAL_CONST_FACILITIES +
-    ")"
-  );
+  return `=IF(ISBLANK(${TRIAL_SHEET.NAME}!C${TRIAL_SHEET.ROWS.FACILITIES}),
+${TRIAL_SHEET.NAME}!B${TRIAL_SHEET.ROWS.FACILITIES},
+${TRIAL_SHEET.NAME}!C${TRIAL_SHEET.ROWS.TRIAL_CONST_FACILITIES})`;
 }
-function createSetupItemsList_(clinical_trials_office) {
+function createSetupItemsList_(clinicalTrialsOfficeSetupValue) {
   const {
     sop,
     office_irb_str,
@@ -147,7 +133,7 @@ function createSetupItemsList_(clinical_trials_office) {
     [ITEMS_SHEET.ITEMNAMES.SOP_AND_CTR_REGISTRATION_AND_TMF_MANAGEMENT, sop],
     [
       ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_SETUP,
-      clinical_trials_office,
+      clinicalTrialsOfficeSetupValue,
     ],
     [office_irb_str, office_irb],
     [ITEMS_SHEET.ITEMNAMES.DRUG_SUPPORT, drug_support],

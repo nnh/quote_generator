@@ -75,7 +75,7 @@ function getClinicalTrialsOfficeTestArray_() {
  * @param {string} obj.funding_source 資金提供元
  * @returns {number} 事務局運営フラグ（1: 対象, 0: 非対象）
  */
-function test_get_clinicalTrialsOfficeFlg_(obj) {
+function test_getClinicalTrialsOfficeFlg_(obj) {
   const trialType =
     PropertiesService.getScriptProperties().getProperty("trial_type_value");
   const office_value = obj.office_value;
