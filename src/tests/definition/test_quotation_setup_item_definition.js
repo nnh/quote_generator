@@ -290,7 +290,7 @@ function test_createSetupItemsList_trialType_clinical_trials_office_(obj) {
     quotation_request_cofficient_item,
     cofficient_value,
   );
-  const officeFlag = test_get_clinical_trials_office_flg_(obj);
+  const officeFlag = test_getClinicalTrialsOfficeFlg_(obj);
   const items = createSetupItemsList_(array_quotation_request, officeFlag);
   const item_office_setup = ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_SETUP;
   if (!item_office_setup) {

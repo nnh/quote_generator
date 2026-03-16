@@ -19,7 +19,7 @@ function applySetupItems_(context, input_values) {
     return input_values;
   }
 
-  const clinical_trials_office = context.clinical_trials_office_flg
+  const clinical_trials_office = context.clinicalTrialsOfficeFlg
     ? setSetupClinicalTrialsOffice_(context)
     : "";
 
@@ -28,7 +28,7 @@ function applySetupItems_(context, input_values) {
   return getSetValues_(context, set_items_list, input_values);
 }
 function setSetupClinicalTrialsOffice_(context) {
-  if (!context.clinical_trials_office_flg) {
+  if (!context.clinicalTrialsOfficeFlg) {
     return "";
   }
 
@@ -41,7 +41,7 @@ function setSetupClinicalTrialsOffice_(context) {
  * SETUP期間の消費量を計算し、残期間を次年度へ繰り越すための処理
  *
  * - Script Properties に保存されている setup_term（SETUPの残期間）を取得する
- * - trial_target_terms（当年度で消費可能な期間）分だけ SETUP期間を消費する
+ * - trialTargetTerms（当年度で消費可能な期間）分だけ SETUP期間を消費する
  * - 消費後に残った SETUP期間は、指定したプロパティ名で保存し、
  *   次年度以降に繰り越される
  * - 実際の消費量と残量の計算ロジックは calculateSetupTermResult_ に委譲する
@@ -60,7 +60,7 @@ function setSetupTerm_(context, property_name) {
 
   const { consumed, remaining } = calculateSetupTermResult_(
     setupTerm,
-    context.trial_target_terms,
+    context.trialTargetTerms,
   );
 
   properties.setProperty(property_name, remaining);
@@ -72,7 +72,7 @@ function applyClosingItems_(context, input_values) {
     return input_values;
   }
 
-  const clinical_trials_office = context.clinical_trials_office_flg ? 1 : "";
+  const clinical_trials_office = context.clinicalTrialsOfficeFlg ? 1 : "";
 
   const set_items_list = buildClosingSetItems_(clinical_trials_office);
 
@@ -88,12 +88,13 @@ function applyRegistrationItems_(context, input_values) {
 
   const setItemsList = buildRegistrationItems_({
     sheetName: context.sheetname,
+    clinicalTrialsOfficeFlg: context.clinicalTrialsOfficeFlg,
   });
 
   return getSetValues_(context, setItemsList, input_values);
 }
 function applyCommonItems_(context, input_values) {
-  const setItemsList = buildCommonSetItems_(context.trial_target_terms);
+  const setItemsList = buildCommonSetItems_(context.trialTargetTerms);
 
   return getSetValues_(context, setItemsList, input_values);
 }
@@ -112,7 +113,7 @@ function applyNonSetupItems_(context, input_values) {
   if (
     shouldSkipDatabaseManagement_(
       context.sheetname,
-      context.trial_target_terms,
+      context.trialTargetTerms,
       setupTerm,
     )
   ) {
@@ -121,7 +122,7 @@ function applyNonSetupItems_(context, input_values) {
 
   const databaseManagementTerm = calculateDatabaseManagementTerm_(
     context.sheetname,
-    context.trial_target_terms,
+    context.trialTargetTerms,
     scriptProperties,
   );
 
@@ -144,7 +145,7 @@ function applyRegistrationTermItems_(context, input_values) {
   if (
     shouldSkipRegistrationTermItems_(
       context.sheetname,
-      context.trial_target_terms,
+      context.trialTargetTerms,
       setupTermLimit,
       closingTermLimit,
     )
@@ -152,18 +153,18 @@ function applyRegistrationTermItems_(context, input_values) {
     return input_values;
   }
 
-  const date_list = {
-    trial_target_terms: context.trial_target_terms,
-    trial_start_date: context.trial_start_date,
-    trial_end_date: context.trial_end_date,
-    trial_target_start_date: context.trial_target_start_date,
-    trial_target_end_date: context.trial_target_end_date,
+  const registrationDateList = {
+    trialTargetTerms: context.trialTargetTerms,
+    trialStartDate: context.trialStartDate,
+    trialEndDate: context.trialEndDate,
+    trialTargetStartDate: context.trialTargetStartDate,
+    trialTargetEndDate: context.trialTargetEndDate,
   };
 
   const target_items = buildRegistrationTermItems_({
-    date_list,
+    registrationDateList,
     sheetname: context.sheetname,
-    clinical_trials_office_flg: context.clinical_trials_office_flg,
+    clinicalTrialsOfficeFlg: context.clinicalTrialsOfficeFlg,
   });
 
   return getSetValues_(context, target_items, input_values);

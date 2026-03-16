@@ -134,19 +134,19 @@ function test_buildTrialTermResult() {
     );
     if (sheetname === "dummy_sheet") {
       assertEquals_(
-        { trial_target_terms: undefined, trial_term_values: undefined },
+        { trialTargetTerms: undefined, trial_term_values: undefined },
         actualValues,
         `buildTrialTermResult_ should return undefined for unknown sheetname: ${sheetname}`,
       );
     } else {
       const expectedValues = {
-        trial_target_terms: targetValues[idx][5],
+        trialTargetTerms: targetValues[idx][5],
         trial_term_values: targetValues[idx],
       };
       assertEquals_(
         actualValues,
         expectedValues,
-        `buildTrialTermResult_ should return correct trial_target_terms for sheetname: ${sheetname}`,
+        `buildTrialTermResult_ should return correct trialTargetTerms for sheetname: ${sheetname}`,
       );
     }
   });
@@ -172,28 +172,28 @@ function test_buildTrialDatesPure() {
         return values;
       })(),
       props: {
-        trial_start_date: "2022-01-01",
-        trial_end_date: "2025-12-31",
+        trialStartDate: "2022-01-01",
+        trialEndDate: "2025-12-31",
       },
       expect: {
-        trial_target_start_date: new Date("2023-04-01"),
-        trial_target_end_date: new Date("2024-03-31"),
-        trial_start_date: new Date("2022-01-01"),
-        trial_end_date: new Date("2025-12-31"),
+        trialTargetStartDate: new Date("2023-04-01"),
+        trialTargetEndDate: new Date("2024-03-31"),
+        trialStartDate: new Date("2022-01-01"),
+        trialEndDate: new Date("2025-12-31"),
       },
     },
     {
       name: "trial_term_values が undefined",
       trial_term_values: undefined,
       props: {
-        trial_start_date: "2022-01-01",
-        trial_end_date: "2024-12-31",
+        trialStartDate: "2022-01-01",
+        trialEndDate: "2024-12-31",
       },
       expect: {
-        trial_target_start_date: null,
-        trial_target_end_date: null,
-        trial_start_date: new Date("2022-01-01"),
-        trial_end_date: new Date("2024-12-31"),
+        trialTargetStartDate: null,
+        trialTargetEndDate: null,
+        trialStartDate: new Date("2022-01-01"),
+        trialEndDate: new Date("2024-12-31"),
       },
     },
   ];

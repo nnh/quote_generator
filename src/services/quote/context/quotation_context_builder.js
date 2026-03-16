@@ -49,7 +49,7 @@ function isClinicalTrialsOfficeRequired_() {
  * @param {string} sheetname
  *   対象となるシート名
  * @return {{
- *   trial_target_terms: any,
+ *   trialTargetTerms: any,
  *   trial_term_values: Array|undefined
  * }}
  */
@@ -59,7 +59,7 @@ function buildTrialTermResult_(values, sheetname) {
   )[0];
 
   return {
-    trial_target_terms: trial_term_values
+    trialTargetTerms: trial_term_values
       ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_MONTHS]
       : undefined,
     trial_term_values,
@@ -90,7 +90,7 @@ function getTrialTermSheetValues_() {
  *
  * @param {string} sheetname
  * @return {{
- *   trial_target_terms: any,
+ *   trialTargetTerms: any,
  *   trial_term_values: Array
  * }}
  */
@@ -104,18 +104,18 @@ function getTrialTerm_(sheetname) {
  * 試験日付に関するプロパティ値を取得する
  *
  * @return {{
- *   trial_start_date: string|null,
- *   trial_end_date: string|null
+ *   trialStartDate: string|null,
+ *   trialEndDate: string|null
  * }}
  */
 function getTrialDateProperties_() {
   const properties = PropertiesService.getScriptProperties();
 
   return {
-    trial_start_date: properties.getProperty(
+    trialStartDate: properties.getProperty(
       SCRIPT_PROPERTY_KEYS.TRIAL_START_DATE,
     ),
-    trial_end_date: properties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE),
+    trialEndDate: properties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE),
   };
 }
 
@@ -124,30 +124,30 @@ function getTrialDateProperties_() {
  *
  * @param {Array|undefined} trial_term_values
  * @param {{
- *   trial_start_date: string|null,
- *   trial_end_date: string|null
+ *   trialStartDate: string|null,
+ *   trialEndDate: string|null
  * }} props
  * @return {{
- *   trial_target_start_date: Date|null,
- *   trial_target_end_date: Date|null,
- *   trial_start_date: Date|null,
- *   trial_end_date: Date|null
+ *   trialTargetStartDate: Date|null,
+ *   trialTargetEndDate: Date|null,
+ *   trialStartDate: Date|null,
+ *   trialEndDate: Date|null
  * }}
  */
 function buildTrialDatesPure_(trial_term_values, props) {
   return {
-    trial_target_start_date: toDate_(
+    trialTargetStartDate: toDate_(
       trial_term_values
         ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_START]
         : undefined,
     ),
-    trial_target_end_date: toDate_(
+    trialTargetEndDate: toDate_(
       trial_term_values
         ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_END]
         : undefined,
     ),
-    trial_start_date: toDate_(props.trial_start_date),
-    trial_end_date: toDate_(props.trial_end_date),
+    trialStartDate: toDate_(props.trialStartDate),
+    trialEndDate: toDate_(props.trialEndDate),
   };
 }
 /**
@@ -159,10 +159,10 @@ function buildTrialDatesPure_(trial_term_values, props) {
  *
  * @param {Array|undefined} trial_term_values
  * @return {{
- *   trial_target_start_date: Date|null,
- *   trial_target_end_date: Date|null,
- *   trial_start_date: Date|null,
- *   trial_end_date: Date|null
+ *   trialTargetStartDate: Date|null,
+ *   trialTargetEndDate: Date|null,
+ *   trialStartDate: Date|null,
+ *   trialEndDate: Date|null
  * }}
  */
 function initSetSheetItemTrialDates_(trial_term_values) {
@@ -181,16 +181,16 @@ function buildSheetContext_(sheetname) {
   return {
     sheetname,
 
-    trial_target_terms: trialTerm.trial_target_terms,
+    trialTargetTerms: trialTerm.trialTargetTerms,
     trial_term_values: trialTerm.trial_term_values,
 
-    trial_target_start_date: trialDates.trial_target_start_date,
-    trial_target_end_date: trialDates.trial_target_end_date,
-    trial_start_date: trialDates.trial_start_date,
-    trial_end_date: trialDates.trial_end_date,
+    trialTargetStartDate: trialDates.trialTargetStartDate,
+    trialTargetEndDate: trialDates.trialTargetEndDate,
+    trialStartDate: trialDates.trialStartDate,
+    trialEndDate: trialDates.trialEndDate,
 
     target_col: initTargetColumn_(),
 
-    clinical_trials_office_flg: isClinicalTrialsOfficeRequired_(),
+    clinicalTrialsOfficeFlg: isClinicalTrialsOfficeRequired_(),
   };
 }

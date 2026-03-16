@@ -370,7 +370,7 @@ function test_createClosingItemsList_trialType_clinical_trials_office_(obj) {
     funding_source,
     cofficient_value,
   );
-  const officeFlag = test_get_clinical_trials_office_flg_(obj);
+  const officeFlag = test_getClinicalTrialsOfficeFlg_(obj);
   const items = createClosingItemsList_(array_quotation_request, officeFlag);
   const clinical_trials_office =
     ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_CLOSING;

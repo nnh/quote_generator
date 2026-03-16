@@ -1,10 +1,10 @@
 /**
  * Closingシート用の項目と値のリストを生成する
- * @param {boolean|number|string} clinical_trials_office_flg
+ * @param {boolean|number|string} clinicalTrialsOfficeFlg 事務局運営フラグ
  * @return {Array<Array>}
  */
-function buildClosingSetItems_(clinical_trials_office_flg) {
-  const closingItemsList = createClosingItemsList_(clinical_trials_office_flg);
+function buildClosingSetItems_(clinicalTrialsOfficeFlg) {
+  const closingItemsList = createClosingItemsList_(clinicalTrialsOfficeFlg);
   return convertItemsMapToList_(closingItemsList);
 }
 
@@ -39,10 +39,10 @@ function getClosingTrialTypeConfig_() {
 }
 /**
  * Closingシート用の項目と値のMapを生成する
- * @param {boolean} clinical_trials_office_flg 事務局運営フラグ
+ * @param {boolean} clinicalTrialsOfficeFlg 事務局運営フラグ
  * @return {Map<string, number|string>}
  */
-function createClosingItemsList_(clinical_trials_office_flg) {
+function createClosingItemsList_(clinicalTrialsOfficeFlg) {
   const config = getClosingTrialTypeConfig_();
 
   /* ===== 入力値取得 ===== */
@@ -97,7 +97,7 @@ function createClosingItemsList_(clinical_trials_office_flg) {
     }
   }
 
-  const clinicalTrialsOffice = clinical_trials_office_flg ? 1 : "";
+  const clinicalTrialsOffice = clinicalTrialsOfficeFlg ? 1 : "";
 
   /* ===== Map構築 ===== */
   return new Map([

@@ -100,7 +100,7 @@ function get_row_num_matched_value_(
  * @param {string} header 検索対象の項目名
  * @return {string|null} 項目名が完全一致すればその項目の値を返す。一致しなければnullを返す。
  * @example
- *   const trial_start_date = get_quotation_request_value_(const_trial_start);
+ *   const trialStartDate = get_quotation_request_value_(const_trial_start);
  */
 function get_quotation_request_value_(header) {
   if (_cachedSheets === null) {

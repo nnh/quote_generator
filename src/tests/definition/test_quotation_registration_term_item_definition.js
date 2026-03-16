@@ -16,9 +16,9 @@ function test_setRegistrationTermItems() {
   // ===============================
   // --- 正常系 ---
   // 1. 最小構成（必須項目のみ）
-  // - context に date_list が存在する
-  // - date_list に必要な日付項目がすべて揃っている
-  // - clinical_trials_office_flg = false
+  // - context に registrationDateList が存在する
+  // - registrationDateList に必要な日付項目がすべて揃っている
+  // - clinicalTrialsOfficeFlg = false
   // - 安全性管理事務局・効安事務局ともに「設置・委託する」以外
   // => 結果に CENTRAL_MONITORING のみが含まれる
   runSetRegistrationTermItemsTest_({
@@ -31,13 +31,13 @@ function test_setRegistrationTermItems() {
         "タイムスタンプ",
         "2000/01/01",
       ),
-      clinical_trials_office_flg: false,
-      date_list: {
-        trial_target_terms: 12,
-        trial_start_date: "2020/04/01",
-        trial_end_date: "2026/03/31",
-        trial_target_start_date: "2024/04/01",
-        trial_target_end_date: "2025/03/31",
+      clinicalTrialsOfficeFlg: false,
+      registrationDateList: {
+        trialTargetTerms: 12,
+        trialStartDate: "2020/04/01",
+        trialEndDate: "2026/03/31",
+        trialTargetStartDate: "2024/04/01",
+        trialTargetEndDate: "2025/03/31",
       },
     },
     expected: new Map([[item_central_monitoring, 12]]),
@@ -104,13 +104,13 @@ function test_setRegistrationTermItems() {
     context: {
       sheetname: registration1_sheetName,
       array_quotation_request: case2_array_quotation_request,
-      clinical_trials_office_flg: false,
-      date_list: {
-        trial_target_terms: 12,
-        trial_start_date: "2020/04/01",
-        trial_end_date: "2026/03/31",
-        trial_target_start_date: "2024/04/01",
-        trial_target_end_date: "2025/03/31",
+      clinicalTrialsOfficeFlg: false,
+      registrationDateList: {
+        trialTargetTerms: 12,
+        trialStartDate: "2020/04/01",
+        trialEndDate: "2026/03/31",
+        trialTargetStartDate: "2024/04/01",
+        trialTargetEndDate: "2025/03/31",
       },
     },
     expected: new Map([
@@ -142,13 +142,13 @@ function test_setRegistrationTermItems() {
     context: {
       sheetname: registration1_sheetName,
       array_quotation_request: case3_array_quotation_request,
-      clinical_trials_office_flg: false,
-      date_list: {
-        trial_target_terms: 12,
-        trial_start_date: "2020/04/01",
-        trial_end_date: "2026/03/31",
-        trial_target_start_date: "2024/04/01",
-        trial_target_end_date: "2025/03/31",
+      clinicalTrialsOfficeFlg: false,
+      registrationDateList: {
+        trialTargetTerms: 12,
+        trialStartDate: "2020/04/01",
+        trialEndDate: "2026/03/31",
+        trialTargetStartDate: "2024/04/01",
+        trialTargetEndDate: "2025/03/31",
       },
     },
     expected: new Map([
@@ -178,13 +178,13 @@ function test_setRegistrationTermItems() {
     context: {
       sheetname: registration1_sheetName,
       array_quotation_request: case4_array_quotation_request,
-      clinical_trials_office_flg: false,
-      date_list: {
-        trial_target_terms: 12,
-        trial_start_date: "2020/04/01",
-        trial_end_date: "2026/03/31",
-        trial_target_start_date: "2024/04/01",
-        trial_target_end_date: "2025/03/31",
+      clinicalTrialsOfficeFlg: false,
+      registrationDateList: {
+        trialTargetTerms: 12,
+        trialStartDate: "2020/04/01",
+        trialEndDate: "2026/03/31",
+        trialTargetStartDate: "2024/04/01",
+        trialTargetEndDate: "2025/03/31",
       },
     },
     expected: new Map([
@@ -195,7 +195,7 @@ function test_setRegistrationTermItems() {
   });
 
   // 5. 複合ケース（最大構成）
-  // - clinical_trials_office_flg = true
+  // - clinicalTrialsOfficeFlg = true
   // - 安全性管理事務局 = 設置・委託する
   // - 効安事務局 = 設置・委託する
   // - REGISTRATION_1
@@ -222,13 +222,13 @@ function test_setRegistrationTermItems() {
     context: {
       sheetname: registration1_sheetName,
       array_quotation_request: case5_array_quotation_request,
-      clinical_trials_office_flg: false,
-      date_list: {
-        trial_target_terms: 12,
-        trial_start_date: "2020/04/01",
-        trial_end_date: "2026/03/31",
-        trial_target_start_date: "2024/04/01",
-        trial_target_end_date: "2025/03/31",
+      clinicalTrialsOfficeFlg: false,
+      registrationDateList: {
+        trialTargetTerms: 12,
+        trialStartDate: "2020/04/01",
+        trialEndDate: "2026/03/31",
+        trialTargetStartDate: "2024/04/01",
+        trialTargetEndDate: "2025/03/31",
       },
     },
     expected: new Map([
@@ -240,10 +240,10 @@ function test_setRegistrationTermItems() {
 
   // --- 異常系 ---
 
-  // 6. context に date_list が存在しない
+  // 6. context に registrationDateList が存在しない
   // => Error が throw されること
   assertThrows_({
-    testName: "date_list がない場合はエラー",
+    testName: "registrationDateList がない場合はエラー",
     fn: () =>
       setRegistrationTermItems_({
         sheetname: registration1_sheetName,
@@ -253,15 +253,15 @@ function test_setRegistrationTermItems() {
           "タイムスタンプ",
           "2000/01/01",
         ),
-        clinical_trials_office_flg: false,
+        clinicalTrialsOfficeFlg: false,
       }),
-    expectedMessage: "date_list",
+    expectedMessage: "registrationDateList",
   });
 
-  // 7. date_list が null / undefined
+  // 7. registrationDateList が null / undefined
   // => Error が throw されること
   assertThrows_({
-    testName: "date_list が null / undefined",
+    testName: "registrationDateList が null / undefined",
     fn: () =>
       setRegistrationTermItems_({
         sheetname: registration1_sheetName,
@@ -271,10 +271,10 @@ function test_setRegistrationTermItems() {
           "タイムスタンプ",
           "2000/01/01",
         ),
-        clinical_trials_office_flg: false,
-        date_list: null,
+        clinicalTrialsOfficeFlg: false,
+        registrationDateList: null,
       }),
-    expectedMessage: "date_list",
+    expectedMessage: "registrationDateList",
   });
 }
 /**
@@ -292,6 +292,25 @@ function runSetRegistrationTermItemsTest_({
   scriptProperties = {},
   expected,
 }) {
+  const quotationRequestSheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+      QUOTATION_REQUEST_SHEET.NAME,
+    );
+  if (!quotationRequestSheet) {
+    throw new Error("Quotation Request Sheet is not found");
+  }
+  const quotationRequestBodyData = [context.array_quotation_request[1]];
+  quotationRequestSheet
+    .getRange(
+      2,
+      1,
+      quotationRequestBodyData.length,
+      quotationRequestBodyData[0].length,
+    )
+    .setValues(quotationRequestBodyData);
+  SpreadsheetApp.flush(); // シートへの反映を待つ
+  _quotationRequestMap = null; // キャッシュされている quotationRequestMap をリセット
+
   const sp = PropertiesService.getScriptProperties();
 
   // --- ScriptProperties 退避 ---
@@ -305,6 +324,9 @@ function runSetRegistrationTermItemsTest_({
     const actual = setRegistrationTermItems_(context);
     assertEquals_(actual, expected, testName);
   } finally {
+    quotationRequestSheet
+      .getRange(2, 1, 1, quotationRequestSheet.getLastColumn())
+      .clearContent(); // シートの内容をクリア
     // --- ScriptProperties 復元 ---
     Object.keys(scriptProperties).forEach((key) => {
       if (backup[key] == null) {
