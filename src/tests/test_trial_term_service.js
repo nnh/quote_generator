@@ -2,7 +2,7 @@ function test_getTrialTermInfo() {
   const sheets = get_sheets();
   const trialSheet =
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Trial");
-  const targetRangeAddress = "D32:E40";
+  const targetRangeAddress = TRIAL_TERM_RANGE_ADDRESS;
   const targetRange = trialSheet.getRange(targetRangeAddress);
   targetRange.clearContent();
   const testData = [

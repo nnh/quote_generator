@@ -196,6 +196,16 @@ Object.keys(TRIAL_SHEET.COLUMNS).forEach((key) => {
   TRIAL_SHEET.COLIDX[key] = TRIAL_SHEET.COLUMNS[key] - 1;
 });
 
+// ===== Setup〜Closingシート =====
+const PHASE_SHEET = {
+  ROWNUMBER: {
+    HEADER: 2,
+  },
+  COLUMNNUMBER: {
+    HEADER: 2,
+  },
+};
+
 const ORG = {
   NMC: "nmc",
   OSCR: "oscr",

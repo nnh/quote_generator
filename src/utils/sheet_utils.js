@@ -114,3 +114,17 @@ function findColumnByValue_(sheet, row, value) {
   const columnIndex = findColumnIndexByValue_(values, 0, value);
   return columnIndex !== null ? columnIndex + 1 : null;
 }
+
+/**
+ * シートの表示状態を制御する
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
+ * @param {boolean} isVisible true: 表示 / false: 非表示
+ */
+function setSheetVisibility_(sheet, isVisible) {
+  if (isVisible) {
+    sheet.showSheet();
+  } else {
+    sheet.hideSheet();
+  }
+}

@@ -59,7 +59,7 @@ function convertColumnLetterToIndexForTest_(columnLetter) {
 class TrialDatesEditForTest_ {
   constructor() {
     this.sheetName = "Trial";
-    this.rangeA1 = "D32:E40";
+    this.rangeA1 = TRIAL_TERM_RANGE_ADDRESS;
     this.discountRangeA1 = "G32:G40";
     this.trialSheet = getSheetByNameCached_(this.sheetName);
   }

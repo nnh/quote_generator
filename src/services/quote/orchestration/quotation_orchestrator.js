@@ -38,16 +38,21 @@ function applyQuotationToSheet_(sheetName) {
  */
 function postProcessQuotation_() {
   setImbalanceValues_();
-  getTargetTermSheets_().forEach((sheet) => {
-    const value = sheet.getRange("B2").getValue();
+  updateTermSheetVisibility_();
+}
 
-    if (value === "") {
-      sheet.hideSheet();
-    } else {
-      sheet.showSheet();
-    }
+/**
+ * Setup〜Closing シートの B2 の値に応じて表示状態を更新する
+ */
+function updateTermSheetVisibility_() {
+  getTargetTermSheets_().forEach((sheet) => {
+    const value = sheet
+      .getRange(PHASE_SHEET.ROWNUMBER.HEADER, PHASE_SHEET.COLUMNNUMBER.HEADER)
+      .getValue();
+    setSheetVisibility_(sheet, value !== "");
   });
 }
+
 /**
  * 見積処理メインエントリ
  * Quotation request を元に、各年度別シートへ見積項目を反映する

@@ -1,5 +1,10 @@
 /**
  * 【テスト用】
+ * Trialシートの試験期間年月設定セルアドレス
+ */
+const TRIAL_TERM_RANGE_ADDRESS = "D32:E40";
+/**
+ * 【テスト用】
  * シート名を返す
  */
 function getSetupSheetNameForTest_() {

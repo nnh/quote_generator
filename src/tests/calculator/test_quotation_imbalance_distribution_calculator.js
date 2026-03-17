@@ -418,8 +418,8 @@ function runImbalanceTest_(
     // 1. セットアップ
     const trialSheet =
       SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Trial");
-    trialSheet.getRange("D32:E40").clearContent();
-    trialSheet.getRange("D32:E40").setValues(trialYears);
+    trialSheet.getRange(TRIAL_TERM_RANGE_ADDRESS).clearContent();
+    trialSheet.getRange(TRIAL_TERM_RANGE_ADDRESS).setValues(trialYears);
     SpreadsheetApp.flush();
 
     // 2. 実行

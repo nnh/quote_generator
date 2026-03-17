@@ -1,3 +1,24 @@
+function test_setSheetVisibility() {
+  const _ = get_sheets();
+  const sheet = _cachedSheets.total2;
+  const targetValue = sheet.getRange(1, 2).getValue();
+
+  // --- 非表示にするテスト ---
+  setSheetVisibility_(sheet, targetValue === "");
+  const actual1 = sheet.isSheetHidden();
+  const expected1 = true;
+  assertEquals_(actual1, expected1, "sheet should be hidden");
+
+  // --- 表示にするテスト ---
+  setSheetVisibility_(sheet, targetValue !== "");
+  const actual2 = sheet.isSheetHidden();
+  const expected2 = false;
+  assertEquals_(actual2, expected2, "sheet should be visible");
+
+  // 念のため元に戻す
+  sheet.showSheet();
+}
+
 function test_findColumnByValue() {
   const _ = get_sheets();
   const actual1 = findColumnByValue_(_cachedSheets.total2, 4, "合計");
