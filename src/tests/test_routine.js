@@ -92,7 +92,7 @@ class QuoteRoutineTestRunner {
         ? 1
         : "";
     this.setTestInterimValues(this.setupSheet, interimCount);
-    total2_3_add_del_cols();
+    updateTotalSheetsColumnsByTrialTerm();
   }
   /**
    * ルーチンテストを1ケース実行する。
@@ -103,7 +103,7 @@ class QuoteRoutineTestRunner {
    * 処理の流れ:
    * 1. Quotation Request シートへテストデータを設定する。
    * 2. 見積作成処理（setQuote）を実行する。
-   * 3. 出力値チェック処理（check_output_values）を実行する。
+   * 3. 出力値チェック処理（runOutputValidationToCheckSheet）を実行する。
    * 4. Check シートの検証結果を取得し、判定結果を返す。
    *
    * @param {Array|null} targetRow テスト用に設定する Quotation Request の行データ（ヘッダー + 対象行）
@@ -116,7 +116,7 @@ class QuoteRoutineTestRunner {
     }
     setQuotationRequestValuesForTest(targetRow);
     this.setQuote();
-    check_output_values();
+    runOutputValidationToCheckSheet();
     return this.getCheckResult_(falseRowNumbers);
   }
   /**

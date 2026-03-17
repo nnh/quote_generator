@@ -5,7 +5,7 @@
  * validationRunOutputValidationPipeline_ で各種検証処理を実行する。
  * 生成された結果を Check シートへ書き込む。
  */
-function check_output_values() {
+function runOutputValidationToCheckSheet() {
   const params = validationInitContext_();
 
   const { results, updatedRow } =

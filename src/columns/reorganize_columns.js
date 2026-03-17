@@ -99,7 +99,7 @@ function findSumColumnNumber_(config, values) {
  *
  * @return {void}
  */
-function total2_3_add_del_cols() {
+function updateTotalSheetsColumnsByTrialTerm() {
   runInitialProcess_();
   //　フィルタを解除し全行表示する
   resetFilterVisibility();
