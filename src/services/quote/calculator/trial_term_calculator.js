@@ -117,10 +117,10 @@ function convertTermPeriodsToArray_(termPeriods) {
 function buildTrialDateArray_(input_trialStartDate, input_trialEndDate) {
   const scriptProperties = PropertiesService.getScriptProperties();
   const setupTermMonths = Number(
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.SETUP_TERM, scriptProperties),
   );
   const closingTermMonths = Number(
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.CLOSING_TERM),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.CLOSING_TERM, scriptProperties),
   );
 
   const dates = calculateTrialDates_(

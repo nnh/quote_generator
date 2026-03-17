@@ -22,8 +22,10 @@ function isClinicalTrialsOfficeRequired_() {
   const scriptProperties = PropertiesService.getScriptProperties();
 
   const isInvestigatorInitiated =
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
-    TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
+    getScriptProperty_(
+      SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+      scriptProperties,
+    ) === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
 
   const isCommercialFunding =
     get_quotation_request_value_(
@@ -112,11 +114,13 @@ function getTrialDateProperties_() {
   const scriptProperties = PropertiesService.getScriptProperties();
 
   return {
-    trialStartDate: scriptProperties.getProperty(
+    trialStartDate: getScriptProperty_(
       SCRIPT_PROPERTY_KEYS.TRIAL_START_DATE,
+      scriptProperties,
     ),
-    trialEndDate: scriptProperties.getProperty(
+    trialEndDate: getScriptProperty_(
       SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE,
+      scriptProperties,
     ),
   };
 }

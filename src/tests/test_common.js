@@ -98,7 +98,7 @@ class TrialDatesBackupForTest_ extends TrialDatesEditForTest_ {
       throw new Error(`${this.sheetName} シートが見つかりません`);
     }
 
-    const saved = this.scriptProps.getProperty(this.propertyKey);
+    const saved = getScriptProperty_(this.propertyKey, this.scriptProperties);
 
     if (!saved) {
       throw new Error(`保存された ${this.propertyKey} が存在しません`);
@@ -126,7 +126,7 @@ class TrialDatesBackupForTest_ extends TrialDatesEditForTest_ {
    * 保存データを削除する（必要に応じて）
    */
   clear() {
-    this.scriptProps.deleteProperty(this.propertyKey);
+    this.scriptProperties.deleteProperty(this.propertyKey);
   }
 }
 /**
@@ -298,14 +298,15 @@ function test_trialTypeConfigCommon_(
   expectedOptions = {},
   actualOptions = {},
 ) {
+  const key = SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE;
   const scriptProperties = PropertiesService.getScriptProperties();
-  const originalTrialType = scriptProperties.getProperty("trial_type_value");
+  const originalTrialType = getScriptProperty_(key, scriptProperties);
 
   const trialTypes = getTrialTypeListForTest_();
 
   try {
     trialTypes.forEach((trialType) => {
-      setScriptProperty_("trial_type_value", trialType, scriptProperties);
+      setScriptProperty_(key, trialType, scriptProperties);
 
       const actual = getActualConfigFn(actualOptions);
       const expected = getExpectedConfigFn(trialType, expectedOptions);
@@ -315,13 +316,9 @@ function test_trialTypeConfigCommon_(
   } finally {
     // ScriptProperties を元に戻す
     if (originalTrialType === null) {
-      scriptProperties.deleteProperty("trial_type_value");
+      scriptProperties.deleteProperty(key);
     } else {
-      setScriptProperty_(
-        "trial_type_value",
-        originalTrialType,
-        scriptProperties,
-      );
+      setScriptProperty_(key, originalTrialType, scriptProperties);
     }
   }
 }

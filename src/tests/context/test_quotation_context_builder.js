@@ -37,7 +37,7 @@ function test_isClinicalTrialsOfficeRequired_withProperty_(
     throw new Error("QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL is not defined");
   }
 
-  const originalValue = scriptProperties.getProperty(PROPERTY_KEY);
+  const originalValue = getScriptProperty_(PROPERTY_KEY, scriptProperties);
   const value_yes = requireTestYesExistenceLabel_();
   const value_no = requireTestNoExistenceLabel_();
   const quotation_request_funding_source =

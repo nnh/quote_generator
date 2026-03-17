@@ -130,7 +130,7 @@ function setSetupTerm_(context, propertyName) {
 
   const setupTerm =
     parseInt(
-      scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
+      getScriptProperty_(SCRIPT_PROPERTY_KEYS.SETUP_TERM, scriptProperties),
       10,
     ) || 0;
 
@@ -164,7 +164,7 @@ function applyNonSetupItems_(context, inputValues) {
   }
 
   const setupTerm = Number(
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.SETUP_TERM, scriptProperties),
   );
 
   if (shouldSkipDatabaseManagement_(sheetName, trialTargetTerms, setupTerm)) {
@@ -205,11 +205,11 @@ function applyRegistrationTermItems_(context, inputValues) {
   const scriptProperties = PropertiesService.getScriptProperties();
 
   const setupTermLimit = Number(
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.SETUP_TERM, scriptProperties),
   );
 
   const closingTermLimit = Number(
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.CLOSING_TERM),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.CLOSING_TERM, scriptProperties),
   );
 
   if (
@@ -252,8 +252,9 @@ function applyInterimAnalysis_(context) {
 
   const scriptProperties = PropertiesService.getScriptProperties();
 
-  const trialType = scriptProperties.getProperty(
+  const trialType = getScriptProperty_(
     SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+    scriptProperties,
   );
 
   const interimTableCount = get_quotation_request_value_(

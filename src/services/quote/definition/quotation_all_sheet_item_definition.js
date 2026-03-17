@@ -39,10 +39,13 @@ function calculateDatabaseManagementTerm_(
   return calculateDatabaseManagementTermPure_(
     sheetName,
     trialTargetTerms,
-    Number(scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM)),
     Number(
-      scriptProperties.getProperty(
+      getScriptProperty_(SCRIPT_PROPERTY_KEYS.SETUP_TERM, scriptProperties),
+    ),
+    Number(
+      getScriptProperty_(
         SCRIPT_PROPERTY_KEYS.REG1_SETUP_DATABASE_MANAGEMENT,
+        scriptProperties,
       ),
     ),
   );

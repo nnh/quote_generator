@@ -24,8 +24,10 @@ function getClosingTrialTypeConfig_() {
   };
 
   if (
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
-    TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
+    getScriptProperty_(
+      SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+      scriptProperties,
+    ) === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
   ) {
     config.csrLabel = ITEMS_SHEET.ITEMNAMES.CSR_SUPPORT;
     config.csrCount = 1;

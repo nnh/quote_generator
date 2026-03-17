@@ -81,8 +81,10 @@ function getClinicalTrialsOfficeTestArray_() {
  * @returns {number} 事務局運営フラグ（1: 対象, 0: 非対象）
  */
 function test_getClinicalTrialsOfficeFlg_(obj) {
-  const trialType =
-    PropertiesService.getScriptProperties().getProperty("trial_type_value");
+  const trialType = getScriptProperty_(
+    SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+    PropertiesService.getScriptProperties(),
+  );
   const office_value = obj.office_value;
   const cofficient_value = obj.funding_source;
   if (trialType === "医師主導治験") {

@@ -100,8 +100,9 @@ function calcClinicalTrialsOfficeValues_(params) {
     if (sheetname === QUOTATION_SHEET_NAMES.REGISTRATION_1) {
       setupOffice =
         Number(
-          scriptProperties.getProperty(
+          getScriptProperty_(
             SCRIPT_PROPERTY_KEYS.REG1_SETUP_CLINICAL_TRIALS_OFFICE,
+            scriptProperties,
           ),
         ) || 0;
     }

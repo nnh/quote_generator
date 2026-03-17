@@ -311,13 +311,13 @@ function runSetRegistrationTermItemsTest_({
   SpreadsheetApp.flush(); // シートへの反映を待つ
   _quotationRequestMap = null; // キャッシュされている quotationRequestMap をリセット
 
-  const scriptProperties = PropertiesService.getScriptProperties();
+  const scriptProps = PropertiesService.getScriptProperties();
 
   // --- ScriptProperties 退避 ---
   const backup = {};
   Object.keys(scriptProperties).forEach((key) => {
-    backup[key] = scriptProperties.getProperty(key);
-    setScriptProperty_(key, scriptProperties[key], scriptProperties);
+    backup[key] = getScriptProperty_(key, scriptProps);
+    setScriptProperty_(key, scriptProperties[key], scriptProps);
   });
 
   try {
@@ -330,9 +330,9 @@ function runSetRegistrationTermItemsTest_({
     // --- ScriptProperties 復元 ---
     Object.keys(scriptProperties).forEach((key) => {
       if (backup[key] == null) {
-        scriptProperties.deleteProperty(key);
+        scriptProps.deleteProperty(key);
       } else {
-        setScriptProperty_(key, backup[key], sp);
+        setScriptProperty_(key, backup[key], scriptProps);
       }
     });
   }
@@ -449,7 +449,7 @@ function test_calcClinicalTrialsOfficeValues_withProperty_(
   const scriptProperties = PropertiesService.getScriptProperties();
   const PROPERTY_KEY = SCRIPT_PROPERTY_KEYS.REG1_SETUP_CLINICAL_TRIALS_OFFICE;
 
-  const originalValue = scriptProperties.getProperty(PROPERTY_KEY);
+  const originalValue = getScriptProperty_(PROPERTY_KEY, scriptProperties);
 
   try {
     // --- テスト用プロパティをセット ---

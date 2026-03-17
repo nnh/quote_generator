@@ -47,8 +47,9 @@ function getSetupTrialTypeConfig_() {
     specifiedClinicalSupportValue: 0,
   };
 
-  const trialType = scriptProperties.getProperty(
+  const trialType = getScriptProperty_(
     SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+    scriptProperties,
   );
 
   if (trialType === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED) {

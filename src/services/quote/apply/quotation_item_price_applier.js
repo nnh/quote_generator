@@ -91,10 +91,10 @@ function processResearchSupportFee_(itemSheet) {
   );
   const scriptProperties = PropertiesService.getScriptProperties();
   const numberOfCases = Number(
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.NUMBER_OF_CASES),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.NUMBER_OF_CASES, scriptProperties),
   );
   const facilities = Number(
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.FACILITIES_VALUE),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.FACILITIES_VALUE, scriptProperties),
   );
   const basePrice = calculateBasePrice_(totalPrice, enabledItemCount);
 
