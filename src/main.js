@@ -3,7 +3,7 @@
  */
 function onOpen() {
   const spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = spreadSheet.getSheetByName(QUOTATION_REQUEST_SHEET.NAME);
+  const sheet = spreadSheet.getSheetByName("Quotation Request");
   if (sheet) {
     if (sheet.getRange("A2").getValue() === "quote-generator-2") {
       return;
