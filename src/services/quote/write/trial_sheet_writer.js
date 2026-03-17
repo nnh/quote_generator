@@ -212,7 +212,7 @@ function applyTrialType_(trialType, sheet) {
  * @param {string} key - 処理対象の項目名（例: "試験種別", "CRF項目数"）
  * @param {any} fieldValue - quotation_requestシートから取得した値
  * @param {Object} context - 共通コンテキストオブジェクト
- * @param {PropertiesService.Properties} context.properties - スクリプトプロパティ
+ * @param {PropertiesService.scriptProperties} context.scriptProperties - スクリプトプロパティ
  * @param {Array.<string>} context.arrayQuotationRequest - quotation_requestシートの値
  * @param {Object} context.sheet - Sheetsオブジェクト（trial, itemsシートなど）
  *
@@ -224,7 +224,7 @@ function applyTrialType_(trialType, sheet) {
 function resolveTrialFieldValue_(key, fieldValue, context) {
   if (fieldValue == null) return null;
 
-  const sp = context.properties;
+  const scriptProperties = context.scriptProperties;
   const sheet = context.sheet;
   const const_facilities = ITEM_LABELS.FACILITIES;
   const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
@@ -233,10 +233,10 @@ function resolveTrialFieldValue_(key, fieldValue, context) {
     case TRIAL_SHEET.ITEMNAMES.QUOTATION_TYPE:
       return convertQuotationTypeLabel_(fieldValue);
     case const_number_of_cases:
-      setNumberOfCasesProperty_(fieldValue, sp);
+      setNumberOfCasesProperty_(fieldValue, scriptProperties);
       return fieldValue;
     case const_facilities:
-      setFacilitiesProperty_(fieldValue, sp);
+      setFacilitiesProperty_(fieldValue, scriptProperties);
       return fieldValue;
     case TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE:
       applyTrialType_(fieldValue, sheet);
@@ -278,13 +278,13 @@ function applyQuotationRequestToSheets_() {
     [TRIAL_SHEET.ITEMNAMES.CRF, 30],
     [ITEM_LABELS.FUNDING_SOURCE_LABEL, 44],
   ];
-  const sp = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
   for (let i = 0; i < trial_list.length; i++) {
     const key = trial_list[i][0];
     const row = Number(trial_list[i][1]);
     const context = {
       sheet: _cachedSheets,
-      properties: sp,
+      scriptProperties,
     };
 
     const quotationRequestValue = get_quotation_request_value_(key);

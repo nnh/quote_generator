@@ -128,3 +128,54 @@ function setSheetVisibility_(sheet, isVisible) {
     sheet.hideSheet();
   }
 }
+
+/**
+ * 列名から列番号を返す
+ * @param {string} columnName 列名（"A", "B", "AA" など）
+ * @return {number} Aなら1、AAなら27 のような列番号
+ */
+function getColumnNumber_(columnName) {
+  if (typeof columnName !== "string" || columnName.trim() === "") {
+    throw new Error(`getColumnNumber_: invalid column name: ${columnName}`);
+  }
+
+  const colStr = columnName.trim().toUpperCase();
+
+  if (!/^[A-Z]+$/.test(colStr)) {
+    throw new Error(
+      `getColumnNumber_: invalid column name format: ${columnName}`,
+    );
+  }
+
+  let columnNumber = 0;
+
+  for (let i = 0; i < colStr.length; i++) {
+    columnNumber = columnNumber * 26 + (colStr.charCodeAt(i) - 64);
+  }
+
+  return columnNumber;
+}
+
+/**
+ * 列番号から列名を返す
+ * @param {number|string} columnNumber 列番号（数値または数値文字列）
+ * @return {string} 1ならA、27ならAA のような列名
+ */
+function getColumnString_(columnNumber) {
+  const colNum = Number(columnNumber);
+
+  if (!Number.isInteger(colNum) || colNum <= 0) {
+    throw new Error(`getColumnString_: invalid column number: ${columnNumber}`);
+  }
+
+  let result = "";
+  let num = colNum;
+
+  while (num > 0) {
+    const remainder = (num - 1) % 26;
+    result = String.fromCharCode(65 + remainder) + result;
+    num = Math.floor((num - 1) / 26);
+  }
+
+  return result;
+}

@@ -109,13 +109,15 @@ function getTrialTerm_(sheetname) {
  * }}
  */
 function getTrialDateProperties_() {
-  const properties = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
 
   return {
-    trialStartDate: properties.getProperty(
+    trialStartDate: scriptProperties.getProperty(
       SCRIPT_PROPERTY_KEYS.TRIAL_START_DATE,
     ),
-    trialEndDate: properties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE),
+    trialEndDate: scriptProperties.getProperty(
+      SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE,
+    ),
   };
 }
 

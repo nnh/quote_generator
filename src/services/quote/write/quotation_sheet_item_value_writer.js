@@ -126,17 +126,20 @@ function setSetupClinicalTrialsOffice_(context) {
  */
 function setSetupTerm_(context, propertyName) {
   const { trialTargetTerms } = context;
-  const properties = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
 
   const setupTerm =
-    parseInt(properties.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM), 10) || 0;
+    parseInt(
+      scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
+      10,
+    ) || 0;
 
   const { consumed, remaining } = calculateSetupTermResult_(
     setupTerm,
     trialTargetTerms,
   );
 
-  properties.setProperty(propertyName, remaining);
+  setScriptProperty_(propertyName, remaining, scriptProperties);
 
   return consumed;
 }

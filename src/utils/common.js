@@ -1,49 +1,4 @@
 /**
- * 列名から列番号を返す
- * @param {string} column_name 列名（"A", "B", "AA" など）
- * @return {number} Aなら1、AAなら27 のような列番号
- */
-function getColumnNumber_(column_name) {
-  if (typeof column_name !== "string" || column_name.trim() === "") {
-    throw new Error("getColumnNumber_: invalid column name: " + column_name);
-  }
-
-  const colStr = column_name.trim().toUpperCase();
-
-  // 列名として正しいかチェック（"A", "Z", "AA" など英大文字のみで構成されているか）
-  if (!/^[A-Z]+$/.test(colStr)) {
-    throw new Error(
-      "getColumnNumber_: invalid column name format: " + column_name,
-    );
-  }
-  const ss = getSpreadsheet_();
-  const sheet = ss.getActiveSheet();
-  const range = sheet.getRange(colStr + "1");
-  return range.getColumn();
-}
-
-/**
- * 列番号から列名を返す
- * @param {number|string} column_number 列番号（数値または数値文字列）
- * @return {string} 1ならA、のような列名
- */
-function getColumnString_(column_number) {
-  const colNum = Number(column_number);
-
-  if (!Number.isInteger(colNum) || colNum <= 0) {
-    throw new Error(
-      "getColumnString_: invalid column number: " + column_number,
-    );
-  }
-
-  const ss = getSpreadsheet_();
-  const sheet = ss.getActiveSheet();
-  const range = sheet.getRange(1, colNum);
-  const columnLetter = range.getA1Notation().replace(/\d+/g, "");
-  return columnLetter;
-}
-
-/**
  * 項目と行番号を連想配列に格納する（例：{契約・支払手続、実施計画提出支援=24.0, バリデーション報告書=39.0, ...}）
  * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet シートオブジェクト
  * @param {number|string} target_col 項目名の列番号（数値または数値文字列）
@@ -111,25 +66,4 @@ function get_quotation_request_value_(header) {
   }
 
   return _quotationRequestMap.get(header) ?? null;
-}
-/**
- * スクリプトプロパティを設定する共通関数
- *
- * - scriptProperties が渡された場合はそれを使用
- * - 未指定の場合は ScriptProperties を取得して使用
- *
- * @param {string} key
- *   設定するプロパティキー
- *
- * @param {string|number|boolean} value
- *   設定する値
- *
- * @param {PropertiesService.Properties} [scriptProperties]
- *   使用するプロパティオブジェクト（テスト用に外部注入可能）
- *
- * @return {void}
- */
-function setScriptProperty_(key, value, scriptProperties) {
-  const sp = scriptProperties || PropertiesService.getScriptProperties();
-  sp.setProperty(key, value);
 }

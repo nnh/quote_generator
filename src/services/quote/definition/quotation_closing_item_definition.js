@@ -13,7 +13,7 @@ function buildClosingSetItems_(clinicalTrialsOfficeFlg) {
  * @return {Object}
  */
 function getClosingTrialTypeConfig_() {
-  const properties = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
 
   const config = {
     csrLabel: ITEMS_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT,
@@ -24,7 +24,7 @@ function getClosingTrialTypeConfig_() {
   };
 
   if (
-    properties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
+    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
     TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
   ) {
     config.csrLabel = ITEMS_SHEET.ITEMNAMES.CSR_SUPPORT;

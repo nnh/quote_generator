@@ -71,7 +71,11 @@ function test_isClinicalTrialsOfficeRequired_withProperty_(
     if (trialTypePropertyValue === null) {
       scriptProperties.deleteProperty(PROPERTY_KEY);
     } else {
-      scriptProperties.setProperty(PROPERTY_KEY, trialTypePropertyValue);
+      setScriptProperty_(
+        PROPERTY_KEY,
+        trialTypePropertyValue,
+        scriptProperties,
+      );
     }
     [
       "公的資金（税金由来）",
@@ -125,7 +129,7 @@ function test_isClinicalTrialsOfficeRequired_withProperty_(
     if (originalValue === null) {
       scriptProperties.deleteProperty(PROPERTY_KEY);
     } else {
-      scriptProperties.setProperty(PROPERTY_KEY, originalValue);
+      setScriptProperty_(PROPERTY_KEY, originalValue, scriptProperties);
     }
   }
 }

@@ -89,12 +89,12 @@ function processResearchSupportFee_(itemSheet) {
   const totalPrice = get_quotation_request_value_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_SUPPORT_FEE,
   );
-  const scriptProps = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
   const numberOfCases = Number(
-    scriptProps.getProperty(SCRIPT_PROPERTY_KEYS.NUMBER_OF_CASES),
+    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.NUMBER_OF_CASES),
   );
   const facilities = Number(
-    scriptProps.getProperty(SCRIPT_PROPERTY_KEYS.FACILITIES_VALUE),
+    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.FACILITIES_VALUE),
   );
   const basePrice = calculateBasePrice_(totalPrice, enabledItemCount);
 

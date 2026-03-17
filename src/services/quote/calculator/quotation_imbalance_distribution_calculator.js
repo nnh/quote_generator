@@ -29,10 +29,10 @@ function setTargetInblanceValues_() {
 }
 function setImbalanceValues_() {
   // 年毎に設定する値が不均等である項目への対応
-  const scriptProps = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
   const targetImbalance = setTargetInblanceValues_();
   const target = buildImbalanceTargets_(targetImbalance);
-  writeImbalanceValues_(target, targetImbalance, scriptProps);
+  writeImbalanceValues_(target, targetImbalance, scriptProperties);
 }
 function buildImbalanceTargets_(targetImbalance) {
   const DividedItemsCount = new GetArrayDividedItemsCountAdd();
@@ -70,7 +70,7 @@ function buildImbalanceTargets_(targetImbalance) {
     );
   });
 }
-function writeImbalanceValues_(target, targetImbalance, scriptProps) {
+function writeImbalanceValues_(target, targetImbalance, scriptProperties) {
   const SHEET_IDX = 0;
   const VALUE_IDX = 1;
 

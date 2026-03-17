@@ -444,13 +444,16 @@ function testResearchSupportFee_(
   SpreadsheetApp.flush();
 
   // プロパティ設定
-  PropertiesService.getScriptProperties().setProperty(
+  const scriptProperties = PropertiesService.getScriptProperties();
+  setScriptProperty_(
     "number_of_cases",
     String(targetValueMap.get("targetCases")),
+    scriptProperties,
   );
-  PropertiesService.getScriptProperties().setProperty(
+  setScriptProperty_(
     "facilities_value",
     String(targetValueMap.get("facilities")),
+    scriptProperties,
   );
 
   // 実行

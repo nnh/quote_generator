@@ -29,7 +29,7 @@ function buildSetupSetItems_(clinicalTrialsOfficeSetupValue) {
  * 試験種別ごとの設定値
  */
 function getSetupTrialTypeConfig_() {
-  const scriptProps = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
 
   const config = {
     sopValue: 0,
@@ -47,7 +47,7 @@ function getSetupTrialTypeConfig_() {
     specifiedClinicalSupportValue: 0,
   };
 
-  const trialType = scriptProps.getProperty(
+  const trialType = scriptProperties.getProperty(
     SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
   );
 

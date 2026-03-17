@@ -311,13 +311,13 @@ function runSetRegistrationTermItemsTest_({
   SpreadsheetApp.flush(); // シートへの反映を待つ
   _quotationRequestMap = null; // キャッシュされている quotationRequestMap をリセット
 
-  const sp = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
 
   // --- ScriptProperties 退避 ---
   const backup = {};
   Object.keys(scriptProperties).forEach((key) => {
-    backup[key] = sp.getProperty(key);
-    sp.setProperty(key, scriptProperties[key]);
+    backup[key] = scriptProperties.getProperty(key);
+    setScriptProperty_(key, scriptProperties[key], scriptProperties);
   });
 
   try {
@@ -330,9 +330,9 @@ function runSetRegistrationTermItemsTest_({
     // --- ScriptProperties 復元 ---
     Object.keys(scriptProperties).forEach((key) => {
       if (backup[key] == null) {
-        sp.deleteProperty(key);
+        scriptProperties.deleteProperty(key);
       } else {
-        sp.setProperty(key, backup[key]);
+        setScriptProperty_(key, backup[key], sp);
       }
     });
   }
@@ -453,7 +453,7 @@ function test_calcClinicalTrialsOfficeValues_withProperty_(
 
   try {
     // --- テスト用プロパティをセット ---
-    scriptProperties.setProperty(PROPERTY_KEY, propertySetValue);
+    setScriptProperty_(PROPERTY_KEY, propertySetValue, scriptProperties);
 
     const clinicalTrialsOfficeFlg = params.clinicalTrialsOfficeFlg;
     const registrationMonth = params.registrationMonth;
@@ -471,7 +471,7 @@ function test_calcClinicalTrialsOfficeValues_withProperty_(
     if (originalValue === null) {
       scriptProperties.deleteProperty(PROPERTY_KEY);
     } else {
-      scriptProperties.setProperty(PROPERTY_KEY, originalValue);
+      setScriptProperty_(PROPERTY_KEY, originalValue, scriptProperties);
     }
   }
 }

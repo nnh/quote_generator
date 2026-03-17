@@ -408,7 +408,7 @@ function runImbalanceTest_(
   expectedValues,
   testName,
 ) {
-  const scriptProps = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
   const patientRegistrationFee = test_runImbalanceTest_get_constant_();
   const backup = new TrialDatesBackupForTest_();
 
@@ -424,7 +424,7 @@ function runImbalanceTest_(
 
     // 2. 実行
     const targetImbalance = setTargetInblanceValues_(
-      scriptProps,
+      scriptProperties,
       patientRegistrationFee,
     );
     const actualValues = buildImbalanceTargets_(
