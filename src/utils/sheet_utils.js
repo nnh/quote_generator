@@ -37,7 +37,7 @@ function setColumnValues_(sheetName, columnName, values) {
  */
 function getTargetItemCount_(sheetname, itemname) {
   const sheet = getSheetByNameCached_(sheetname);
-  const row = get_row_num_matched_value_(
+  const row = findRowByValue_(
     sheet,
     TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
     itemname,
@@ -63,19 +63,34 @@ function findRowIndexByValue_(values, columnIndex, value) {
 }
 
 /**
- * 指定列から値を検索し、最初に一致した行番号を返す
- * @param {Sheet} sheet
- * @param {number} column
- * @param {*} value
- * @return {number|null}
+ * 指定列から値に一致する最初の行番号を返す
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet 対象シート
+ * @param {number} columnNumber 検索対象の列番号（1始まり）
+ * @param {*} targetValue 検索する値
+ * @return {number} 見つかった行番号（1始まり）。見つからなければ 0
  */
-function findRowByValue_(sheet, column, value) {
+function findRowByValue_(sheet, columnNumber, targetValue) {
+  if (!sheet) {
+    throw new Error("Invalid sheet");
+  }
+
+  if (!Number.isInteger(columnNumber) || columnNumber <= 0) {
+    throw new Error("Invalid columnNumber: " + columnNumber);
+  }
+
   const lastRow = sheet.getLastRow();
+  if (lastRow === 0) return 0;
 
-  const values = sheet.getRange(1, column, lastRow, 1).getValues();
+  const values = sheet.getRange(1, columnNumber, lastRow, 1).getValues();
 
-  const rowIndex = findRowIndexByValue_(values, 0, value);
-  return rowIndex !== null ? rowIndex + 1 : null;
+  for (let i = 0; i < values.length; i++) {
+    if (values[i][0] === targetValue) {
+      return i + 1;
+    }
+  }
+
+  return 0;
 }
 
 /**

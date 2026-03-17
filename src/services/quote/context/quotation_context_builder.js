@@ -28,12 +28,11 @@ function isClinicalTrialsOfficeRequired_() {
     ) === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
 
   const isCommercialFunding =
-    get_quotation_request_value_(
-      QUOTATION_REQUEST_SHEET.ITEMNAMES.COEFFICIENT,
-    ) === QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
+    getQuotationRequestValue_(QUOTATION_REQUEST_SHEET.ITEMNAMES.COEFFICIENT) ===
+    QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
 
   const hasAdjustmentOffice =
-    get_quotation_request_value_(
+    getQuotationRequestValue_(
       QUOTATION_REQUEST_SHEET.ITEMNAMES.ADJUSTMENT_OFFICE_EXISTENCE,
     ) === COMMON_EXISTENCE_LABELS.YES;
 
@@ -201,4 +200,23 @@ function buildSheetContext_(sheetName) {
 
     clinicalTrialsOfficeFlg: isClinicalTrialsOfficeRequired_(),
   };
+}
+
+/**
+ * quotation_requestの1行目（項目名）からフォーム入力情報を取得する
+ * @param dummy
+ * @param {string} header 検索対象の項目名
+ * @return {string|null} 項目名が完全一致すればその項目の値を返す。一致しなければnullを返す。
+ * @example
+ *   const trialStartDate = getQuotationRequestValue_(const_trial_start);
+ */
+function getQuotationRequestValue_(header) {
+  if (_cachedSheets === null) {
+    get_sheets();
+  }
+  if (_quotationRequestMap === null) {
+    buildQuotationRequestMap_();
+  }
+
+  return _quotationRequestMap.get(header) ?? null;
 }

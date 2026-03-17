@@ -48,14 +48,14 @@ function createClosingItemsList_(clinicalTrialsOfficeFlg) {
   const config = getClosingTrialTypeConfig_();
 
   /* ===== 入力値取得 ===== */
-  let finalAnalysisTableCount = get_quotation_request_value_(
+  let finalAnalysisTableCount = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES
       .FINAL_ANALYSIS_REQUIRED_TABLE_FIGURE_COUNT,
   );
 
   const hasClinicalConference =
     returnIfEquals_(
-      get_quotation_request_value_(
+      getQuotationRequestValue_(
         QUOTATION_REQUEST_SHEET.ITEMNAMES.CASE_REVIEW_MEETING,
       ),
       COMMON_EXISTENCE_LABELS.YES,
@@ -63,18 +63,18 @@ function createClosingItemsList_(clinicalTrialsOfficeFlg) {
     ) > 0;
 
   const reportFeeEnabled = returnIfEquals_(
-    get_quotation_request_value_(QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE),
+    getQuotationRequestValue_(QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE),
     COMMON_EXISTENCE_LABELS.YES,
     FUNCTION_FORMULAS.NUMBER_OF_CASES,
   );
 
-  const auditFacilityCount = get_quotation_request_value_(
+  const auditFacilityCount = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES.AUDIT_TARGET_FACILITIES,
   );
 
   /* ===== CSR / 症例検討会関連 ===== */
   let csrCount = returnIfEquals_(
-    get_quotation_request_value_(
+    getQuotationRequestValue_(
       QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT,
     ),
     COMMON_EXISTENCE_LABELS.YES,

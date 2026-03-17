@@ -19,7 +19,7 @@ function isSpecialTrial_(trialType) {
  */
 function hasReportSupport_() {
   return (
-    get_quotation_request_value_(
+    getQuotationRequestValue_(
       QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT,
     ) === COMMON_EXISTENCE_LABELS.YES
   );

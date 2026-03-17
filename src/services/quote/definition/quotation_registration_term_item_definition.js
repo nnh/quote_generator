@@ -54,7 +54,7 @@ function setRegistrationTermItems_(context) {
 
   const conditionalItems = REGISTRATION_CONDITIONAL_ITEMS.flatMap(
     ({ requestItemName, expectedValue, itemName }) => {
-      const value = get_quotation_request_value_(requestItemName);
+      const value = getQuotationRequestValue_(requestItemName);
       return value === expectedValue ? [[itemName, registrationMonth]] : [];
     },
   );

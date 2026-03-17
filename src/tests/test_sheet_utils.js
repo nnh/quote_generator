@@ -1,3 +1,32 @@
+function test_findRowByValue() {
+  // --- 準備 ---
+  const sheets = get_sheets();
+  const sheet = sheets.items; // Itemsシート想定
+
+  const columnNumber = 2; // B列
+  const targetValue = "保険料";
+
+  // --- 実行 ---
+  const actualValue = findRowByValue_(sheet, columnNumber, targetValue);
+
+  // --- 検証 ---
+  const expectedValue = 78;
+
+  assertEquals_(
+    expectedValue,
+    actualValue,
+    "should return row 78 when value '保険料' exists in column B",
+  );
+
+  const notFoundValue = findRowByValue_(sheet, columnNumber, "存在しない値");
+
+  assertEquals_(
+    0,
+    notFoundValue,
+    "should return 0 when value does not exist in the column",
+  );
+}
+
 function test_getColumnNumber() {
   // --- 基本 ---
   const actual1 = getColumnNumber_("A");
@@ -174,24 +203,6 @@ function test_findColumnIndexByValue() {
   });
 }
 
-function test_findRowByValue() {
-  const _ = get_sheets();
-  const actual1 = findRowByValue_(
-    _cachedSheets.total,
-    TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
-    "PMDA対応、照会事項対応",
-  );
-  const expected1 = 25;
-  assertEquals_(actual1, expected1, "find PMDA対応、照会事項対応 row");
-
-  const actual2 = findRowByValue_(
-    _cachedSheets.total,
-    TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
-    "PMDA対応",
-  );
-  const expected2 = null;
-  assertEquals_(actual2, expected2, "value not found");
-}
 function test_findRowIndexByValue() {
   const values = [["A"], ["B"], ["SUM"], ["C"]];
 

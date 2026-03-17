@@ -38,7 +38,7 @@ function buildImbalanceTargets_(targetImbalance) {
   const DividedItemsCount = new GetArrayDividedItemsCountAdd();
 
   return targetImbalance.map((config) => {
-    let tempCount = get_quotation_request_value_(config.requestItemName);
+    let tempCount = getQuotationRequestValue_(config.requestItemName);
 
     // 症例登録毎の支払は「あり、なし」で入力される
     if (
@@ -49,7 +49,7 @@ function buildImbalanceTargets_(targetImbalance) {
     }
 
     const tempMultiplier = config.multiplierItemName
-      ? get_quotation_request_value_(config.multiplierItemName)
+      ? getQuotationRequestValue_(config.multiplierItemName)
       : 1;
 
     const countNum = Number(tempCount);

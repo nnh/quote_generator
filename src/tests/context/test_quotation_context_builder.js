@@ -1,3 +1,42 @@
+function test_getQuotationRequestValue() {
+  const quotationRequestSheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+      QUOTATION_REQUEST_SHEET.NAME,
+    );
+  if (!quotationRequestSheet) {
+    throw new Error(
+      `Sheet named ${QUOTATION_REQUEST_SHEET.NAME} is not found in the spreadsheet`,
+    );
+  }
+  // --- 準備 ---
+  quotationRequestSheet
+    .getRange(2, 1, 1, quotationRequestSheet.getLastColumn())
+    .clearContent();
+  quotationRequestSheet.getRange("A2").setValue("Test");
+  const header1 = "タイムスタンプ";
+
+  // --- 実行 ---
+  const actualValue = getQuotationRequestValue_(header1);
+
+  // --- 検証 ---
+  const expectedValue = "Test";
+  assertEquals_(
+    expectedValue,
+    actualValue,
+    "should return value for matching header",
+  );
+
+  const header2 = "存在しないヘッダー";
+  const actualValue2 = getQuotationRequestValue_(header2);
+  const expectedValue2 = null;
+  assertEquals_(
+    expectedValue2,
+    actualValue2,
+    "should return null for non-existing header",
+  );
+  quotationRequestSheet.getRange("A2").setValue("");
+}
+
 function test_initTargetColumn() {
   const acutualValue = initTargetColumn_();
   const expectedValue = "F";

@@ -83,10 +83,10 @@ class QuoteRoutineTestRunner {
   setQuote() {
     this.routineTestInit();
     runQuotationProcess();
-    const trialName = get_quotation_request_value_(ITEM_LABELS.ACRONYM);
+    const trialName = getQuotationRequestValue_(ITEM_LABELS.ACRONYM);
     console.log(`Trial Name: ${trialName}`);
     const interimCount =
-      get_quotation_request_value_(
+      getQuotationRequestValue_(
         QUOTATION_REQUEST_SHEET.ITEMNAMES.INTERIM_ANALYSIS_REQUEST,
       ) === COMMON_EXISTENCE_LABELS.YES
         ? 1
@@ -206,7 +206,7 @@ class QuoteRoutineTestRunner {
   setTestInterimValues(targetSheet, interimValue) {
     const tableCount =
       interimValue !== ""
-        ? get_quotation_request_value_(
+        ? getQuotationRequestValue_(
             QUOTATION_REQUEST_SHEET.ITEMNAMES
               .INTERIM_ANALYSIS_REQUIRED_TABLE_FIGURE_COUNT,
           )

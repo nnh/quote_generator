@@ -109,7 +109,7 @@ function createSetupItemsList_(clinicalTrialsOfficeSetupValue) {
 
   const dmIrbFormula = buildDmIrbFormula_();
 
-  const getRequestValue = (itemName) => get_quotation_request_value_(itemName);
+  const getRequestValue = (itemName) => getQuotationRequestValue_(itemName);
 
   const yesValue = (itemName, value = 1) =>
     returnIfEquals_(

@@ -31,10 +31,10 @@ function applyItemPrices_(itemSheet) {
  *   単価を設定する items シート
  */
 function processInsuranceFee_(itemSheet) {
-  const totalPrice = get_quotation_request_value_(
+  const totalPrice = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES.INSURANCE_FEE,
   );
-  const itemRow = get_row_num_matched_value_(
+  const itemRow = findRowByValue_(
     itemSheet,
     ITEM_NAME_COLUMN,
     ITEMS_SHEET.ITEMNAMES.INSURANCE_FEE,
@@ -64,11 +64,7 @@ function processResearchSupportFee_(itemSheet) {
   let enabledItemCount = 0;
 
   RESEARCH_SUPPORT_ITEM_MAPPINGS.forEach(({ requestKey, itemName }) => {
-    const row = get_row_num_matched_value_(
-      itemSheet,
-      ITEM_NAME_COLUMN,
-      itemName,
-    );
+    const row = findRowByValue_(itemSheet, ITEM_NAME_COLUMN, itemName);
 
     itemRows[itemName] = row;
 
@@ -78,7 +74,7 @@ function processResearchSupportFee_(itemSheet) {
         .getValue();
     }
 
-    const value = get_quotation_request_value_(requestKey);
+    const value = getQuotationRequestValue_(requestKey);
     quotationValues[requestKey] = value;
 
     if (value === COMMON_EXISTENCE_LABELS.YES) {
@@ -86,7 +82,7 @@ function processResearchSupportFee_(itemSheet) {
     }
   });
 
-  const totalPrice = get_quotation_request_value_(
+  const totalPrice = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_SUPPORT_FEE,
   );
   const scriptProperties = PropertiesService.getScriptProperties();

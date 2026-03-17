@@ -257,7 +257,7 @@ function applyInterimAnalysis_(context) {
     scriptProperties,
   );
 
-  const interimTableCount = get_quotation_request_value_(
+  const interimTableCount = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES
       .INTERIM_ANALYSIS_REQUIRED_TABLE_FIGURE_COUNT,
   );

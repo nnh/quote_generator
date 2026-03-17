@@ -36,7 +36,7 @@ function buildCdiscCrfFormula_(crfCount) {
  */
 function handleCrfWithCdisc_(crfCount) {
   const isCdiscEnabled =
-    get_quotation_request_value_(
+    getQuotationRequestValue_(
       QUOTATION_REQUEST_SHEET.ITEMNAMES.CDISC_SUPPORT,
     ) === COMMON_EXISTENCE_LABELS.YES;
 
@@ -78,10 +78,10 @@ function renameSpreadsheetWithAcronym_(acronym) {
  * @return {{trialStartDate:any, trialEndDate:any}|null}
  */
 function getTrialDates_() {
-  const trialStartDate = get_quotation_request_value_(
+  const trialStartDate = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES.TRIAL_REGISTRATION_START_DATE,
   );
-  const trialEndDate = get_quotation_request_value_(
+  const trialEndDate = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES.TRIAL_END_DATE,
   );
 
@@ -287,7 +287,7 @@ function applyQuotationRequestToSheets_() {
       scriptProperties,
     };
 
-    const quotationRequestValue = get_quotation_request_value_(key);
+    const quotationRequestValue = getQuotationRequestValue_(key);
     if (quotationRequestValue == null) {
       throw new Error(`Missing quotation request value for key: ${key}`);
     }
@@ -296,7 +296,7 @@ function applyQuotationRequestToSheets_() {
     trialSheet.getRange(row, 2).setValue(result);
   }
   // 発行年月日に今日の日付を入れる
-  const date_of_issue = get_row_num_matched_value_(trialSheet, 1, "発行年月日");
+  const date_of_issue = findRowByValue_(trialSheet, 1, "発行年月日");
   if (date_of_issue > 0) {
     trialSheet.getRange(date_of_issue, 2).setValue(formatTodayYmd_());
   }
