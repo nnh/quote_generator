@@ -93,7 +93,7 @@ function createClosingItemsList_(clinicalTrialsOfficeFlg) {
     // 図表数は最低50表
     if (finalAnalysisTableCount > 0 && finalAnalysisTableCount < 50) {
       finalAnalysisTableCount = 50;
-      set_trial_comment_("統計解析に必要な帳票数を50表と想定しております。");
+      setTrialComment_("統計解析に必要な帳票数を50表と想定しております。");
     }
   }
 

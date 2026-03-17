@@ -45,12 +45,12 @@ function handleCrfWithCdisc_(crfCount) {
   }
 
   // 既存コメント削除
-  delete_trial_comment_(
+  deleteTrialComment_(
     '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
   );
 
   // CDISC対応コメント追加
-  set_trial_comment_(
+  setTrialComment_(
     '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
   );
 
