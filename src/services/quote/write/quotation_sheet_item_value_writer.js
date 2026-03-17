@@ -1,34 +1,105 @@
-function getSetValues_(context, target_items, input_values) {
-  return buildSheetValuesWithTargetItems_(
-    context.sheetname,
-    target_items,
-    input_values,
-  );
-}
-function getTargetRange_(context) {
-  return getTargetCountRange_(context.sheetname, context.target_col);
-}
-function getSheetValues_(context) {
-  return getTargetCountValues_(context.sheetname, context.target_col);
-}
-function getItemCountFromContext_(context, itemname) {
-  return getTargetItemCount_(context.sheetname, itemname);
-}
-function applySetupItems_(context, input_values) {
-  if (context.sheetname !== QUOTATION_SHEET_NAMES.SETUP) {
-    return input_values;
+/**
+ * SETUPシートに対して、SETUP関連の項目を適用する。
+ *
+ * @param {Object} context
+ * @param {string} context.sheetName 対象シート名
+ * @param {boolean} context.clinicalTrialsOfficeFlg 事務局フラグ
+ * @param {number[][]} inputValues 対象列の現在の値
+ * @return {number[][]} 更新後の値
+ */
+function applySetupItems_(context, inputValues) {
+  const { sheetName, clinicalTrialsOfficeFlg } = context;
+
+  if (sheetName !== QUOTATION_SHEET_NAMES.SETUP) {
+    return inputValues;
   }
 
-  const clinical_trials_office = context.clinical_trials_office_flg
+  const clinicalTrialsOffice = clinicalTrialsOfficeFlg
     ? setSetupClinicalTrialsOffice_(context)
     : "";
 
-  const set_items_list = buildSetupSetItems_(clinical_trials_office);
+  const items = buildSetupSetItems_(clinicalTrialsOffice);
 
-  return getSetValues_(context, set_items_list, input_values);
+  return buildSheetValuesWithTargetItems_(sheetName, items, inputValues);
 }
+
+/**
+ * CLOSINGシートに対して、CLOSING関連の項目を適用する。
+ *
+ * @param {Object} context
+ * @param {string} context.sheetName 対象シート名
+ * @param {boolean} context.clinicalTrialsOfficeFlg 事務局フラグ
+ * @param {number[][]} inputValues 対象列の現在の値
+ * @return {number[][]} 更新後の値
+ */
+function applyClosingItems_(context, inputValues) {
+  const { sheetName, clinicalTrialsOfficeFlg } = context;
+
+  if (sheetName !== QUOTATION_SHEET_NAMES.CLOSING) {
+    return inputValues;
+  }
+
+  const clinicalTrialsOffice = clinicalTrialsOfficeFlg ? 1 : "";
+
+  const items = buildClosingSetItems_(clinicalTrialsOffice);
+
+  return buildSheetValuesWithTargetItems_(sheetName, items, inputValues);
+}
+
+/**
+ * 登録期間内のシートにRegistration関連項目を適用する。
+ *
+ * @param {Object} context
+ * @param {string} context.sheetName 対象シート名
+ * @param {boolean} context.clinicalTrialsOfficeFlg 事務局フラグ
+ * @param {number[][]} inputValues 対象列の現在の値
+ * @return {number[][]} 更新後の値
+ */
+function applyRegistrationItems_(context, inputValues) {
+  const { sheetName, clinicalTrialsOfficeFlg } = context;
+
+  if (
+    sheetName === QUOTATION_SHEET_NAMES.SETUP ||
+    sheetName === QUOTATION_SHEET_NAMES.CLOSING
+  ) {
+    return inputValues;
+  }
+
+  const items = buildRegistrationItems_({
+    sheetName,
+    clinicalTrialsOfficeFlg,
+  });
+
+  return buildSheetValuesWithTargetItems_(sheetName, items, inputValues);
+}
+
+/**
+ * すべてのシート共通の項目を適用する。
+ *
+ * @param {Object} context
+ * @param {string} context.sheetName 対象シート名
+ * @param {number} context.trialTargetTerms 対象期間（月数）
+ * @param {number[][]} inputValues 対象列の現在の値
+ * @return {number[][]} 更新後の値
+ */
+function applyCommonItems_(context, inputValues) {
+  const { sheetName, trialTargetTerms } = context;
+
+  const items = buildCommonSetItems_(trialTargetTerms);
+
+  return buildSheetValuesWithTargetItems_(sheetName, items, inputValues);
+}
+
+/**
+ * SETUP期間の臨床研究支援室対応の期間を取得する。
+ *
+ * @param {Object} context
+ * @param {boolean} context.clinicalTrialsOfficeFlg 事務局フラグ
+ * @return {number|string} SETUP期間の消費量
+ */
 function setSetupClinicalTrialsOffice_(context) {
-  if (!context.clinical_trials_office_flg) {
+  const { clinicalTrialsOfficeFlg } = context;
+  if (!clinicalTrialsOfficeFlg) {
     return "";
   }
 
@@ -37,157 +108,172 @@ function setSetupClinicalTrialsOffice_(context) {
     SCRIPT_PROPERTY_KEYS.REG1_SETUP_CLINICAL_TRIALS_OFFICE,
   );
 }
+
 /**
  * SETUP期間の消費量を計算し、残期間を次年度へ繰り越すための処理
  *
  * - Script Properties に保存されている setup_term（SETUPの残期間）を取得する
- * - trial_target_terms（当年度で消費可能な期間）分だけ SETUP期間を消費する
+ * - trialTargetTerms（当年度で消費可能な期間）分だけ SETUP期間を消費する
  * - 消費後に残った SETUP期間は、指定したプロパティ名で保存し、
  *   次年度以降に繰り越される
  * - 実際の消費量と残量の計算ロジックは calculateSetupTermResult_ に委譲する
  *
- * @param {string} property_name
+ * @param {string} propertyName
  *   消費後の SETUP期間（残期間）を保存する Script Properties のキー
  *
  * @return {number}
  *   当年度で消費された SETUP期間
  */
-function setSetupTerm_(context, property_name) {
-  const properties = PropertiesService.getScriptProperties();
+function setSetupTerm_(context, propertyName) {
+  const { trialTargetTerms } = context;
+  const scriptProperties = PropertiesService.getScriptProperties();
 
   const setupTerm =
-    parseInt(properties.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM), 10) || 0;
+    parseInt(
+      getScriptProperty_(SCRIPT_PROPERTY_KEYS.SETUP_TERM, scriptProperties),
+      10,
+    ) || 0;
 
   const { consumed, remaining } = calculateSetupTermResult_(
     setupTerm,
-    context.trial_target_terms,
+    trialTargetTerms,
   );
 
-  properties.setProperty(property_name, remaining);
+  setScriptProperty_(propertyName, remaining, scriptProperties);
 
   return consumed;
 }
-function applyClosingItems_(context, input_values) {
-  if (context.sheetname !== QUOTATION_SHEET_NAMES.CLOSING) {
-    return input_values;
-  }
 
-  const clinical_trials_office = context.clinical_trials_office_flg ? 1 : "";
+/**
+ * SETUP以外の期間に対してデータベース管理費の項目を適用する。
+ *
+ * @param {Object} context
+ * @param {string} context.sheetName 対象シート名
+ * @param {number} context.trialTargetTerms 対象期間（月数）
+ * @param {number[][]} inputValues 対象列の現在の値
+ * @return {number[][]} 更新後の値
+ */
+function applyNonSetupItems_(context, inputValues) {
+  const { sheetName, trialTargetTerms } = context;
 
-  const set_items_list = buildClosingSetItems_(clinical_trials_office);
-
-  return getSetValues_(context, set_items_list, input_values);
-}
-function applyRegistrationItems_(context, input_values) {
-  if (
-    context.sheetname === QUOTATION_SHEET_NAMES.SETUP ||
-    context.sheetname === QUOTATION_SHEET_NAMES.CLOSING
-  ) {
-    return input_values;
-  }
-
-  const setItemsList = buildRegistrationSetItems_(context.sheetname);
-
-  return getSetValues_(context, setItemsList, input_values);
-}
-function applyCommonItems_(context, input_values) {
-  const setItemsList = buildCommonSetItems_(context.trial_target_terms);
-
-  return getSetValues_(context, setItemsList, input_values);
-}
-function applyNonSetupItems_(context, input_values) {
   const scriptProperties = PropertiesService.getScriptProperties();
 
   // Setupシートだけ特別処理
-  if (context.sheetname === QUOTATION_SHEET_NAMES.SETUP) {
+  if (sheetName === QUOTATION_SHEET_NAMES.SETUP) {
     setSetupTerm_(context, SCRIPT_PROPERTY_KEYS.REG1_SETUP_DATABASE_MANAGEMENT);
   }
 
   const setupTerm = Number(
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.SETUP_TERM, scriptProperties),
   );
 
-  if (
-    shouldSkipDatabaseManagement_(
-      context.sheetname,
-      context.trial_target_terms,
-      setupTerm,
-    )
-  ) {
-    return input_values;
+  if (shouldSkipDatabaseManagement_(sheetName, trialTargetTerms, setupTerm)) {
+    return inputValues;
   }
 
   const databaseManagementTerm = calculateDatabaseManagementTerm_(
-    context.sheetname,
-    context.trial_target_terms,
+    sheetName,
+    trialTargetTerms,
     scriptProperties,
   );
 
-  const setItemsList = [
+  const items = [
     [ITEMS_SHEET.ITEMNAMES.DATABASE_MANAGEMENT_FEE, databaseManagementTerm],
   ];
 
-  return getSetValues_(context, setItemsList, input_values);
+  return buildSheetValuesWithTargetItems_(sheetName, items, inputValues);
 }
-function applyRegistrationTermItems_(context, input_values) {
+
+/**
+ * 登録期間に応じた項目を計算し適用する。
+ *
+ * @param {Object} context
+ * @param {number[][]} inputValues 対象列の現在の値
+ * @return {number[][]} 更新後の値
+ */
+function applyRegistrationTermItems_(context, inputValues) {
+  const {
+    sheetName,
+    trialTargetTerms,
+    trialStartDate,
+    trialEndDate,
+    trialTargetStartDate,
+    trialTargetEndDate,
+    clinicalTrialsOfficeFlg,
+  } = context;
+
   const scriptProperties = PropertiesService.getScriptProperties();
 
   const setupTermLimit = Number(
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.SETUP_TERM, scriptProperties),
   );
+
   const closingTermLimit = Number(
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.CLOSING_TERM),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.CLOSING_TERM, scriptProperties),
   );
 
   if (
     shouldSkipRegistrationTermItems_(
-      context.sheetname,
-      context.trial_target_terms,
+      sheetName,
+      trialTargetTerms,
       setupTermLimit,
       closingTermLimit,
     )
   ) {
-    return input_values;
+    return inputValues;
   }
 
-  const date_list = {
-    trial_target_terms: context.trial_target_terms,
-    trial_start_date: context.trial_start_date,
-    trial_end_date: context.trial_end_date,
-    trial_target_start_date: context.trial_target_start_date,
-    trial_target_end_date: context.trial_target_end_date,
+  const registrationDateList = {
+    trialTargetTerms,
+    trialStartDate,
+    trialEndDate,
+    trialTargetStartDate,
+    trialTargetEndDate,
   };
 
-  const target_items = buildRegistrationTermItems_({
-    date_list,
-    sheetname: context.sheetname,
-    clinical_trials_office_flg: context.clinical_trials_office_flg,
+  const items = buildRegistrationTermItems_({
+    registrationDateList,
+    sheetName,
+    clinicalTrialsOfficeFlg,
   });
 
-  return getSetValues_(context, target_items, input_values);
+  return buildSheetValuesWithTargetItems_(sheetName, items, inputValues);
 }
+
+/**
+ * 中間解析に関する項目を計算し、指定列へ反映する。
+ *
+ * @param {Object} context
+ * @param {string} context.sheetName 対象シート名
+ * @param {string} context.columnName 書き込み対象列名
+ */
 function applyInterimAnalysis_(context) {
+  const { sheetName, columnName } = context;
+
   const scriptProperties = PropertiesService.getScriptProperties();
 
-  const trialType = scriptProperties.getProperty(
+  const trialType = getScriptProperty_(
     SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+    scriptProperties,
   );
 
-  const interimTableCount =
-    get_quotation_request_value_("中間解析に必要な図表数");
+  const interimTableCount = getQuotationRequestValue_(
+    QUOTATION_REQUEST_SHEET.ITEMNAMES
+      .INTERIM_ANALYSIS_REQUIRED_TABLE_FIGURE_COUNT,
+  );
 
-  const dataCleaningBefore = getItemCountFromContext_(
-    context,
+  const dataCleaningBefore = getTargetItemCount_(
+    sheetName,
     ITEMS_SHEET.ITEMNAMES.DATA_CLEANING,
   );
 
-  const setItems = buildInterimAnalysisItems_({
+  const items = buildInterimAnalysisItems_({
     trialType,
     interimTableCount,
     dataCleaningBefore,
   });
 
-  const values = getSetValues_(context, setItems, null);
+  const values = buildSheetValuesWithTargetItems_(sheetName, items, null);
 
-  setTargetCountValues_(context.sheetname, context.target_col, values);
+  setColumnValues_(sheetName, columnName, values);
 }

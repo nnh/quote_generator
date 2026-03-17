@@ -28,10 +28,7 @@ function testApplyTargetItemsToValues_(target_items, test_str, target_row) {
       total_and_phase_sheet_columns_itemname,
     );
 
-    const rangeValues = getTargetCountRange_(
-      sheetname,
-      totalColName,
-    ).getValues();
+    const rangeValues = getColumnRange_(sheetname, totalColName).getValues();
     const array_count = rangeValues.map((row) => row.map(() => ""));
 
     const actual = applyTargetItemsToValues_(

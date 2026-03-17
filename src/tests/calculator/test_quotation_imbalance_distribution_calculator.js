@@ -408,7 +408,7 @@ function runImbalanceTest_(
   expectedValues,
   testName,
 ) {
-  const scriptProps = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
   const patientRegistrationFee = test_runImbalanceTest_get_constant_();
   const backup = new TrialDatesBackupForTest_();
 
@@ -418,13 +418,13 @@ function runImbalanceTest_(
     // 1. セットアップ
     const trialSheet =
       SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Trial");
-    trialSheet.getRange("D32:E40").clearContent();
-    trialSheet.getRange("D32:E40").setValues(trialYears);
+    trialSheet.getRange(TRIAL_TERM_RANGE_ADDRESS).clearContent();
+    trialSheet.getRange(TRIAL_TERM_RANGE_ADDRESS).setValues(trialYears);
     SpreadsheetApp.flush();
 
     // 2. 実行
     const targetImbalance = setTargetInblanceValues_(
-      scriptProps,
+      scriptProperties,
       patientRegistrationFee,
     );
     const actualValues = buildImbalanceTargets_(

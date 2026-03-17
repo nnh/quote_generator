@@ -33,7 +33,7 @@ function buildInterimAnalysisItems_({
 //  const ss = getSpreadsheet_();
 //  const sheetName = ss.getActiveSheet().getName();
 //
-//  if (!get_target_term_sheets().some((s) => s.getName() === sheetName)) {
+//  if (!getTargetTermSheets_().some((s) => s.getName() === sheetName)) {
 //    return;
 //  }
 //

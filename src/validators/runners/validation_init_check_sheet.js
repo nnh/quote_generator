@@ -42,7 +42,7 @@ function validationInitContext_() {
  * - Checkシートの内容をクリア
  */
 function validationInitializeCheckSheet_() {
-  initial_process();
+  runInitialProcess_();
   hideFilterVisibility();
   _cachedSheets.check.clear();
 }

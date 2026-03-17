@@ -1,28 +1,25 @@
 /**
- * 対象シートの値に target_items を反映した配列を返す
- * @param {string} sheetname
- * @param {Array<Array>} target_items
- * @param {Array<Array>|null} input_values
+ * 対象シートの値に targetItems を反映した配列を返す
+ *
+ * @param {string} sheetName
+ * @param {Array<Array>} targetItems [itemName, value] の配列
+ * @param {Array<Array>|null} inputValues
  * @return {Array<Array>}
  */
-function buildSheetValuesWithTargetItems_(
-  sheetname,
-  target_items,
-  input_values,
-) {
-  const array_count = input_values
-    ? input_values
-    : getTargetCountValues_(sheetname, initTargetColumn_());
+function buildSheetValuesWithTargetItems_(sheetName, targetItems, inputValues) {
+  const countValues =
+    inputValues ?? getTargetCountValues_(sheetName, initTargetColumn_());
 
-  const target_sheet = getSheetByNameCached_(sheetname);
+  const sheet = getSheetByNameCached_(sheetName);
 
-  const array_item = get_fy_items_(
-    target_sheet,
+  const itemRowIndexMap = get_fy_items_(
+    sheet,
     TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
   );
 
-  return applyTargetItemsToValues_(array_count, array_item, target_items);
+  return applyTargetItemsToValues_(countValues, itemRowIndexMap, targetItems);
 }
+
 /**
  * Mapオブジェクト（Map的構造）を [key, value] の配列（List）に変換する
  *

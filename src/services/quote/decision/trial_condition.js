@@ -19,7 +19,7 @@ function isSpecialTrial_(trialType) {
  */
 function hasReportSupport_() {
   return (
-    get_quotation_request_value_(
+    getQuotationRequestValue_(
       QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT,
     ) === COMMON_EXISTENCE_LABELS.YES
   );
@@ -56,9 +56,17 @@ function decideSetupClosingTerm_(isSpecialTrial, hasReportSupport) {
  * @param {number} closingTerm Closing期間（月数）
  */
 function saveSetupClosingTerm_(setupTerm, closingTerm) {
-  const sp = PropertiesService.getScriptProperties();
-  sp.setProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM, String(setupTerm));
-  sp.setProperty(SCRIPT_PROPERTY_KEYS.CLOSING_TERM, String(closingTerm));
+  const scriptProperties = PropertiesService.getScriptProperties();
+  setScriptProperty_(
+    SCRIPT_PROPERTY_KEYS.SETUP_TERM,
+    String(setupTerm),
+    scriptProperties,
+  );
+  setScriptProperty_(
+    SCRIPT_PROPERTY_KEYS.CLOSING_TERM,
+    String(closingTerm),
+    scriptProperties,
+  );
 }
 
 /**

@@ -6,7 +6,11 @@
   "scripts": {
     "build": "rm -rf dist && mkdir dist && find src -type f \\( -name \"*.js\" -o -name \"*.gs\" \\) -exec cp {} dist/ \\; && cp appsscript.json dist/",
     "push": "npm run build && clasp push",
-    "watch": "clasp push --watch"
+    "watch": "clasp push --watch",
+    "use:dev": "cp .clasp.dev.json .clasp.json",
+    "use:prod": "cp .clasp.prod.json .clasp.json",
+    "push:dev": "npm run use:dev && npm run push",
+    "push:prod": "npm run use:prod && npm run push"
   },
   "repository": {
     "type": "git",

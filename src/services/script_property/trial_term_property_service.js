@@ -44,9 +44,17 @@ function setTrialTypeProperty_(trialType, scriptProperties) {
  * @return {void}
  */
 function saveSetupClosingTerm_(setupTerm, closingTerm) {
-  const props = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
 
-  props.setProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM, setupTerm);
+  setScriptProperty_(
+    SCRIPT_PROPERTY_KEYS.SETUP_TERM,
+    setupTerm,
+    scriptProperties,
+  );
 
-  props.setProperty(SCRIPT_PROPERTY_KEYS.CLOSING_TERM, closingTerm);
+  setScriptProperty_(
+    SCRIPT_PROPERTY_KEYS.CLOSING_TERM,
+    closingTerm,
+    scriptProperties,
+  );
 }

@@ -1,16 +1,16 @@
 /**
  * 試験開始日・終了日を月初・月末に丸める
  *
- * @param {Date|string|Object} input_trial_start_date
- * @param {Date|string|Object} input_trial_end_date
+ * @param {Date|string|Object} input_trialStartDate
+ * @param {Date|string|Object} input_trialEndDate
  * @return {{
  *   trialStart: Date,
  *   trialEnd: Date
  * }}
  */
-function buildTrialMonthRange_(input_trial_start_date, input_trial_end_date) {
-  const start = normalizeDate_(input_trial_start_date);
-  const end = normalizeDate_(input_trial_end_date);
+function buildTrialMonthRange_(input_trialStartDate, input_trialEndDate) {
+  const start = normalizeDate_(input_trialStartDate);
+  const end = normalizeDate_(input_trialEndDate);
 
   return {
     trialStart: start ? startOfMonth_(start) : null,

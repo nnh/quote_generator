@@ -36,7 +36,7 @@ function buildCdiscCrfFormula_(crfCount) {
  */
 function handleCrfWithCdisc_(crfCount) {
   const isCdiscEnabled =
-    get_quotation_request_value_(
+    getQuotationRequestValue_(
       QUOTATION_REQUEST_SHEET.ITEMNAMES.CDISC_SUPPORT,
     ) === COMMON_EXISTENCE_LABELS.YES;
 
@@ -45,12 +45,12 @@ function handleCrfWithCdisc_(crfCount) {
   }
 
   // 既存コメント削除
-  delete_trial_comment_(
+  deleteTrialComment_(
     '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
   );
 
   // CDISC対応コメント追加
-  set_trial_comment_(
+  setTrialComment_(
     '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
   );
 
@@ -78,10 +78,10 @@ function renameSpreadsheetWithAcronym_(acronym) {
  * @return {{trialStartDate:any, trialEndDate:any}|null}
  */
 function getTrialDates_() {
-  const trialStartDate = get_quotation_request_value_(
+  const trialStartDate = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES.TRIAL_REGISTRATION_START_DATE,
   );
-  const trialEndDate = get_quotation_request_value_(
+  const trialEndDate = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES.TRIAL_END_DATE,
   );
 
@@ -212,7 +212,7 @@ function applyTrialType_(trialType, sheet) {
  * @param {string} key - 処理対象の項目名（例: "試験種別", "CRF項目数"）
  * @param {any} fieldValue - quotation_requestシートから取得した値
  * @param {Object} context - 共通コンテキストオブジェクト
- * @param {PropertiesService.Properties} context.properties - スクリプトプロパティ
+ * @param {PropertiesService.scriptProperties} context.scriptProperties - スクリプトプロパティ
  * @param {Array.<string>} context.arrayQuotationRequest - quotation_requestシートの値
  * @param {Object} context.sheet - Sheetsオブジェクト（trial, itemsシートなど）
  *
@@ -224,7 +224,7 @@ function applyTrialType_(trialType, sheet) {
 function resolveTrialFieldValue_(key, fieldValue, context) {
   if (fieldValue == null) return null;
 
-  const sp = context.properties;
+  const scriptProperties = context.scriptProperties;
   const sheet = context.sheet;
   const const_facilities = ITEM_LABELS.FACILITIES;
   const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
@@ -233,10 +233,10 @@ function resolveTrialFieldValue_(key, fieldValue, context) {
     case TRIAL_SHEET.ITEMNAMES.QUOTATION_TYPE:
       return convertQuotationTypeLabel_(fieldValue);
     case const_number_of_cases:
-      setNumberOfCasesProperty_(fieldValue, sp);
+      setNumberOfCasesProperty_(fieldValue, scriptProperties);
       return fieldValue;
     case const_facilities:
-      setFacilitiesProperty_(fieldValue, sp);
+      setFacilitiesProperty_(fieldValue, scriptProperties);
       return fieldValue;
     case TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE:
       applyTrialType_(fieldValue, sheet);
@@ -257,9 +257,9 @@ function resolveTrialFieldValue_(key, fieldValue, context) {
  * quotation_requestシートの内容からtrialシート, itemsシートを設定する
  * @return {void}
  * @example
- *   set_trial_sheet_();
+ *   applyQuotationRequestToSheets_();
  */
-function set_trial_sheet_() {
+function applyQuotationRequestToSheets_() {
   const const_facilities = ITEM_LABELS.FACILITIES;
   const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
   const trialSheet = _cachedSheets.trial;
@@ -278,16 +278,16 @@ function set_trial_sheet_() {
     [TRIAL_SHEET.ITEMNAMES.CRF, 30],
     [ITEM_LABELS.FUNDING_SOURCE_LABEL, 44],
   ];
-  const sp = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
   for (let i = 0; i < trial_list.length; i++) {
     const key = trial_list[i][0];
     const row = Number(trial_list[i][1]);
     const context = {
       sheet: _cachedSheets,
-      properties: sp,
+      scriptProperties,
     };
 
-    const quotationRequestValue = get_quotation_request_value_(key);
+    const quotationRequestValue = getQuotationRequestValue_(key);
     if (quotationRequestValue == null) {
       throw new Error(`Missing quotation request value for key: ${key}`);
     }
@@ -296,7 +296,7 @@ function set_trial_sheet_() {
     trialSheet.getRange(row, 2).setValue(result);
   }
   // 発行年月日に今日の日付を入れる
-  const date_of_issue = get_row_num_matched_value_(trialSheet, 1, "発行年月日");
+  const date_of_issue = findRowByValue_(trialSheet, 1, "発行年月日");
   if (date_of_issue > 0) {
     trialSheet.getRange(date_of_issue, 2).setValue(formatTodayYmd_());
   }

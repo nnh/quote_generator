@@ -1,10 +1,10 @@
 /**
  * Closingシート用の項目と値のリストを生成する
- * @param {boolean|number|string} clinical_trials_office_flg
+ * @param {boolean|number|string} clinicalTrialsOfficeFlg 事務局運営フラグ
  * @return {Array<Array>}
  */
-function buildClosingSetItems_(clinical_trials_office_flg) {
-  const closingItemsList = createClosingItemsList_(clinical_trials_office_flg);
+function buildClosingSetItems_(clinicalTrialsOfficeFlg) {
+  const closingItemsList = createClosingItemsList_(clinicalTrialsOfficeFlg);
   return convertItemsMapToList_(closingItemsList);
 }
 
@@ -13,7 +13,7 @@ function buildClosingSetItems_(clinical_trials_office_flg) {
  * @return {Object}
  */
 function getClosingTrialTypeConfig_() {
-  const properties = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
 
   const config = {
     csrLabel: ITEMS_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT,
@@ -24,8 +24,10 @@ function getClosingTrialTypeConfig_() {
   };
 
   if (
-    properties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
-    TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
+    getScriptProperty_(
+      SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+      scriptProperties,
+    ) === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED
   ) {
     config.csrLabel = ITEMS_SHEET.ITEMNAMES.CSR_SUPPORT;
     config.csrCount = 1;
@@ -39,21 +41,21 @@ function getClosingTrialTypeConfig_() {
 }
 /**
  * Closingシート用の項目と値のMapを生成する
- * @param {boolean} clinical_trials_office_flg 事務局運営フラグ
+ * @param {boolean} clinicalTrialsOfficeFlg 事務局運営フラグ
  * @return {Map<string, number|string>}
  */
-function createClosingItemsList_(clinical_trials_office_flg) {
+function createClosingItemsList_(clinicalTrialsOfficeFlg) {
   const config = getClosingTrialTypeConfig_();
 
   /* ===== 入力値取得 ===== */
-  let finalAnalysisTableCount = get_quotation_request_value_(
+  let finalAnalysisTableCount = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES
       .FINAL_ANALYSIS_REQUIRED_TABLE_FIGURE_COUNT,
   );
 
   const hasClinicalConference =
     returnIfEquals_(
-      get_quotation_request_value_(
+      getQuotationRequestValue_(
         QUOTATION_REQUEST_SHEET.ITEMNAMES.CASE_REVIEW_MEETING,
       ),
       COMMON_EXISTENCE_LABELS.YES,
@@ -61,18 +63,18 @@ function createClosingItemsList_(clinical_trials_office_flg) {
     ) > 0;
 
   const reportFeeEnabled = returnIfEquals_(
-    get_quotation_request_value_(QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE),
+    getQuotationRequestValue_(QUOTATION_REQUEST_SHEET.ITEMNAMES.REPORT_FEE),
     COMMON_EXISTENCE_LABELS.YES,
     FUNCTION_FORMULAS.NUMBER_OF_CASES,
   );
 
-  const auditFacilityCount = get_quotation_request_value_(
+  const auditFacilityCount = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES.AUDIT_TARGET_FACILITIES,
   );
 
   /* ===== CSR / 症例検討会関連 ===== */
   let csrCount = returnIfEquals_(
-    get_quotation_request_value_(
+    getQuotationRequestValue_(
       QUOTATION_REQUEST_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT,
     ),
     COMMON_EXISTENCE_LABELS.YES,
@@ -93,11 +95,11 @@ function createClosingItemsList_(clinical_trials_office_flg) {
     // 図表数は最低50表
     if (finalAnalysisTableCount > 0 && finalAnalysisTableCount < 50) {
       finalAnalysisTableCount = 50;
-      set_trial_comment_("統計解析に必要な帳票数を50表と想定しております。");
+      setTrialComment_("統計解析に必要な帳票数を50表と想定しております。");
     }
   }
 
-  const clinicalTrialsOffice = clinical_trials_office_flg ? 1 : "";
+  const clinicalTrialsOffice = clinicalTrialsOfficeFlg ? 1 : "";
 
   /* ===== Map構築 ===== */
   return new Map([

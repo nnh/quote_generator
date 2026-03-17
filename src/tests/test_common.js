@@ -56,35 +56,49 @@ function convertColumnLetterToIndexForTest_(columnLetter) {
 /**
  * テスト用に Trial シートのデータを保存・復元するクラス
  */
-class TrialDatesBackupForTest_ {
+class TrialDatesEditForTest_ {
   constructor() {
     this.sheetName = "Trial";
-    this.rangeA1 = "D32:E40";
+    this.rangeA1 = TRIAL_TERM_RANGE_ADDRESS;
+    this.discountRangeA1 = "G32:G40";
+    this.trialSheet = getSheetByNameCached_(this.sheetName);
+  }
+  /**
+   * Trialシートのクリア
+   */
+  clearSheet() {
+    this.trialSheet.getRange(this.rangeA1).clearContent();
+    this.trialSheet.getRange(this.discountRangeA1).clearContent();
+  }
+}
+class TrialDatesBackupForTest_ extends TrialDatesEditForTest_ {
+  constructor() {
+    super();
     this.propertyKey = "trial_dates_for_test";
-    this.scriptProps = PropertiesService.getScriptProperties();
+    this.scriptProperties = PropertiesService.getScriptProperties();
   }
 
   /**
    * Trial シートの D32:E40 を ScriptProperties に保存する
    */
   save() {
-    const trialSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      this.sheetName,
+    const values = this.trialSheet.getRange(this.rangeA1).getValues();
+    setScriptProperty_(
+      this.propertyKey,
+      JSON.stringify(values),
+      this.scriptProperties,
     );
-
-    if (!trialSheet) {
-      throw new Error(`${this.sheetName} シートが見つかりません`);
-    }
-
-    const values = trialSheet.getRange(this.rangeA1).getValues();
-    this.scriptProps.setProperty(this.propertyKey, JSON.stringify(values));
   }
 
   /**
    * 保存しておいた値を Trial シートの D32:E40 に復元する
    */
   restore() {
-    const saved = this.scriptProps.getProperty(this.propertyKey);
+    if (!this.trialSheet) {
+      throw new Error(`${this.sheetName} シートが見つかりません`);
+    }
+
+    const saved = getScriptProperty_(this.propertyKey, this.scriptProperties);
 
     if (!saved) {
       throw new Error(`保存された ${this.propertyKey} が存在しません`);
@@ -105,23 +119,14 @@ class TrialDatesBackupForTest_ {
         return cell;
       }),
     );
-
-    const trialSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      this.sheetName,
-    );
-
-    if (!trialSheet) {
-      throw new Error(`${this.sheetName} シートが見つかりません`);
-    }
-
-    trialSheet.getRange(this.rangeA1).setValues(values);
+    this.trialSheet.getRange(this.rangeA1).setValues(values);
   }
 
   /**
    * 保存データを削除する（必要に応じて）
    */
   clear() {
-    this.scriptProps.deleteProperty(this.propertyKey);
+    this.scriptProperties.deleteProperty(this.propertyKey);
   }
 }
 /**
@@ -209,11 +214,18 @@ function test_createItemsByQuotationRequest_(
           quotation_request_itemName,
           quotation_request_item_value,
         );
+      const quotationRequestSheet =
+        SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+          QUOTATION_REQUEST_SHEET.NAME,
+        );
+      quotationRequestSheet
+        .getRange(2, 1, 1, array_quotation_request[0].length)
+        .setValues([array_quotation_request[1]]);
+      SpreadsheetApp.flush();
+      _quotationRequestMap = null; // キャッシュクリア
+      buildQuotationRequestMap_();
 
-      const actualItems = createItemsFunc(
-        array_quotation_request,
-        clinical_trials_office,
-      );
+      const actualItems = createItemsFunc(clinical_trials_office);
 
       const actualValue =
         actualItems instanceof Map
@@ -286,14 +298,15 @@ function test_trialTypeConfigCommon_(
   expectedOptions = {},
   actualOptions = {},
 ) {
-  const sp = PropertiesService.getScriptProperties();
-  const originalTrialType = sp.getProperty("trial_type_value");
+  const key = SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE;
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const originalTrialType = getScriptProperty_(key, scriptProperties);
 
   const trialTypes = getTrialTypeListForTest_();
 
   try {
     trialTypes.forEach((trialType) => {
-      sp.setProperty("trial_type_value", trialType);
+      setScriptProperty_(key, trialType, scriptProperties);
 
       const actual = getActualConfigFn(actualOptions);
       const expected = getExpectedConfigFn(trialType, expectedOptions);
@@ -303,9 +316,9 @@ function test_trialTypeConfigCommon_(
   } finally {
     // ScriptProperties を元に戻す
     if (originalTrialType === null) {
-      sp.deleteProperty("trial_type_value");
+      scriptProperties.deleteProperty(key);
     } else {
-      sp.setProperty("trial_type_value", originalTrialType);
+      setScriptProperty_(key, originalTrialType, scriptProperties);
     }
   }
 }

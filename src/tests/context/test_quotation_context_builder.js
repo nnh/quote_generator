@@ -1,3 +1,42 @@
+function test_getQuotationRequestValue() {
+  const quotationRequestSheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+      QUOTATION_REQUEST_SHEET.NAME,
+    );
+  if (!quotationRequestSheet) {
+    throw new Error(
+      `Sheet named ${QUOTATION_REQUEST_SHEET.NAME} is not found in the spreadsheet`,
+    );
+  }
+  // --- 準備 ---
+  quotationRequestSheet
+    .getRange(2, 1, 1, quotationRequestSheet.getLastColumn())
+    .clearContent();
+  quotationRequestSheet.getRange("A2").setValue("Test");
+  const header1 = "タイムスタンプ";
+
+  // --- 実行 ---
+  const actualValue = getQuotationRequestValue_(header1);
+
+  // --- 検証 ---
+  const expectedValue = "Test";
+  assertEquals_(
+    expectedValue,
+    actualValue,
+    "should return value for matching header",
+  );
+
+  const header2 = "存在しないヘッダー";
+  const actualValue2 = getQuotationRequestValue_(header2);
+  const expectedValue2 = null;
+  assertEquals_(
+    expectedValue2,
+    actualValue2,
+    "should return null for non-existing header",
+  );
+  quotationRequestSheet.getRange("A2").setValue("");
+}
+
 function test_initTargetColumn() {
   const acutualValue = initTargetColumn_();
   const expectedValue = "F";
@@ -37,7 +76,7 @@ function test_isClinicalTrialsOfficeRequired_withProperty_(
     throw new Error("QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL is not defined");
   }
 
-  const originalValue = scriptProperties.getProperty(PROPERTY_KEY);
+  const originalValue = getScriptProperty_(PROPERTY_KEY, scriptProperties);
   const value_yes = requireTestYesExistenceLabel_();
   const value_no = requireTestNoExistenceLabel_();
   const quotation_request_funding_source =
@@ -56,13 +95,26 @@ function test_isClinicalTrialsOfficeRequired_withProperty_(
   }
   const investigatorInitiatedTrialType =
     requireTestInvestigatorInitiatedTrialType_();
+  const quotationRequestSheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+      QUOTATION_REQUEST_SHEET.NAME,
+    );
+  if (!quotationRequestSheet) {
+    throw new Error(
+      `Sheet named ${QUOTATION_REQUEST_SHEET.NAME} is not found in the spreadsheet`,
+    );
+  }
 
   try {
     // --- テスト用プロパティを設定 ---
     if (trialTypePropertyValue === null) {
       scriptProperties.deleteProperty(PROPERTY_KEY);
     } else {
-      scriptProperties.setProperty(PROPERTY_KEY, trialTypePropertyValue);
+      setScriptProperty_(
+        PROPERTY_KEY,
+        trialTypePropertyValue,
+        scriptProperties,
+      );
     }
     [
       "公的資金（税金由来）",
@@ -94,6 +146,13 @@ function test_isClinicalTrialsOfficeRequired_withProperty_(
         if (officeExistence === value_yes) {
           expectedValue = true;
         }
+        quotationRequestSheet
+          .getRange(2, 1, 1, array_quotation_request[0].length)
+          .setValues([array_quotation_request[1]]);
+        SpreadsheetApp.flush();
+        _quotationRequestMap = null; // キャッシュをリセット
+        buildQuotationRequestMap_(); // キャッシュを再構築
+
         const actualValue = isClinicalTrialsOfficeRequired_(
           array_quotation_request,
         );
@@ -109,7 +168,7 @@ function test_isClinicalTrialsOfficeRequired_withProperty_(
     if (originalValue === null) {
       scriptProperties.deleteProperty(PROPERTY_KEY);
     } else {
-      scriptProperties.setProperty(PROPERTY_KEY, originalValue);
+      setScriptProperty_(PROPERTY_KEY, originalValue, scriptProperties);
     }
   }
 }
@@ -134,19 +193,19 @@ function test_buildTrialTermResult() {
     );
     if (sheetname === "dummy_sheet") {
       assertEquals_(
-        { trial_target_terms: undefined, trial_term_values: undefined },
+        { trialTargetTerms: undefined, trial_term_values: undefined },
         actualValues,
         `buildTrialTermResult_ should return undefined for unknown sheetname: ${sheetname}`,
       );
     } else {
       const expectedValues = {
-        trial_target_terms: targetValues[idx][5],
+        trialTargetTerms: targetValues[idx][5],
         trial_term_values: targetValues[idx],
       };
       assertEquals_(
         actualValues,
         expectedValues,
-        `buildTrialTermResult_ should return correct trial_target_terms for sheetname: ${sheetname}`,
+        `buildTrialTermResult_ should return correct trialTargetTerms for sheetname: ${sheetname}`,
       );
     }
   });
@@ -172,28 +231,28 @@ function test_buildTrialDatesPure() {
         return values;
       })(),
       props: {
-        trial_start_date: "2022-01-01",
-        trial_end_date: "2025-12-31",
+        trialStartDate: "2022-01-01",
+        trialEndDate: "2025-12-31",
       },
       expect: {
-        trial_target_start_date: new Date("2023-04-01"),
-        trial_target_end_date: new Date("2024-03-31"),
-        trial_start_date: new Date("2022-01-01"),
-        trial_end_date: new Date("2025-12-31"),
+        trialTargetStartDate: new Date("2023-04-01"),
+        trialTargetEndDate: new Date("2024-03-31"),
+        trialStartDate: new Date("2022-01-01"),
+        trialEndDate: new Date("2025-12-31"),
       },
     },
     {
       name: "trial_term_values が undefined",
       trial_term_values: undefined,
       props: {
-        trial_start_date: "2022-01-01",
-        trial_end_date: "2024-12-31",
+        trialStartDate: "2022-01-01",
+        trialEndDate: "2024-12-31",
       },
       expect: {
-        trial_target_start_date: null,
-        trial_target_end_date: null,
-        trial_start_date: new Date("2022-01-01"),
-        trial_end_date: new Date("2024-12-31"),
+        trialTargetStartDate: null,
+        trialTargetEndDate: null,
+        trialStartDate: new Date("2022-01-01"),
+        trialEndDate: new Date("2024-12-31"),
       },
     },
   ];

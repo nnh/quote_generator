@@ -82,15 +82,15 @@ function resetSheetCache_() {
 }
 
 /**
- * Setup〜Closingのシートを配列に格納する
- * @return シートの配列
+ * Setup〜Closingのシートを配列で取得する
+ * @return {GoogleAppsScript.Spreadsheet.Sheet[]}
  */
-function get_target_term_sheets() {
+function getTargetTermSheets_() {
   if (_cachedSheets === null) {
     get_sheets();
   }
 
-  const array_target_sheet = [
+  const targetSheets = [
     _cachedSheets.setup,
     _cachedSheets.closing,
     _cachedSheets.observation_2,
@@ -100,7 +100,8 @@ function get_target_term_sheets() {
     _cachedSheets.observation_1,
     _cachedSheets.interim_2,
   ];
-  return array_target_sheet;
+
+  return targetSheets;
 }
 
 function getSheetByNameCached_(sheetname) {

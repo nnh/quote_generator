@@ -22,16 +22,17 @@ function isClinicalTrialsOfficeRequired_() {
   const scriptProperties = PropertiesService.getScriptProperties();
 
   const isInvestigatorInitiated =
-    scriptProperties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE) ===
-    TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
+    getScriptProperty_(
+      SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+      scriptProperties,
+    ) === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
 
   const isCommercialFunding =
-    get_quotation_request_value_(
-      QUOTATION_REQUEST_SHEET.ITEMNAMES.COEFFICIENT,
-    ) === QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
+    getQuotationRequestValue_(QUOTATION_REQUEST_SHEET.ITEMNAMES.COEFFICIENT) ===
+    QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
 
   const hasAdjustmentOffice =
-    get_quotation_request_value_(
+    getQuotationRequestValue_(
       QUOTATION_REQUEST_SHEET.ITEMNAMES.ADJUSTMENT_OFFICE_EXISTENCE,
     ) === COMMON_EXISTENCE_LABELS.YES;
 
@@ -49,7 +50,7 @@ function isClinicalTrialsOfficeRequired_() {
  * @param {string} sheetname
  *   対象となるシート名
  * @return {{
- *   trial_target_terms: any,
+ *   trialTargetTerms: any,
  *   trial_term_values: Array|undefined
  * }}
  */
@@ -59,7 +60,7 @@ function buildTrialTermResult_(values, sheetname) {
   )[0];
 
   return {
-    trial_target_terms: trial_term_values
+    trialTargetTerms: trial_term_values
       ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_MONTHS]
       : undefined,
     trial_term_values,
@@ -90,7 +91,7 @@ function getTrialTermSheetValues_() {
  *
  * @param {string} sheetname
  * @return {{
- *   trial_target_terms: any,
+ *   trialTargetTerms: any,
  *   trial_term_values: Array
  * }}
  */
@@ -104,18 +105,22 @@ function getTrialTerm_(sheetname) {
  * 試験日付に関するプロパティ値を取得する
  *
  * @return {{
- *   trial_start_date: string|null,
- *   trial_end_date: string|null
+ *   trialStartDate: string|null,
+ *   trialEndDate: string|null
  * }}
  */
 function getTrialDateProperties_() {
-  const properties = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
 
   return {
-    trial_start_date: properties.getProperty(
+    trialStartDate: getScriptProperty_(
       SCRIPT_PROPERTY_KEYS.TRIAL_START_DATE,
+      scriptProperties,
     ),
-    trial_end_date: properties.getProperty(SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE),
+    trialEndDate: getScriptProperty_(
+      SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE,
+      scriptProperties,
+    ),
   };
 }
 
@@ -124,30 +129,30 @@ function getTrialDateProperties_() {
  *
  * @param {Array|undefined} trial_term_values
  * @param {{
- *   trial_start_date: string|null,
- *   trial_end_date: string|null
+ *   trialStartDate: string|null,
+ *   trialEndDate: string|null
  * }} props
  * @return {{
- *   trial_target_start_date: Date|null,
- *   trial_target_end_date: Date|null,
- *   trial_start_date: Date|null,
- *   trial_end_date: Date|null
+ *   trialTargetStartDate: Date|null,
+ *   trialTargetEndDate: Date|null,
+ *   trialStartDate: Date|null,
+ *   trialEndDate: Date|null
  * }}
  */
 function buildTrialDatesPure_(trial_term_values, props) {
   return {
-    trial_target_start_date: toDate_(
+    trialTargetStartDate: toDate_(
       trial_term_values
         ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_START]
         : undefined,
     ),
-    trial_target_end_date: toDate_(
+    trialTargetEndDate: toDate_(
       trial_term_values
         ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_END]
         : undefined,
     ),
-    trial_start_date: toDate_(props.trial_start_date),
-    trial_end_date: toDate_(props.trial_end_date),
+    trialStartDate: toDate_(props.trialStartDate),
+    trialEndDate: toDate_(props.trialEndDate),
   };
 }
 /**
@@ -159,10 +164,10 @@ function buildTrialDatesPure_(trial_term_values, props) {
  *
  * @param {Array|undefined} trial_term_values
  * @return {{
- *   trial_target_start_date: Date|null,
- *   trial_target_end_date: Date|null,
- *   trial_start_date: Date|null,
- *   trial_end_date: Date|null
+ *   trialTargetStartDate: Date|null,
+ *   trialTargetEndDate: Date|null,
+ *   trialStartDate: Date|null,
+ *   trialEndDate: Date|null
  * }}
  */
 function initSetSheetItemTrialDates_(trial_term_values) {
@@ -170,27 +175,48 @@ function initSetSheetItemTrialDates_(trial_term_values) {
   const dates = buildTrialDatesPure_(trial_term_values, props);
   return dates;
 }
+
 /**
  * シート処理用のコンテキストを生成する
- * （SetSheetItemValues の constructor 相当）
+ * @param {string} sheetName
+ * @return {Object}
  */
-function buildSheetContext_(sheetname) {
-  const trialTerm = getTrialTerm_(sheetname);
-  const trialDates = initSetSheetItemTrialDates_(trialTerm.trial_term_values);
+function buildSheetContext_(sheetName) {
+  const trialTerm = getTrialTerm_(sheetName);
+  const trialDates = initSetSheetItemTrialDates_(trialTerm.trialTermValues);
 
   return {
-    sheetname,
+    sheetName,
 
-    trial_target_terms: trialTerm.trial_target_terms,
-    trial_term_values: trialTerm.trial_term_values,
+    trialTargetTerms: trialTerm.trialTargetTerms,
+    trialTermValues: trialTerm.trialTermValues,
 
-    trial_target_start_date: trialDates.trial_target_start_date,
-    trial_target_end_date: trialDates.trial_target_end_date,
-    trial_start_date: trialDates.trial_start_date,
-    trial_end_date: trialDates.trial_end_date,
+    trialTargetStartDate: trialDates.trialTargetStartDate,
+    trialTargetEndDate: trialDates.trialTargetEndDate,
+    trialStartDate: trialDates.trialStartDate,
+    trialEndDate: trialDates.trialEndDate,
 
-    target_col: initTargetColumn_(),
+    columnName: initTargetColumn_(),
 
-    clinical_trials_office_flg: isClinicalTrialsOfficeRequired_(),
+    clinicalTrialsOfficeFlg: isClinicalTrialsOfficeRequired_(),
   };
+}
+
+/**
+ * quotation_requestの1行目（項目名）からフォーム入力情報を取得する
+ * @param dummy
+ * @param {string} header 検索対象の項目名
+ * @return {string|null} 項目名が完全一致すればその項目の値を返す。一致しなければnullを返す。
+ * @example
+ *   const trialStartDate = getQuotationRequestValue_(const_trial_start);
+ */
+function getQuotationRequestValue_(header) {
+  if (_cachedSheets === null) {
+    get_sheets();
+  }
+  if (_quotationRequestMap === null) {
+    buildQuotationRequestMap_();
+  }
+
+  return _quotationRequestMap.get(header) ?? null;
 }

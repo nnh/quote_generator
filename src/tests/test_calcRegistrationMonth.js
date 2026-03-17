@@ -1,10 +1,10 @@
 function testCalcRegistrationMonth_(testCase, caseNumber) {
   const result = calcRegistrationMonth_({
-    trial_target_terms: testCase.trial_target_terms,
-    trial_start_date: testCase.trial_start_date,
-    trial_end_date: testCase.trial_end_date,
-    trial_target_start_date: testCase.trial_target_start_date,
-    trial_target_end_date: testCase.trial_target_end_date,
+    trialTargetTerms: testCase.trialTargetTerms,
+    trialStartDate: testCase.trialStartDate,
+    trialEndDate: testCase.trialEndDate,
+    trialTargetStartDate: testCase.trialTargetStartDate,
+    trialTargetEndDate: testCase.trialTargetEndDate,
   });
 
   const actual = result;
@@ -24,27 +24,27 @@ function testCalcRegistrationMonth_(testCase, caseNumber) {
  * calcRegistrationMonth_ テストケース
  *
  * 【前提】
- * - trial_target_terms は Number（月数）
+ * - trialTargetTerms は Number（月数）
  * - 日付はすべて Moment オブジェクト
  */
 
 function testCalcRegistrationMonth() {
   /*
    * Case 1:
-   * trial_target_terms が 12 を超える場合
+   * trialTargetTerms が 12 を超える場合
    * → 無条件で 12 を返す
    *
    * 例:
-   * - trial_target_terms: 18
+   * - trialTargetTerms: 18
    * - 他の日付条件は問わない
    * - 期待値: 12
    */
   const case1 = {
-    trial_target_terms: 18,
-    trial_start_date: Moment.moment("2024-01-01"),
-    trial_end_date: Moment.moment("2024-01-01"),
-    trial_target_start_date: Moment.moment("2024-01-01"),
-    trial_target_end_date: Moment.moment("2024-01-01"),
+    trialTargetTerms: 18,
+    trialStartDate: Moment.moment("2024-01-01"),
+    trialEndDate: Moment.moment("2024-01-01"),
+    trialTargetStartDate: Moment.moment("2024-01-01"),
+    trialTargetEndDate: Moment.moment("2024-01-01"),
     expected: 12,
   };
   if (!testCalcRegistrationMonth_(case1, 1)) {
@@ -52,26 +52,26 @@ function testCalcRegistrationMonth() {
   }
   /*
    * Case 2:
-   * trial_target_start_date >= trial_start_date かつ
-   * trial_target_end_date <= trial_end_date
+   * trialTargetStartDate >= trialStartDate かつ
+   * trialTargetEndDate <= trialEndDate
    * （target 期間が trial 期間内に完全に収まる場合）
    *
-   * → trial_target_terms をそのまま返す
+   * → trialTargetTerms をそのまま返す
    *
    * 例:
-   * - trial_start_date: 2022-10-01
-   * - trial_end_date: 2025-01-31
-   * - trial_target_start_date: 2022-10-01
-   * - trial_target_end_date: 2025-01-31
-   * - trial_target_terms: 12
+   * - trialStartDate: 2022-10-01
+   * - trialEndDate: 2025-01-31
+   * - trialTargetStartDate: 2022-10-01
+   * - trialTargetEndDate: 2025-01-31
+   * - trialTargetTerms: 12
    * - 期待値: 12
    */
   const case2 = {
-    trial_target_terms: 12,
-    trial_start_date: Moment.moment("2022-10-01"),
-    trial_end_date: Moment.moment("2025-01-31"),
-    trial_target_start_date: Moment.moment("2023-04-01"),
-    trial_target_end_date: Moment.moment("2024-03-31"),
+    trialTargetTerms: 12,
+    trialStartDate: Moment.moment("2022-10-01"),
+    trialEndDate: Moment.moment("2025-01-31"),
+    trialTargetStartDate: Moment.moment("2023-04-01"),
+    trialTargetEndDate: Moment.moment("2024-03-31"),
     expected: 12,
   };
   if (!testCalcRegistrationMonth_(case2, 2)) {
@@ -79,24 +79,24 @@ function testCalcRegistrationMonth() {
   }
   /*
    * Case 3:
-   * trial_target_start_date < trial_start_date
+   * trialTargetStartDate < trialStartDate
    * （target 開始日が trial 開始日より前の場合）
    *
-   * → trial_start_date ～ trial_target_end_date(+1日) の月差分を返す
+   * → trialStartDate ～ trialTargetEndDate(+1日) の月差分を返す
    *
    * 例:
-   * - trial_start_date: 2022-10-01
-   * - trial_target_end_date: 2023-03-31
+   * - trialStartDate: 2022-10-01
+   * - trialTargetEndDate: 2023-03-31
    * - diff 計算対象: 2022-10-01 ～ 2023-04-01
    * - 期待値: 6
    *
    */
   const case3 = {
-    trial_target_terms: 11,
-    trial_start_date: Moment.moment("2022-11-01"),
-    trial_end_date: Moment.moment("2025-01-31"),
-    trial_target_start_date: Moment.moment("2022-05-01"),
-    trial_target_end_date: Moment.moment("2023-03-31"),
+    trialTargetTerms: 11,
+    trialStartDate: Moment.moment("2022-11-01"),
+    trialEndDate: Moment.moment("2025-01-31"),
+    trialTargetStartDate: Moment.moment("2022-05-01"),
+    trialTargetEndDate: Moment.moment("2023-03-31"),
     expected: 5,
   };
   if (!testCalcRegistrationMonth_(case3, 3)) {
@@ -104,23 +104,23 @@ function testCalcRegistrationMonth() {
   }
   /*
    * Case 4:
-   * trial_end_date < trial_target_end_date
+   * trialEndDate < trialTargetEndDate
    * （target 終了日が trial 終了日より後の場合）
    *
-   * → trial_target_start_date ～ trial_end_date(+1日) の月差分を返す
+   * → trialTargetStartDate ～ trialEndDate(+1日) の月差分を返す
    *
    * 例:
-   * - trial_target_start_date: 2024-03-01
-   * - trial_end_date: 2024-06-30
+   * - trialTargetStartDate: 2024-03-01
+   * - trialEndDate: 2024-06-30
    * - diff 計算対象: 2024-03-01 ～ 2024-07-01
    * - 期待値: 4
    */
   const case4 = {
-    trial_target_terms: 12,
-    trial_start_date: Moment.moment("2022-10-01"),
-    trial_end_date: Moment.moment("2025-01-31"),
-    trial_target_start_date: Moment.moment("2024-04-01"),
-    trial_target_end_date: Moment.moment("2025-03-31"),
+    trialTargetTerms: 12,
+    trialStartDate: Moment.moment("2022-10-01"),
+    trialEndDate: Moment.moment("2025-01-31"),
+    trialTargetStartDate: Moment.moment("2024-04-01"),
+    trialTargetEndDate: Moment.moment("2025-03-31"),
     expected: 10,
   };
   if (!testCalcRegistrationMonth_(case4, 4)) {
@@ -134,20 +134,20 @@ function testCalcRegistrationMonth() {
    * → 登録対象期間が存在しないため 0 を返す
    *
    * 例:
-   * - trial_start_date: 2022-04-01
-   * - trial_end_date: 2025-01-31
-   * - trial_target_start_date: 2021-10-01
-   * - trial_target_end_date: 2022-03-31
-   * - trial_target_terms <= 12
+   * - trialStartDate: 2022-04-01
+   * - trialEndDate: 2025-01-31
+   * - trialTargetStartDate: 2021-10-01
+   * - trialTargetEndDate: 2022-03-31
+   * - trialTargetTerms <= 12
    * - target 終了日(+1日) と trial 開始日の diff(months) が 0
    * - 期待値: 0
    */
   const case5 = {
-    trial_target_terms: 6,
-    trial_start_date: Moment.moment("2022-04-01"),
-    trial_end_date: Moment.moment("2025-01-31"),
-    trial_target_start_date: Moment.moment("2021-10-01"),
-    trial_target_end_date: Moment.moment("2022-03-31"),
+    trialTargetTerms: 6,
+    trialStartDate: Moment.moment("2022-04-01"),
+    trialEndDate: Moment.moment("2025-01-31"),
+    trialTargetStartDate: Moment.moment("2021-10-01"),
+    trialTargetEndDate: Moment.moment("2022-03-31"),
     expected: 0,
   };
   if (!testCalcRegistrationMonth_(case5, 5)) {
@@ -163,8 +163,8 @@ function testCalcRegistrationMonth() {
    *   業務上「登録対象外」と判断する
    *
    * 【条件】
-   * - trial_target_terms <= 12
-   * - trial_target_start_date > trial_end_date
+   * - trialTargetTerms <= 12
+   * - trialTargetStartDate > trialEndDate
    *
    * 【期待される挙動】
    * - 登録対象月数は算出不可
@@ -176,11 +176,11 @@ function testCalcRegistrationMonth() {
    * - expected: ""
    */
   const case6 = {
-    trial_target_terms: 6,
-    trial_start_date: Moment.moment("2022-01-01"),
-    trial_end_date: Moment.moment("2022-12-31"),
-    trial_target_start_date: Moment.moment("2023-01-01"),
-    trial_target_end_date: Moment.moment("2023-06-30"),
+    trialTargetTerms: 6,
+    trialStartDate: Moment.moment("2022-01-01"),
+    trialEndDate: Moment.moment("2022-12-31"),
+    trialTargetStartDate: Moment.moment("2023-01-01"),
+    trialTargetEndDate: Moment.moment("2023-06-30"),
     expected: 0,
   };
 
@@ -190,48 +190,48 @@ function testCalcRegistrationMonth() {
 
   /*
    * Case 7:
-   * - trial_target_start_date === trial_start_date
-   * - trial_target_end_date === trial_end_date
-   * - 期待値: trial_target_terms
+   * - trialTargetStartDate === trialStartDate
+   * - trialTargetEndDate === trialEndDate
+   * - 期待値: trialTargetTerms
    */
   const case7 = {
-    trial_target_terms: 2,
-    trial_start_date: Moment.moment("2025-04-01"),
-    trial_end_date: Moment.moment("2025-05-31"),
-    trial_target_start_date: Moment.moment("2025-04-01"),
-    trial_target_end_date: Moment.moment("2025-05-31"),
+    trialTargetTerms: 2,
+    trialStartDate: Moment.moment("2025-04-01"),
+    trialEndDate: Moment.moment("2025-05-31"),
+    trialTargetStartDate: Moment.moment("2025-04-01"),
+    trialTargetEndDate: Moment.moment("2025-05-31"),
     expected: 2,
   };
   if (!testCalcRegistrationMonth_(case7, 7)) {
     throw new Error("Case 7 failed");
   }
   /* Case 8:
-   * - trial_target_start_date === trial_start_date
-   * - trial_target_end_date < trial_end_date
-   * - 期待値: trial_target_terms
+   * - trialTargetStartDate === trialStartDate
+   * - trialTargetEndDate < trialEndDate
+   * - 期待値: trialTargetTerms
    */
   const case8 = {
-    trial_target_terms: 6,
-    trial_start_date: Moment.moment("2025-10-01"),
-    trial_end_date: Moment.moment("2026-05-31"),
-    trial_target_start_date: Moment.moment("2025-10-01"),
-    trial_target_end_date: Moment.moment("2026-03-31"),
+    trialTargetTerms: 6,
+    trialStartDate: Moment.moment("2025-10-01"),
+    trialEndDate: Moment.moment("2026-05-31"),
+    trialTargetStartDate: Moment.moment("2025-10-01"),
+    trialTargetEndDate: Moment.moment("2026-03-31"),
     expected: 6,
   };
   if (!testCalcRegistrationMonth_(case8, 8)) {
     throw new Error("Case 8 failed");
   }
   /* Case 9:
-   * - trial_target_start_date > trial_start_date
-   * - trial_target_end_date === trial_end_date
-   * - 期待値: trial_target_terms
+   * - trialTargetStartDate > trialStartDate
+   * - trialTargetEndDate === trialEndDate
+   * - 期待値: trialTargetTerms
    */
   const case9 = {
-    trial_target_terms: 3,
-    trial_start_date: Moment.moment("2025-10-01"),
-    trial_end_date: Moment.moment("2026-03-31"),
-    trial_target_start_date: Moment.moment("2026-01-01"),
-    trial_target_end_date: Moment.moment("2026-03-31"),
+    trialTargetTerms: 3,
+    trialStartDate: Moment.moment("2025-10-01"),
+    trialEndDate: Moment.moment("2026-03-31"),
+    trialTargetStartDate: Moment.moment("2026-01-01"),
+    trialTargetEndDate: Moment.moment("2026-03-31"),
     expected: 3,
   };
   if (!testCalcRegistrationMonth_(case9, 9)) {

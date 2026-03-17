@@ -28,15 +28,16 @@ function get_years_(start_date, end_date) {
  * @return {Array.<string>} the trial period, heading, and number of years of trial period on the Trial sheet.
  */
 function getTrialTermInfo_() {
-  // Trialシートの試験期間年数列
-  const trialTermCol = 3;
-
   if (!_cachedSheets || !_cachedSheets.trial) {
     throw new Error("Trial シートが取得できません");
   }
 
   const trialSheet = _cachedSheets.trial;
 
+  const trialYearsColumnNumber = TRIAL_SHEET.COLUMNS.TRIAL_YEARS;
+  if (isNaN(trialYearsColumnNumber)) {
+    throw new Error("trial_years_column が正しく設定されていません");
+  }
   const setupRow = TRIAL_SHEET.ROWS.TRIAL_SETUP;
   const closingRow = TRIAL_SHEET.ROWS.TRIAL_CLOSING;
 
@@ -56,7 +57,9 @@ function getTrialTermInfo_() {
     );
   }
 
-  return trialSheet.getRange(startRow, 1, rowCount, trialTermCol).getValues();
+  return trialSheet
+    .getRange(startRow, 1, rowCount, trialYearsColumnNumber)
+    .getValues();
 }
 
 class GetArrayDividedItemsCount {
@@ -139,4 +142,26 @@ class GetArrayDividedItemsCountAdd extends GetArrayDividedItemsCount {
     const target = this.getTargetTerm_(exclusionSheetNames);
     return this.dividedItemCount_(totalNumber, target);
   }
+}
+
+/**
+ * 試験期間が設定されており、見積計算の対象となる年度別シート一覧を取得する
+ *
+ * - Setup〜Closing のいずれかの期間が存在するシートのみを対象とする
+ * - 見積処理メイン（runQuotationProcess）から呼び出される
+ *
+ * @return {Array<Object>} 見積対象シート情報の配列
+ *   各オブジェクトは以下のプロパティを持つ:
+ *     sheetName: シート名
+ *     termInfo: 試験期間情報（内部判定用）
+ *     active: 対象有無判定用フラグ（true＝対象）
+ */
+function getActiveTrialTermSheets_() {
+  return getTrialTermInfo_()
+    .map(([sheetName, termInfo, flag]) => ({
+      sheetName,
+      termInfo,
+      active: flag !== "",
+    }))
+    .filter((x) => x.active);
 }

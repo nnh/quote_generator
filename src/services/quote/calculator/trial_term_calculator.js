@@ -18,8 +18,8 @@ const TRIAL_TERM_KEYS = {
  * - setup / closing 期間は日本年度（4/1〜3/31）を基準に算出する
  * - registration / observation 期間は setup 終了日と closing 開始日を元に動的に判定する
  *
- * @param {number} input_trial_start_date 試験開始日のセル値（シリアル値）
- * @param {number} input_trial_end_date 試験終了日のセル値（シリアル値）
+ * @param {number} input_trialStartDate 試験開始日のセル値（シリアル値）
+ * @param {number} input_trialEndDate 試験終了日のセル値（シリアル値）
  * @param {number} setupTermMonths setup期間（月数）
  * @param {number} closingTermMonths closing期間（月数）
  *
@@ -43,15 +43,15 @@ const TRIAL_TERM_KEYS = {
  *   .setValues(result.sheetDateArray);
  */
 function calculateTrialDates_(
-  input_trial_start_date,
-  input_trial_end_date,
+  input_trialStartDate,
+  input_trialEndDate,
   setupTermMonths,
   closingTermMonths,
 ) {
   // 試験開始日・終了日
   const { trialStart, trialEnd } = buildTrialMonthRange_(
-    input_trial_start_date,
-    input_trial_end_date,
+    input_trialStartDate,
+    input_trialEndDate,
   );
 
   // setup
@@ -110,39 +110,42 @@ function convertTermPeriodsToArray_(termPeriods) {
 
 /**
  * 各シートの開始日・終了日を設定する
- * @param {number} input_trial_start_date 試験開始日のセル値
- * @param {number} input_trial_end_date 試験終了日のセル値
+ * @param {number} input_trialStartDate 試験開始日のセル値
+ * @param {number} input_trialEndDate 試験終了日のセル値
  * @return {Array.<Array>} 各シートの開始日・終了日の二次元配列
  */
-function buildTrialDateArray_(input_trial_start_date, input_trial_end_date) {
-  const sp = PropertiesService.getScriptProperties();
+function buildTrialDateArray_(input_trialStartDate, input_trialEndDate) {
+  const scriptProperties = PropertiesService.getScriptProperties();
   const setupTermMonths = Number(
-    sp.getProperty(SCRIPT_PROPERTY_KEYS.SETUP_TERM),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.SETUP_TERM, scriptProperties),
   );
   const closingTermMonths = Number(
-    sp.getProperty(SCRIPT_PROPERTY_KEYS.CLOSING_TERM),
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.CLOSING_TERM, scriptProperties),
   );
 
   const dates = calculateTrialDates_(
-    input_trial_start_date,
-    input_trial_end_date,
+    input_trialStartDate,
+    input_trialEndDate,
     setupTermMonths,
     closingTermMonths,
   );
 
-  sp.setProperty(
+  setScriptProperty_(
     SCRIPT_PROPERTY_KEYS.TRIAL_START_DATE,
     Utilities.formatDate(dates.trialStart, "Asia/Tokyo", "yyyy-MM-dd"),
+    scriptProperties,
   );
 
-  sp.setProperty(
+  setScriptProperty_(
     SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE,
     Utilities.formatDate(dates.trialEnd, "Asia/Tokyo", "yyyy-MM-dd"),
+    scriptProperties,
   );
 
-  sp.setProperty(
+  setScriptProperty_(
     SCRIPT_PROPERTY_KEYS.REGISTRATION_YEARS,
     dates.registrationYears,
+    scriptProperties,
   );
 
   return dates.sheetDateArray;
@@ -152,31 +155,31 @@ function buildTrialDateArray_(input_trial_start_date, input_trial_end_date) {
  * 登録月数を計算する
  *
  * @param {Object} params
- * @param {number} params.trial_target_terms
- * @param {Date|Object} params.trial_start_date
- * @param {Date|Object} params.trial_end_date
- * @param {Date|Object} params.trial_target_start_date
- * @param {Date|Object} params.trial_target_end_date
+ * @param {number} params.trialTargetTerms
+ * @param {Date|Object} params.trialStartDate
+ * @param {Date|Object} params.trialEndDate
+ * @param {Date|Object} params.trialTargetStartDate
+ * @param {Date|Object} params.trialTargetEndDate
  * @return {number|string}
  */
 function calcRegistrationMonth_({
-  trial_target_terms,
-  trial_start_date,
-  trial_end_date,
-  trial_target_start_date,
-  trial_target_end_date,
+  trialTargetTerms,
+  trialStartDate,
+  trialEndDate,
+  trialTargetStartDate,
+  trialTargetEndDate,
 }) {
-  const trialStart = normalizeDate_(trial_start_date);
-  const trialEnd = normalizeDate_(trial_end_date);
-  const targetStart = normalizeDate_(trial_target_start_date);
-  const targetEnd = normalizeDate_(trial_target_end_date);
+  const trialStart = normalizeDate_(trialStartDate);
+  const trialEnd = normalizeDate_(trialEndDate);
+  const targetStart = normalizeDate_(trialTargetStartDate);
+  const targetEnd = normalizeDate_(trialTargetEndDate);
 
-  if (trial_target_terms > 12) {
+  if (trialTargetTerms > 12) {
     return 12;
   }
 
   if (trialStart <= targetStart && targetEnd <= trialEnd) {
-    return trial_target_terms;
+    return trialTargetTerms;
   }
 
   if (targetStart < trialStart) {

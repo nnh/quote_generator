@@ -1,5 +1,10 @@
 /**
  * 【テスト用】
+ * Trialシートの試験期間年月設定セルアドレス
+ */
+const TRIAL_TERM_RANGE_ADDRESS = "D32:E40";
+/**
+ * 【テスト用】
  * シート名を返す
  */
 function getSetupSheetNameForTest_() {
@@ -75,9 +80,11 @@ function getClinicalTrialsOfficeTestArray_() {
  * @param {string} obj.funding_source 資金提供元
  * @returns {number} 事務局運営フラグ（1: 対象, 0: 非対象）
  */
-function test_get_clinical_trials_office_flg_(obj) {
-  const trialType =
-    PropertiesService.getScriptProperties().getProperty("trial_type_value");
+function test_getClinicalTrialsOfficeFlg_(obj) {
+  const trialType = getScriptProperty_(
+    SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+    PropertiesService.getScriptProperties(),
+  );
   const office_value = obj.office_value;
   const cofficient_value = obj.funding_source;
   if (trialType === "医師主導治験") {

@@ -41,7 +41,7 @@ function runAllUnitTests_quote() {
   testDecideSetupClosingTerm();
   // sheet_registry.js
   test_get_sheets_returns_required_keys();
-  test_get_target_term_sheets_returns_valid_sheets();
+  test_getTargetTermSheets__returns_valid_sheets();
 
   console.log("All unit tests executed.");
 }

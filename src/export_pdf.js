@@ -48,18 +48,18 @@ function create_pdf_total_book_(target_sheets, pdf_settings) {
  * @return none
  */
 function ssToPdf() {
-  initial_process();
+  runInitialProcess_();
   // フィルタ：0を非表示にする
   hideFilterVisibility();
   // Total2, Total3シートの合計0円の列を非表示に、0円以上の列を表示にする
-  total2_3_show_hidden_cols();
+  total2_3ShowHiddenCols_();
   const output_folder = DriveApp.getRootFolder();
   const ss = getSpreadsheet_();
   const const_page_fit = 4;
   const const_vertical = true;
   const const_horizontal = false;
   // Setup〜Closingシートを取得
-  let target_sheets = get_target_term_sheets();
+  let target_sheets = getTargetTermSheets_();
   // Quote, Total, Total2, Total3を追加
   target_sheets.push(getSheetByNameCached_(QUOTATION_SHEET_NAMES.QUOTE));
   target_sheets.push(getSheetByNameCached_(QUOTATION_SHEET_NAMES.TOTAL));

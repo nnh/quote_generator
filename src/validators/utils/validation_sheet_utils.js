@@ -100,7 +100,7 @@ class SetTestValues {
     this.trialYearsDiscountCol = 7;
     this.trialYearsDiscountRateCol = 8;
     this.const_itemsDiscount = 1100000;
-    this.constDiscountAllPeriodRangeAddr = "B46";
+    this.constDiscountAllPeriodRangeAddr = `${TRIAL_SHEET.COLNAMES.VALUE}${TRIAL_SHEET.ROWS.DISCOUNT_VALUE}`;
     this.trialSheet = _cachedSheets.trial;
     if (!this.trialSheet) {
       throw new Error("Trial sheet not found in cache.");
@@ -129,12 +129,6 @@ class SetTestValues {
       new Date(2021 + this.idx, 2, 31),
     );
   }
-  delTrialYears(idx) {
-    this.idx = idx;
-    const yearStartRange = this.getTrialYearStartRange(this.idx);
-    this.delTestValue(yearStartRange);
-    this.delTestValue(yearStartRange.offset(0, 1));
-  }
   setDiscountByYear(idx, setPrice = null) {
     this.idx = idx;
     const setPrice_ = setPrice
@@ -146,15 +140,6 @@ class SetTestValues {
         this.trialYearsDiscountCol,
       ),
       setPrice_,
-    );
-  }
-  delDiscountByYear(idx) {
-    this.idx = idx;
-    this.delTestValue(
-      this.trialSheet.getRange(
-        this.trialYearsStartRow + this.idx,
-        this.trialYearsDiscountCol,
-      ),
     );
   }
   getDiscountRateValue(idx) {

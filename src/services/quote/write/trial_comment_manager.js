@@ -14,17 +14,17 @@ class TrialCommentManager {
   clearComments() {
     this.commentRange.clearContent();
   }
-  setRangeValues(array_comment) {
-    const start_row = this.commentRange.getCell(1, 1).getRow();
-    const start_col = this.commentRange.getCell(1, 1).getColumn();
-    const comment_length = array_comment.length;
+  setRangeValues(comment) {
+    const startRow = this.commentRange.getRow();
+    const startCol = this.commentRange.getColumn();
+    const commentLength = comment.length;
     this.clearComments();
-    if (comment_length <= 0) {
+    if (commentLength <= 0) {
       return;
     }
     this.trialSheet
-      .getRange(start_row, start_col, comment_length, 1)
-      .setValues(array_comment);
+      .getRange(startRow, startCol, commentLength, 1)
+      .setValues(comment);
   }
   /**
    * trialシートのコメント欄から、指定したコメントを除外した一覧を取得する。
@@ -44,44 +44,40 @@ class TrialCommentManager {
    *   例: [["コメント1"], ["コメント2"]]
    */
   getFilteredComments(target) {
-    const comment_formulas = this.trialSheet
-      .getRange(this.commentRange.getA1Notation())
-      .getFormulas();
-    const comment_values = this.trialSheet
-      .getRange(this.commentRange.getA1Notation())
-      .getValues();
-    let beforeDeleteComments = [];
-    for (let i = 0; i < comment_formulas.length; i++) {
-      const formula = comment_formulas[i][0];
-      const value = comment_values[i][0];
-      beforeDeleteComments[i] = formula !== "" ? [formula] : [value];
+    const commentFormulas = this.commentRange.getFormulas();
+    const commentValues = this.commentRange.getValues();
+    let allComments = [];
+    for (let i = 0; i < commentFormulas.length; i++) {
+      const formula = commentFormulas[i][0];
+      const value = commentValues[i][0];
+      allComments.push(formula !== "" ? [formula] : [value]);
     }
-    const delComment = beforeDeleteComments.filter(
+    const filteredComments = allComments.filter(
       ([value]) => value && value !== target,
     );
 
-    return delComment;
+    return filteredComments;
   }
 }
 /**
  * trialシートのコメントを追加する。
- * @param {string} str_comment コメント文字列
+ * @param {string} comment コメント文字列
  * @return {void}
  */
-function set_trial_comment_(str_comment) {
+function setTrialComment_(comment) {
   const trialCommentManager = new TrialCommentManager();
   // 既存の同一コメントを除外したうえで追加
-  const comments = trialCommentManager.getFilteredComments(str_comment);
-  comments.push([str_comment]);
+  const comments = trialCommentManager.getFilteredComments(comment);
+  comments.push([comment]);
   trialCommentManager.setRangeValues(comments);
 }
 /**
  * trialシートのコメントを削除する。
- * @param {string} str_comment コメント文字列
+ * @param {string} comment コメント文字列
  * @return {void}
  */
-function delete_trial_comment_(str_comment) {
+function deleteTrialComment_(comment) {
   const trialCommentManager = new TrialCommentManager();
-  const comments = trialCommentManager.getFilteredComments(str_comment);
+  const comments = trialCommentManager.getFilteredComments(comment);
   trialCommentManager.setRangeValues(comments);
 }

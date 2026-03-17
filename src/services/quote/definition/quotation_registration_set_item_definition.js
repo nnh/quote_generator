@@ -1,17 +1,5 @@
 /**
- * Registrationシート用の項目と値のリストを生成する（入口関数）
- * Setup の buildSetupSetItems_ とインターフェースを揃える
- *
- * @param {string} sheetName
- * @return {Array<Array>}
- */
-function buildRegistrationSetItems_(sheetName) {
-  return buildRegistrationItems_({
-    sheetName,
-  });
-}
-/**
- * 登録期関連の設定項目を生成する
+ * Registration関連の設定項目を生成する
  * @param {Object} params
  * @param {string} params.sheetName
  * @returns {Array<Array>}
@@ -39,7 +27,7 @@ function createRegistrationItemsList_(sheetName) {
   const { isFirstYear } = getRegistrationYearConfig_(sheetName);
 
   const crbValue = returnIfEquals_(
-    get_quotation_request_value_(
+    getQuotationRequestValue_(
       QUOTATION_REQUEST_SHEET.ITEMNAMES.CRB_APPLICATION,
     ),
     COMMON_EXISTENCE_LABELS.YES,
@@ -49,7 +37,7 @@ function createRegistrationItemsList_(sheetName) {
   const crbFirstYear = isFirstYear ? crbValue : "";
   const crbAfterSecondYear = isFirstYear ? "" : crbValue;
 
-  const essentialDocumentsCount = get_quotation_request_value_(
+  const essentialDocumentsCount = getQuotationRequestValue_(
     QUOTATION_REQUEST_SHEET.ITEMNAMES
       .ESSENTIAL_DOCUMENTS_MONITORING_COUNT_PER_FACILITY,
   );
@@ -67,7 +55,7 @@ function createRegistrationItemsList_(sheetName) {
     [
       ITEMS_SHEET.ITEMNAMES.DRUG_TRANSPORTATION,
       returnIfEquals_(
-        get_quotation_request_value_(
+        getQuotationRequestValue_(
           QUOTATION_REQUEST_SHEET.ITEMNAMES.DRUG_TRANSPORTATION,
         ),
         COMMON_EXISTENCE_LABELS.YES,

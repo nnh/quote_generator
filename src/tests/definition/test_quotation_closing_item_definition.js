@@ -253,8 +253,10 @@ function test_createClosingItemsList_trialType_final_analysis_(obj) {
     array_quotation_request_value,
   );
   const items = createClosingItemsList_(array_quotation_request, 0);
-  const trialType =
-    PropertiesService.getScriptProperties().getProperty("trial_type_value");
+  const trialType = getScriptProperty_(
+    SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+    PropertiesService.getScriptProperties(),
+  );
   const investigator_initiated = requireTestInvestigatorInitiatedTrialType_();
   const final_analysis_label_single =
     ITEMS_SHEET.ITEMNAMES.FINAL_ANALYSIS_PROGRAM_SINGLE;
@@ -313,8 +315,10 @@ function test_createClosingItemsList_trialType_csr_(obj) {
     array_quotation_request_value,
   );
   const items = createClosingItemsList_(array_quotation_request, 0);
-  const trialType =
-    PropertiesService.getScriptProperties().getProperty("trial_type_value");
+  const trialType = getScriptProperty_(
+    SCRIPT_PROPERTY_KEYS.TRIAL_TYPE_VALUE,
+    PropertiesService.getScriptProperties(),
+  );
   const investigator_initiated = requireTestInvestigatorInitiatedTrialType_();
   const item_researchResultReportSupport =
     ITEMS_SHEET.ITEMNAMES.RESEARCH_RESULT_REPORT_SUPPORT;
@@ -370,7 +374,7 @@ function test_createClosingItemsList_trialType_clinical_trials_office_(obj) {
     funding_source,
     cofficient_value,
   );
-  const officeFlag = test_get_clinical_trials_office_flg_(obj);
+  const officeFlag = test_getClinicalTrialsOfficeFlg_(obj);
   const items = createClosingItemsList_(array_quotation_request, officeFlag);
   const clinical_trials_office =
     ITEMS_SHEET.ITEMNAMES.CLINICAL_TRIALS_OFFICE_CLOSING;

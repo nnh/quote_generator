@@ -29,16 +29,16 @@ function setTargetInblanceValues_() {
 }
 function setImbalanceValues_() {
   // 年毎に設定する値が不均等である項目への対応
-  const scriptProps = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
   const targetImbalance = setTargetInblanceValues_();
   const target = buildImbalanceTargets_(targetImbalance);
-  writeImbalanceValues_(target, targetImbalance, scriptProps);
+  writeImbalanceValues_(target, targetImbalance, scriptProperties);
 }
 function buildImbalanceTargets_(targetImbalance) {
   const DividedItemsCount = new GetArrayDividedItemsCountAdd();
 
   return targetImbalance.map((config) => {
-    let tempCount = get_quotation_request_value_(config.requestItemName);
+    let tempCount = getQuotationRequestValue_(config.requestItemName);
 
     // 症例登録毎の支払は「あり、なし」で入力される
     if (
@@ -49,7 +49,7 @@ function buildImbalanceTargets_(targetImbalance) {
     }
 
     const tempMultiplier = config.multiplierItemName
-      ? get_quotation_request_value_(config.multiplierItemName)
+      ? getQuotationRequestValue_(config.multiplierItemName)
       : 1;
 
     const countNum = Number(tempCount);
@@ -70,7 +70,7 @@ function buildImbalanceTargets_(targetImbalance) {
     );
   });
 }
-function writeImbalanceValues_(target, targetImbalance, scriptProps) {
+function writeImbalanceValues_(target, targetImbalance, scriptProperties) {
   const SHEET_IDX = 0;
   const VALUE_IDX = 1;
 
