@@ -1,4 +1,6 @@
 .clasp.json
+.clasp.dev.json
+.clasp.prod.json
 node_modules/
 dist/
 .DS_Store
