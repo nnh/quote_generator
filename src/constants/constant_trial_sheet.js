@@ -1,0 +1,35 @@
+const TRIAL_SHEET = {
+  NAME: "trial",
+  COLUMNS: {
+    SHEET_NAME: 1,
+    TRIAL_YEARS: 3,
+    TRIAL_START: 4,
+    TRIAL_END: 5,
+    TRIAL_MONTHS: 6,
+  },
+  COLIDX: {
+    DUMMY: -1,
+  },
+  COLNAMES: {
+    VALUE: "B",
+  },
+  ROWS: {
+    CASES: 28,
+    FACILITIES: 29,
+    TRIAL_SETUP: 32,
+    TRIAL_CLOSING: 39,
+    DISCOUNT_VALUE: 46,
+  },
+  RANGES: {
+    COMMENT: "B12:B26",
+  },
+  ITEMNAMES: {
+    QUOTATION_TYPE: "見積種別",
+    TRIAL_TYPE: "試験種別",
+    CRF: "CRF項目数",
+  },
+};
+// 列インデックスの生成
+Object.keys(TRIAL_SHEET.COLUMNS).forEach((key) => {
+  TRIAL_SHEET.COLIDX[key] = TRIAL_SHEET.COLUMNS[key] - 1;
+});
