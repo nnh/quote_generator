@@ -1,4 +1,17 @@
-function setTargetInblanceValues_() {
+/**
+ * 不均等配分対象の設定
+ * @typedef {Object} ImbalanceConfig
+ * @property {string} requestItemName リクエストシートの項目名
+ * @property {string[]} exclusionSheets 除外対象のシート名
+ * @property {string} targetItemName 書き込み先シートの項目名
+ * @property {string|null} multiplierItemName 掛け算対象の項目名（なければnull）
+ * @property {(function(any): number)|null} normalize 値変換用関数
+ */
+/**
+ * 不均等配分の設定を取得する
+ * @return {ImbalanceConfig[]}
+ */
+function getImbalanceConfigs_() {
   const setupAndClosingExclusion = [
     QUOTATION_SHEET_NAMES.SETUP,
     QUOTATION_SHEET_NAMES.CLOSING,
@@ -10,6 +23,7 @@ function setTargetInblanceValues_() {
       exclusionSheets: setupAndClosingExclusion,
       targetItemName: ITEMS_SHEET.ITEMNAMES.MONITORING_COUNT_PER_CASE,
       multiplierItemName: ITEM_LABELS.NUMBER_OF_CASES,
+      normalize: null,
     },
     {
       requestItemName:
@@ -17,20 +31,22 @@ function setTargetInblanceValues_() {
       exclusionSheets: setupAndClosingExclusion,
       targetItemName: ITEMS_SHEET.ITEMNAMES.AUDIT_TARGET_FACILITIES,
       multiplierItemName: null,
+      normalize: null,
     },
     {
       requestItemName: QUOTATION_REQUEST_SHEET.ITEMNAMES.REGISTRATION_FEE,
       exclusionSheets: setupAndClosingExclusion,
       targetItemName: ITEMS_SHEET.ITEMNAMES.REGISTRATION_FEE,
       multiplierItemName: ITEM_LABELS.NUMBER_OF_CASES,
+      normalize: (val) => (val === COMMON_EXISTENCE_LABELS.YES ? 1 : 0),
     },
   ];
   return targetImbalance;
 }
-function setImbalanceValues_() {
+function applyImbalanceValues_() {
   // 年毎に設定する値が不均等である項目への対応
   const scriptProperties = PropertiesService.getScriptProperties();
-  const targetImbalance = setTargetInblanceValues_();
+  const targetImbalance = getImbalanceConfigs_();
   const target = buildImbalanceTargets_(targetImbalance);
   writeImbalanceValues_(target, targetImbalance, scriptProperties);
 }
@@ -38,31 +54,22 @@ function buildImbalanceTargets_(targetImbalance) {
   const DividedItemsCount = new GetArrayDividedItemsCountAdd();
 
   return targetImbalance.map((config) => {
-    let tempCount = getQuotationRequestValue_(config.requestItemName);
+    const raw = getQuotationRequestValue_(config.requestItemName);
 
-    // 症例登録毎の支払は「あり、なし」で入力される
-    if (
-      config.requestItemName ===
-      QUOTATION_REQUEST_SHEET.ITEMNAMES.REGISTRATION_FEE
-    ) {
-      tempCount = tempCount === COMMON_EXISTENCE_LABELS.YES ? 1 : 0;
-    }
+    const tempCount = config.normalize ? config.normalize(raw) : raw;
 
     const tempMultiplier = config.multiplierItemName
       ? getQuotationRequestValue_(config.multiplierItemName)
       : 1;
 
-    const countNum = Number(tempCount);
-    const multNum = Number(tempMultiplier);
+    const countNum = toSafeNumber_(tempCount);
+    const multNum = toSafeNumber_(tempMultiplier);
 
-    const targetNumber =
-      Number.isFinite(countNum) && Number.isFinite(multNum)
-        ? countNum * multNum
-        : null;
-
-    if (!Number.isFinite(targetNumber)) {
+    if (countNum === null || multNum === null) {
       return [];
     }
+
+    const targetNumber = countNum * multNum;
 
     return DividedItemsCount.getArrayDividedItemsCount_(
       targetNumber,

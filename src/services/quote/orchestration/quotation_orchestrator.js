@@ -37,7 +37,7 @@ function applyQuotationToSheet_(sheetName) {
  * @return {void}
  */
 function postProcessQuotation_() {
-  setImbalanceValues_();
+  applyImbalanceValues_();
   updateTermSheetVisibility_();
 }
 

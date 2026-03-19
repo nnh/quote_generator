@@ -423,7 +423,7 @@ function runImbalanceTest_(
     SpreadsheetApp.flush();
 
     // 2. 実行
-    const targetImbalance = setTargetInblanceValues_(
+    const targetImbalance = getImbalanceConfigs_(
       scriptProperties,
       patientRegistrationFee,
     );
