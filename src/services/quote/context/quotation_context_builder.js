@@ -28,8 +28,9 @@ function isClinicalTrialsOfficeRequired_() {
     ) === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
 
   const isCommercialFunding =
-    getQuotationRequestValue_(QUOTATION_REQUEST_SHEET.ITEMNAMES.COEFFICIENT) ===
-    QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
+    getQuotationRequestValue_(
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.FUNDING_SOURCE,
+    ) === QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
 
   const hasAdjustmentOffice =
     getQuotationRequestValue_(
@@ -56,12 +57,12 @@ function isClinicalTrialsOfficeRequired_() {
  */
 function buildTrialTermResult_(values, sheetname) {
   const trial_term_values = values.filter(
-    (row) => row[TRIAL_SHEET.COLIDX.SHEET_NAME] === sheetname,
+    (row) => row[TRIAL_SHEET.COLUMN_INDEX.SHEET_NAME] === sheetname,
   )[0];
 
   return {
     trialTargetTerms: trial_term_values
-      ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_MONTHS]
+      ? trial_term_values[TRIAL_SHEET.COLUMN_INDEX.TRIAL_MONTHS]
       : undefined,
     trial_term_values,
   };
@@ -143,12 +144,12 @@ function buildTrialDatesPure_(trial_term_values, props) {
   return {
     trialTargetStartDate: toDate_(
       trial_term_values
-        ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_START]
+        ? trial_term_values[TRIAL_SHEET.COLUMN_INDEX.TRIAL_START]
         : undefined,
     ),
     trialTargetEndDate: toDate_(
       trial_term_values
-        ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_END]
+        ? trial_term_values[TRIAL_SHEET.COLUMN_INDEX.TRIAL_END]
         : undefined,
     ),
     trialStartDate: toDate_(props.trialStartDate),
