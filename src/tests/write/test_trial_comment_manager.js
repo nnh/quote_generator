@@ -22,12 +22,25 @@ function testTrial_comment_manager() {
 function getTestHandleCrfWithCdisc_QuotationRequestArray_(
   value = COMMON_EXISTENCE_LABELS.YES,
 ) {
-  return createTestQuotationRequestArrayWithColumn_(
+  const array_quotation_request = createTestQuotationRequestArrayWithColumn_(
     null,
     "AL",
     "CDISC対応",
     value,
   );
+  const quotation_request_sheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+      QUOTATION_REQUEST_SHEET.NAME,
+    );
+  if (!quotation_request_sheet) {
+    throw new Error("quotation_requestシートが見つかりません");
+  }
+  quotation_request_sheet
+    .getRange(2, 1, 1, array_quotation_request[0].length)
+    .setValues([array_quotation_request[1]]);
+  SpreadsheetApp.flush();
+  _quotationRequestMap = null; // キャッシュクリア
+  buildQuotationRequestMap_();
 }
 function testHandleCrfWithCdisc_common_(
   commentRange,
@@ -38,12 +51,11 @@ function testHandleCrfWithCdisc_common_(
 ) {
   commentRange.clearContent();
   const crfCount = 999;
-  const arrayQuotationRequest =
-    getTestHandleCrfWithCdisc_QuotationRequestArray_(value);
+  getTestHandleCrfWithCdisc_QuotationRequestArray_(value);
   commentRange
     .offset(0, 0, beforeComments.length, beforeComments[0].length)
     .setValues(beforeComments);
-  const dummy = handleCrfWithCdisc_(crfCount);
+  handleCrfWithCdisc_(crfCount);
   SpreadsheetApp.flush();
   const actualCommentFormulas = commentRange.getFormulas();
   const actualCommentValues = commentRange.getValues();

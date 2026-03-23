@@ -28,6 +28,34 @@ function buildCdiscCrfFormula_(crfCount) {
   const crfValue = typeof crfCount === "number" ? crfCount : `"${crfCount}"`;
   return `=${crfValue}*${CDISC_ADDITION}`;
 }
+
+function isCdiscEnabled_() {
+  return (
+    getQuotationRequestValue_(
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.CDISC_SUPPORT,
+    ) === COMMON_EXISTENCE_LABELS.YES
+  );
+}
+
+function convertCrfValueForCdisc_(crfCount, isCdiscEnabled) {
+  if (!isCdiscEnabled) {
+    return crfCount;
+  }
+
+  return buildCdiscCrfFormula_(crfCount);
+}
+
+function applyCdiscComment_(isCdiscEnabled) {
+  if (!isCdiscEnabled) return;
+
+  deleteTrialComment_(
+    '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
+  );
+
+  setTrialComment_(
+    '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
+  );
+}
 /**
  * CRF項目数を CDISC対応有無に応じて調整し、コメントを更新する
  *
@@ -35,27 +63,9 @@ function buildCdiscCrfFormula_(crfCount) {
  * @return {string|number} trialシートに設定する数式文字列またはCRF項目数
  */
 function handleCrfWithCdisc_(crfCount) {
-  const isCdiscEnabled =
-    getQuotationRequestValue_(
-      QUOTATION_REQUEST_SHEET.ITEMNAMES.CDISC_SUPPORT,
-    ) === COMMON_EXISTENCE_LABELS.YES;
-
-  if (!isCdiscEnabled) {
-    return crfCount;
-  }
-
-  // 既存コメント削除
-  deleteTrialComment_(
-    '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
-  );
-
-  // CDISC対応コメント追加
-  setTrialComment_(
-    '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
-  );
-
-  // CRF数を式に変換
-  return buildCdiscCrfFormula_(crfCount);
+  const enabled = isCdiscEnabled_();
+  applyCdiscComment_(enabled);
+  return convertCrfValueForCdisc_(crfCount, enabled);
 }
 /**
  * 見積用スプレッドシート名をリネームする
@@ -203,56 +213,47 @@ function applyTrialType_(trialType, sheet) {
   return;
 }
 
-/**
- * Trialシートの各項目に応じた処理を振り分ける関数
- *
- * この関数は、各試験関連項目に応じて値の変換やスクリプトプロパティの更新、
- * スプレッドシート名の変更などを行います。
- *
- * @param {string} key - 処理対象の項目名（例: "試験種別", "CRF項目数"）
- * @param {any} fieldValue - quotation_requestシートから取得した値
- * @param {Object} context - 共通コンテキストオブジェクト
- * @param {PropertiesService.scriptProperties} context.scriptProperties - スクリプトプロパティ
- * @param {Array.<string>} context.arrayQuotationRequest - quotation_requestシートの値
- * @param {Object} context.sheet - Sheetsオブジェクト（trial, itemsシートなど）
- *
- * @returns {any} - trialシートにセットする最終値。fieldValueがnullの場合はnullを返す
- *
- * @example
- * const processedValue = resolveTrialFieldValue_("CRF項目数", 120, context);
- */
-function resolveTrialFieldValue_(key, fieldValue, context) {
+function resolveTrialFieldValue_(key, fieldValue, options = {}) {
   if (fieldValue == null) return null;
 
-  const scriptProperties = context.scriptProperties;
-  const sheet = context.sheet;
-  const const_facilities = ITEM_LABELS.FACILITIES;
-  const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
+  const { isCdiscEnabled = false } = options;
 
   switch (key) {
     case TRIAL_SHEET.ITEMNAMES.QUOTATION_TYPE:
       return convertQuotationTypeLabel_(fieldValue);
-    case const_number_of_cases:
-      setNumberOfCasesProperty_(fieldValue, scriptProperties);
-      return fieldValue;
-    case const_facilities:
-      setFacilitiesProperty_(fieldValue, scriptProperties);
-      return fieldValue;
-    case TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE:
-      applyTrialType_(fieldValue, sheet);
-      return fieldValue;
+
     case ITEM_LABELS.FUNDING_SOURCE_LABEL:
       return normalizeCoefficient_(fieldValue);
+
     case TRIAL_SHEET.ITEMNAMES.CRF:
-      return handleCrfWithCdisc_(fieldValue);
-    case "試験実施番号":
-      renameSpreadsheetWithAcronym_(fieldValue);
-      return fieldValue;
+      return convertCrfValueForCdisc_(fieldValue, isCdiscEnabled);
+
     default:
       return fieldValue;
   }
 }
 
+function applyTrialSideEffects_(key, fieldValue, context) {
+  const { sheet, scriptProperties } = context;
+
+  switch (key) {
+    case TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE:
+      applyTrialType_(fieldValue, sheet);
+      break;
+    case ITEM_LABELS.NUMBER_OF_CASES:
+      setNumberOfCasesProperty_(fieldValue, scriptProperties);
+      break;
+    case ITEM_LABELS.FACILITIES:
+      setFacilitiesProperty_(fieldValue, scriptProperties);
+      break;
+    case "試験実施番号":
+      renameSpreadsheetWithAcronym_(fieldValue);
+      break;
+    case TRIAL_SHEET.ITEMNAMES.CRF:
+      applyCdiscComment_(context.isCdiscEnabled);
+      break;
+  }
+}
 /**
  * quotation_requestシートの内容からtrialシート, itemsシートを設定する
  * @return {void}
@@ -279,20 +280,25 @@ function applyQuotationRequestToSheets_() {
     [ITEM_LABELS.FUNDING_SOURCE_LABEL, 44],
   ];
   const scriptProperties = PropertiesService.getScriptProperties();
+  const isCdiscEnabled = isCdiscEnabled_();
+
   for (let i = 0; i < trial_list.length; i++) {
     const key = trial_list[i][0];
     const row = Number(trial_list[i][1]);
     const context = {
       sheet: _cachedSheets,
       scriptProperties,
+      isCdiscEnabled,
     };
-
     const quotationRequestValue = getQuotationRequestValue_(key);
     if (quotationRequestValue == null) {
       throw new Error(`Missing quotation request value for key: ${key}`);
     }
 
-    const result = resolveTrialFieldValue_(key, quotationRequestValue, context);
+    applyTrialSideEffects_(key, quotationRequestValue, context);
+    const result = resolveTrialFieldValue_(key, quotationRequestValue, {
+      isCdiscEnabled,
+    });
     trialSheet.getRange(row, 2).setValue(result);
   }
   // 発行年月日に今日の日付を入れる
