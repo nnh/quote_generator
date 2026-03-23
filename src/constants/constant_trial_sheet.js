@@ -14,6 +14,7 @@ const TRIAL_SHEET = {
   ROWS: {
     CASES: 28,
     FACILITIES: 29,
+    CRF: 30,
     TRIAL_SETUP: 32,
     TRIAL_CLOSING: 39,
     DISCOUNT_VALUE: 46,
