@@ -47,26 +47,16 @@ function convertCrfValueForCdisc_(crfCount, isCdiscEnabled) {
 
 function applyCdiscComment_(isCdiscEnabled) {
   if (!isCdiscEnabled) return;
+  const CRF_COMMENT_DEFAULT =
+    '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"';
+  const CRF_COMMENT_CDISC =
+    '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"';
 
-  deleteTrialComment_(
-    '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
-  );
+  deleteTrialComment_(CRF_COMMENT_DEFAULT);
 
-  setTrialComment_(
-    '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
-  );
+  setTrialComment_(CRF_COMMENT_CDISC);
 }
-/**
- * CRF項目数を CDISC対応有無に応じて調整し、コメントを更新する
- *
- * @param {string|number} crfCount CRF項目数（元の値）
- * @return {string|number} trialシートに設定する数式文字列またはCRF項目数
- */
-function handleCrfWithCdisc_(crfCount) {
-  const enabled = isCdiscEnabled_();
-  applyCdiscComment_(enabled);
-  return convertCrfValueForCdisc_(crfCount, enabled);
-}
+
 /**
  * 見積用スプレッドシート名をリネームする
  *
@@ -81,7 +71,6 @@ function renameSpreadsheetWithAcronym_(acronym) {
   const today = Utilities.formatDate(new Date(), "JST", "yyyyMMdd");
   const ss = getSpreadsheet_();
   ss.rename(`Quote ${acronym} ${today}`);
-  return;
 }
 /**
  * 試験期間に必要な日付を取得する
@@ -234,11 +223,11 @@ function resolveTrialFieldValue_(key, fieldValue, options = {}) {
 }
 
 function applyTrialSideEffects_(key, fieldValue, context) {
-  const { sheet, scriptProperties } = context;
+  const { scriptProperties, isCdiscEnabled } = context;
 
   switch (key) {
     case TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE:
-      applyTrialType_(fieldValue, sheet);
+      applyTrialType_(fieldValue, _cachedSheets);
       break;
     case ITEM_LABELS.NUMBER_OF_CASES:
       setNumberOfCasesProperty_(fieldValue, scriptProperties);
@@ -246,11 +235,11 @@ function applyTrialSideEffects_(key, fieldValue, context) {
     case ITEM_LABELS.FACILITIES:
       setFacilitiesProperty_(fieldValue, scriptProperties);
       break;
-    case "試験実施番号":
+    case ITEM_LABELS.ACRONYM:
       renameSpreadsheetWithAcronym_(fieldValue);
       break;
     case TRIAL_SHEET.ITEMNAMES.CRF:
-      applyCdiscComment_(context.isCdiscEnabled);
+      applyCdiscComment_(isCdiscEnabled);
       break;
   }
 }
@@ -272,7 +261,7 @@ function applyQuotationRequestToSheets_() {
     ["見積発行先", 4],
     ["研究代表者名", 8],
     ["試験課題名", 9],
-    ["試験実施番号", 10],
+    [ITEM_LABELS.ACRONYM, 10],
     [TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE, 27],
     [const_number_of_cases, TRIAL_SHEET.ROWS.CASES],
     [const_facilities, TRIAL_SHEET.ROWS.FACILITIES],
@@ -286,7 +275,6 @@ function applyQuotationRequestToSheets_() {
     const key = trial_list[i][0];
     const row = Number(trial_list[i][1]);
     const context = {
-      sheet: _cachedSheets,
       scriptProperties,
       isCdiscEnabled,
     };

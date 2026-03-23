@@ -55,8 +55,10 @@ function testHandleCrfWithCdisc_common_(
   commentRange
     .offset(0, 0, beforeComments.length, beforeComments[0].length)
     .setValues(beforeComments);
-  handleCrfWithCdisc_(crfCount);
   SpreadsheetApp.flush();
+  const enabled = isCdiscEnabled_();
+  applyCdiscComment_(enabled);
+
   const actualCommentFormulas = commentRange.getFormulas();
   const actualCommentValues = commentRange.getValues();
   const actualComments = actualCommentFormulas
@@ -74,7 +76,6 @@ function testHandleCrfWithCdisc_common_(
 }
 
 function testHandleCrfWithCdisc_case1_(commentRange) {
-  // handleCrfWithCdisc_のテスト
   // CDISC対応あり、コメント削除して追加の場合
   const beforeComments = [
     [
@@ -108,7 +109,6 @@ function testHandleCrfWithCdisc_case1_(commentRange) {
   );
 }
 function testHandleCrfWithCdisc_case2_(commentRange) {
-  // handleCrfWithCdisc_のテスト
   // CDISC対応あり、コメントが存在しない場合
   const beforeComments = [
     [
@@ -141,7 +141,6 @@ function testHandleCrfWithCdisc_case2_(commentRange) {
   );
 }
 function testHandleCrfWithCdisc_case3_(commentRange) {
-  // handleCrfWithCdisc_のテスト
   // CDISC対応あり、コメントが存在する場合
   const beforeComments = [
     ["安全性情報管理システムの構築を含みません。"],
@@ -179,7 +178,7 @@ function testHandleCrfWithCdisc_case3_(commentRange) {
   );
 }
 function testHandleCrfWithCdisc_case4_(commentRange) {
-  // handleCrfWithCdisc_のテスト
+  // のテスト
   // CDISC対応なし１
   const beforeComments = [
     ["安全性情報管理システムの構築を含みません。"],
@@ -205,7 +204,6 @@ function testHandleCrfWithCdisc_case4_(commentRange) {
   );
 }
 function testHandleCrfWithCdisc_case5_(commentRange) {
-  // handleCrfWithCdisc_のテスト
   // CDISC対応なし２
   const beforeComments = [
     [
