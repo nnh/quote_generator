@@ -423,12 +423,12 @@ function runImbalanceTest_(
     SpreadsheetApp.flush();
 
     // 2. 実行
-    const targetImbalance = getImbalanceConfigs_(
+    const imbalanceConfigs = getImbalanceConfigs_(
       scriptProperties,
       patientRegistrationFee,
     );
-    const actualValues = buildImbalanceTargets_(
-      targetImbalance,
+    const actualValues = calculateImbalanceTargets_(
+      imbalanceConfigs,
       patientRegistrationFee,
     );
 

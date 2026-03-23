@@ -62,7 +62,7 @@ function getTrialTermInfo_() {
     .getValues();
 }
 
-class GetArrayDividedItemsCount {
+class TermBasedCountDistributor {
   constructor() {
     this.sheetNameIdx = 0;
     this.yearIdx = 2;
@@ -137,7 +137,7 @@ class GetArrayDividedItemsCount {
     return this.dividedItemCount_(totalNumber, target);
   }
 }
-class GetArrayDividedItemsCountAdd extends GetArrayDividedItemsCount {
+class ImbalanceCountDistributor extends TermBasedCountDistributor {
   getArrayDividedItemsCount_(totalNumber, exclusionSheetNames) {
     const target = this.getTargetTerm_(exclusionSheetNames);
     return this.dividedItemCount_(totalNumber, target);
