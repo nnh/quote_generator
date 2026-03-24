@@ -149,9 +149,12 @@ class QuoteRoutineTestRunner {
     const testResults = this.execRoutineTest(targetRow, falseRowNumbers);
 
     const messageNG = messageNg ?? `!!! execTestMain ng. ${testResults} !!!`;
-
-    console.log(testResults ? messageOk : messageNG);
-    return testResults;
+    const allPassed = testResults.every((result) => result === true);
+    if (!allPassed) {
+      throw new Error(messageNG);
+    }
+    console.log(messageOk);
+    return allPassed;
   }
   /**
    * ルーチンテスト実行前の初期化処理を行う。
