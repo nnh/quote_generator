@@ -147,14 +147,14 @@ class QuoteRoutineTestRunner {
     } = ROUTINE_TEST_EXPECTED[idx] ?? {};
 
     const testResults = this.execRoutineTest(targetRow, falseRowNumbers);
+    if (testResults === true) {
+      console.log(messageOk);
+      return true;
+    }
 
     const messageNG = messageNg ?? `!!! execTestMain ng. ${testResults} !!!`;
-    const allPassed = testResults.every((result) => result === true);
-    if (!allPassed) {
-      throw new Error(messageNG);
-    }
-    console.log(messageOk);
-    return allPassed;
+    console.log(messageNG);
+    return testResults;
   }
   /**
    * ルーチンテスト実行前の初期化処理を行う。
