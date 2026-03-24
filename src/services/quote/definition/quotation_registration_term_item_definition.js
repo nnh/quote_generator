@@ -43,7 +43,7 @@ function buildRegistrationTermItems_(context) {
  * @returns {Map<string, number>} key: itemName, value: 月数
  */
 function setRegistrationTermItems_(context) {
-  const { sheetname, clinicalTrialsOfficeFlg, registrationDateList } = context;
+  const { sheetName, clinicalTrialsOfficeFlg, registrationDateList } = context;
 
   if (!registrationDateList) {
     throw new Error(
@@ -66,7 +66,7 @@ function setRegistrationTermItems_(context) {
   const clinicalTrialsOfficeItems = buildClinicalTrialsOfficeItems_({
     clinicalTrialsOfficeFlg,
     registrationMonth,
-    sheetname,
+    sheetName,
   });
 
   const items = [
@@ -83,12 +83,12 @@ function setRegistrationTermItems_(context) {
  * @param {Object} params
  * @param {boolean} params.clinicalTrialsOfficeFlg 事務局運営フラグ
  * @param {number} params.registrationMonth Registration期間（月）
- * @param {string} params.sheetname 対象シート名
+ * @param {string} params.sheetName 対象シート名
  *
  * @returns {{ setupOffice: number, registrationOffice: number }}
  */
 function calcClinicalTrialsOfficeValues_(params) {
-  const { clinicalTrialsOfficeFlg, registrationMonth, sheetname } = params;
+  const { clinicalTrialsOfficeFlg, registrationMonth, sheetName } = params;
   const scriptProperties = PropertiesService.getScriptProperties();
 
   let setupOffice = 0;
@@ -97,7 +97,7 @@ function calcClinicalTrialsOfficeValues_(params) {
   if (clinicalTrialsOfficeFlg) {
     registrationOffice = registrationMonth;
 
-    if (sheetname === QUOTATION_SHEET_NAMES.REGISTRATION_1) {
+    if (sheetName === QUOTATION_SHEET_NAMES.REGISTRATION_1) {
       setupOffice =
         Number(
           getScriptProperty_(
@@ -120,19 +120,19 @@ function calcClinicalTrialsOfficeValues_(params) {
  * @param {Object} params
  * @param {boolean} params.clinicalTrialsOfficeFlg
  * @param {number} params.registrationMonth
- * @param {string} params.sheetname
+ * @param {string} params.sheetName 対象シート名
  *
  * @returns {Array<[string, number]>} アイテム名と月数
  */
 function buildClinicalTrialsOfficeItems_({
   clinicalTrialsOfficeFlg,
   registrationMonth,
-  sheetname,
+  sheetName,
 }) {
   const { setupOffice, registrationOffice } = calcClinicalTrialsOfficeValues_({
     clinicalTrialsOfficeFlg,
     registrationMonth,
-    sheetname,
+    sheetName,
   });
 
   // 値が0の項目は出力しない
@@ -147,22 +147,22 @@ function buildClinicalTrialsOfficeItems_({
 
 /**
  * 対象シート・期間条件から処理をスキップすべきか判定する
- * @param {string} sheetname 対象シート名
+ * @param {string} sheetName 対象シート名
  * @param {number} trialTargetTerms 試験対象期間
  * @param {number} setupTermLimit Setup期間の制限
  * @param {number} closingTermLimit Closing期間の制限
  * @return {boolean} true の場合は処理をスキップ
  */
 function shouldSkipRegistrationTermItems_(
-  sheetname,
+  sheetName,
   trialTargetTerms,
   setupTermLimit,
   closingTermLimit,
 ) {
   return (
-    (sheetname === QUOTATION_SHEET_NAMES.SETUP &&
+    (sheetName === QUOTATION_SHEET_NAMES.SETUP &&
       trialTargetTerms < setupTermLimit) ||
-    (sheetname === QUOTATION_SHEET_NAMES.CLOSING &&
+    (sheetName === QUOTATION_SHEET_NAMES.CLOSING &&
       trialTargetTerms < closingTermLimit)
   );
 }
@@ -170,7 +170,7 @@ function shouldSkipRegistrationTermItems_(
 /**
  * Registration処理用コンテキスト
  * @typedef {Object} RegistrationContext
- * @property {string} sheetname 対象シート名
+ * @property {string} sheetName 対象シート名
  * @property {boolean} clinicalTrialsOfficeFlg 事務局運営フラグ
  * @property {RegistrationDateList} registrationDateList Registration期間計算用日付情報
  */

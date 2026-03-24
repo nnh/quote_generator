@@ -52,19 +52,19 @@ function isClinicalTrialsOfficeRequired_() {
  *   対象となるシート名
  * @return {{
  *   trialTargetTerms: any,
- *   trial_term_values: Array|undefined
+ *   trialTerm: Array|undefined
  * }}
  */
 function buildTrialTermResult_(values, sheetname) {
-  const trial_term_values = values.filter(
+  const trialTerm = values.filter(
     (row) => row[TRIAL_SHEET.COLUMN_INDEX.SHEET_NAME] === sheetname,
   )[0];
 
   return {
-    trialTargetTerms: trial_term_values
-      ? trial_term_values[TRIAL_SHEET.COLUMN_INDEX.TRIAL_MONTHS]
+    trialTargetTerms: trialTerm
+      ? trialTerm[TRIAL_SHEET.COLUMN_INDEX.TRIAL_MONTHS]
       : undefined,
-    trial_term_values,
+    trialTerm,
   };
 }
 /**
@@ -183,14 +183,14 @@ function initSetSheetItemTrialDates_(trial_term_values) {
  * @return {Object}
  */
 function buildSheetContext_(sheetName) {
-  const trialTerm = getTrialTerm_(sheetName);
-  const trialDates = initSetSheetItemTrialDates_(trialTerm.trialTermValues);
+  const { trialTargetTerms, trialTerm } = getTrialTerm_(sheetName);
+  const trialDates = initSetSheetItemTrialDates_(trialTerm);
 
   return {
     sheetName,
 
-    trialTargetTerms: trialTerm.trialTargetTerms,
-    trialTermValues: trialTerm.trialTermValues,
+    trialTargetTerms: trialTargetTerms,
+    trialTermValues: trialTerm,
 
     trialTargetStartDate: trialDates.trialTargetStartDate,
     trialTargetEndDate: trialDates.trialTargetEndDate,
