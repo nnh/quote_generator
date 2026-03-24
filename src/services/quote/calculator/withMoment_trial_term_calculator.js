@@ -228,7 +228,7 @@ function calculateRegistrationDurationYears_(
     observation2End ?? registration2End ?? registration1End ?? trialEnd,
   );
 
-  return get_years_(start, end);
+  return calculateYearSpan_(start, end);
 }
 
 function buildTermPeriods_({

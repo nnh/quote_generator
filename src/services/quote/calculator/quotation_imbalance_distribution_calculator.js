@@ -76,7 +76,7 @@ function applyImbalanceValues_() {
  * @return {(Array<Array<string|number>>|null)[]} 各設定ごとの配分結果配列または null
  */
 function calculateImbalanceTargets_(imbalanceConfigs) {
-  const DividedItemsCount = new ImbalanceCountDistributor();
+  const trialTermInfo = normalizeTrialTermInfo_(getTrialTermInfo_());
 
   return imbalanceConfigs.map((config) => {
     const raw = getQuotationRequestValue_(config.requestItemName);
@@ -96,8 +96,9 @@ function calculateImbalanceTargets_(imbalanceConfigs) {
 
     const targetNumber = countNum * multNum;
 
-    return DividedItemsCount.getArrayDividedItemsCount_(
+    return getArrayDividedItemsCount_(
       targetNumber,
+      trialTermInfo,
       config.exclusionSheets,
     );
   });
