@@ -217,3 +217,40 @@ function test_findRowIndexByValue() {
 
   assertEquals_(actual2, expected2, "value not found");
 }
+
+function test_buildItemRowIndexMap_() {
+  // --- 準備 ---
+  const sheets = get_sheets();
+  const sheetNames = getTargetSheetNameForTest_();
+
+  const columnNumber = 2; // B列想定
+
+  const testCases = [
+    ["プロトコルレビュー・作成支援", 6],
+    ["プロジェクト管理", 13],
+    ["データベース管理料", 34],
+  ];
+
+  sheetNames.forEach((sheetName) => {
+    const sheet = sheets[sheetName];
+
+    // --- 実行 ---
+    const itemRowMap = buildItemRowIndexMap_(sheet, columnNumber);
+
+    // --- 検証 ---
+    testCases.forEach(([itemName, expectedRow]) => {
+      assertEquals_(
+        expectedRow,
+        itemRowMap[itemName],
+        `(${sheetName}) should map '${itemName}' to row ${expectedRow}`,
+      );
+    });
+
+    // 存在しない値の確認
+    assertEquals_(
+      undefined,
+      itemRowMap["存在しない値"],
+      `(${sheetName}) should return undefined for non-existing item`,
+    );
+  });
+}

@@ -58,7 +58,7 @@ function validationBuildTotalTargets_() {
   const targetTotal = {
     sheet: _cachedSheets.total,
     sheetName: _cachedSheets.total.getName(),
-    array_item: get_fy_items_(
+    array_item: buildItemRowIndexMap_(
       _cachedSheets.total,
       TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
     ),
@@ -70,7 +70,7 @@ function validationBuildTotalTargets_() {
   const targetTotalAmount = {
     sheet: _cachedSheets.total,
     sheetName: _cachedSheets.total.getName(),
-    array_item: get_fy_items_(_cachedSheets.total, 2),
+    array_item: buildItemRowIndexMap_(_cachedSheets.total, 2),
     col: 9,
     colIndex: 8,
     footer: "（金額）",

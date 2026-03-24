@@ -126,7 +126,7 @@ function writeImbalanceValues_(target, imbalanceConfigs) {
         return;
       }
 
-      const sheetItems = get_fy_items_(
+      const sheetItems = buildItemRowIndexMap_(
         targetSheet,
         TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
       );

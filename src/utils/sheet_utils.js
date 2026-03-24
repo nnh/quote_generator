@@ -194,3 +194,43 @@ function getColumnString_(columnNumber) {
 
   return result;
 }
+
+/**
+ * 指定した列から「項目名 → 行番号」のマップを生成する。
+ *
+ * シートの指定列を上から順に走査し、値をキー、行番号（1始まり）を値として
+ * オブジェクトに格納する。
+ * 同名の項目が複数存在する場合は、最後に出現した行番号を採用する。
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet 対象のシートオブジェクト
+ * @param {number|string} itemColumnNumber 項目名が格納されている列番号（1始まり）
+ * @returns {Object.<string, number>} 項目名と行番号の対応マップ
+ *
+ * @example
+ * const itemRowMap = buildItemRowIndexMap_(sheet, 2);
+ * // 例: { "契約・支払手続": 24, "バリデーション報告書": 39 }
+ */
+
+function buildItemRowIndexMap_(sheet, itemColumnNumber) {
+  const columnNumber = Number(itemColumnNumber);
+
+  if (!Number.isInteger(columnNumber) || columnNumber <= 0) {
+    throw new Error(
+      `buildItemRowIndexMap_: 列番号は1以上の整数で指定してください: ${itemColumnNumber}`,
+    );
+  }
+
+  const values = sheet
+    .getRange(1, columnNumber, sheet.getLastRow(), 1)
+    .getValues();
+
+  const itemRowMap = {};
+  // 同名項目が複数ある場合は最後の行番号を採用する
+  for (let i = 0; i < values.length; i++) {
+    const value = values[i][0];
+    if (value !== "" && value != null) {
+      itemRowMap[value] = i + 1;
+    }
+  }
+  return itemRowMap;
+}
