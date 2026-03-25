@@ -1,12 +1,8 @@
 /**
- * テスト用スクリプト: trial_term_service の calculateMonthSpan_ と calculateYearSpan_ の動作確認（Moment対応）
+ * テスト用スクリプト:
+ * calculateMonthSpan_ と calculateYearSpan_ の動作確認（Date版）
  */
 function test_calculateMonthSpan_and_years() {
-  // 文字列 → Moment（空文字は null）
-  function toMoment(str) {
-    return str ? Moment.moment(str) : null;
-  }
-
   const testCases = [
     {
       start: "2024-01-01",
@@ -26,20 +22,30 @@ function test_calculateMonthSpan_and_years() {
       expectedMonths: 12,
       expectedYears: 1,
     },
-    { start: "", end: "2025-01-01", expectedMonths: null, expectedYears: null },
-    { start: "2024-01-01", end: "", expectedMonths: null, expectedYears: null },
+    {
+      start: "",
+      end: "2025-01-01",
+      expectedMonths: null,
+      expectedYears: null,
+    },
+    {
+      start: "2024-01-01",
+      end: "",
+      expectedMonths: null,
+      expectedYears: null,
+    },
   ];
 
   let hasError = false;
 
   testCases.forEach((tc, idx) => {
-    const start = toMoment(tc.start);
-    const end = toMoment(tc.end);
+    const start = toDate_(tc.start);
+    const end = toDate_(tc.end);
 
     let months, years;
 
     if (start && end) {
-      // 本番関数をそのまま使用（Moment前提）
+      // Dateのまま渡す
       months = calculateMonthSpan_(start, end);
       years = calculateYearSpan_(start, end);
     } else {
@@ -47,22 +53,24 @@ function test_calculateMonthSpan_and_years() {
       years = null;
     }
 
-    console.log(`Test ${idx + 1}: Start=${tc.start}, End=${tc.end}`);
-    console.log(`Expected Months=${tc.expectedMonths}, Actual=${months}`);
-    console.log(`Expected Years=${tc.expectedYears}, Actual=${years}`);
-    console.log("---");
+    Logger.log(`Test ${idx + 1}: Start=${tc.start}, End=${tc.end}`);
+    Logger.log(`Expected Months=${tc.expectedMonths}, Actual=${months}`);
+    Logger.log(`Expected Years=${tc.expectedYears}, Actual=${years}`);
+    Logger.log("---");
 
     if (months !== tc.expectedMonths) {
-      console.error(`❌ Months mismatch in test ${idx + 1}`);
+      Logger.log(`❌ Months mismatch in test ${idx + 1}`);
       hasError = true;
     }
     if (years !== tc.expectedYears) {
-      console.error(`❌ Years mismatch in test ${idx + 1}`);
+      Logger.log(`❌ Years mismatch in test ${idx + 1}`);
       hasError = true;
     }
   });
 
   if (!hasError) {
-    console.log("✅ 全てのテストが正常に完了しました。");
+    Logger.log("✅ 全てのテストが正常に完了しました。");
+  } else {
+    throw new Error("❌ テスト失敗があります");
   }
 }

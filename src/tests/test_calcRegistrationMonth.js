@@ -14,9 +14,11 @@ function testCalcRegistrationMonth_(testCase, caseNumber) {
       `Test${caseNumber} failed: expected ${testCase.expected}, but got ${actual}`,
     );
   }
-  console.log(
-    `Test${caseNumber} passed: expected ${testCase.expected}, got ${actual}`,
+
+  Logger.log(
+    `✅ Test${caseNumber} passed: expected ${testCase.expected}, got ${actual}`,
   );
+
   return true;
 }
 
@@ -25,7 +27,6 @@ function testCalcRegistrationMonth_(testCase, caseNumber) {
  *
  * 【前提】
  * - trialTargetTerms は Number（月数）
- * - 日付はすべて Moment オブジェクト
  */
 
 function testCalcRegistrationMonth() {
@@ -41,10 +42,10 @@ function testCalcRegistrationMonth() {
    */
   const case1 = {
     trialTargetTerms: 18,
-    trialStartDate: Moment.moment("2024-01-01"),
-    trialEndDate: Moment.moment("2024-01-01"),
-    trialTargetStartDate: Moment.moment("2024-01-01"),
-    trialTargetEndDate: Moment.moment("2024-01-01"),
+    trialStartDate: toDate_("2024-01-01"),
+    trialEndDate: toDate_("2024-01-01"),
+    trialTargetStartDate: toDate_("2024-01-01"),
+    trialTargetEndDate: toDate_("2024-01-01"),
     expected: 12,
   };
   if (!testCalcRegistrationMonth_(case1, 1)) {
@@ -68,10 +69,10 @@ function testCalcRegistrationMonth() {
    */
   const case2 = {
     trialTargetTerms: 12,
-    trialStartDate: Moment.moment("2022-10-01"),
-    trialEndDate: Moment.moment("2025-01-31"),
-    trialTargetStartDate: Moment.moment("2023-04-01"),
-    trialTargetEndDate: Moment.moment("2024-03-31"),
+    trialStartDate: toDate_("2022-10-01"),
+    trialEndDate: toDate_("2025-01-31"),
+    trialTargetStartDate: toDate_("2023-04-01"),
+    trialTargetEndDate: toDate_("2024-03-31"),
     expected: 12,
   };
   if (!testCalcRegistrationMonth_(case2, 2)) {
@@ -93,10 +94,10 @@ function testCalcRegistrationMonth() {
    */
   const case3 = {
     trialTargetTerms: 11,
-    trialStartDate: Moment.moment("2022-11-01"),
-    trialEndDate: Moment.moment("2025-01-31"),
-    trialTargetStartDate: Moment.moment("2022-05-01"),
-    trialTargetEndDate: Moment.moment("2023-03-31"),
+    trialStartDate: toDate_("2022-11-01"),
+    trialEndDate: toDate_("2025-01-31"),
+    trialTargetStartDate: toDate_("2022-05-01"),
+    trialTargetEndDate: toDate_("2023-03-31"),
     expected: 5,
   };
   if (!testCalcRegistrationMonth_(case3, 3)) {
@@ -117,10 +118,10 @@ function testCalcRegistrationMonth() {
    */
   const case4 = {
     trialTargetTerms: 12,
-    trialStartDate: Moment.moment("2022-10-01"),
-    trialEndDate: Moment.moment("2025-01-31"),
-    trialTargetStartDate: Moment.moment("2024-04-01"),
-    trialTargetEndDate: Moment.moment("2025-03-31"),
+    trialStartDate: toDate_("2022-10-01"),
+    trialEndDate: toDate_("2025-01-31"),
+    trialTargetStartDate: toDate_("2024-04-01"),
+    trialTargetEndDate: toDate_("2025-03-31"),
     expected: 10,
   };
   if (!testCalcRegistrationMonth_(case4, 4)) {
@@ -144,10 +145,10 @@ function testCalcRegistrationMonth() {
    */
   const case5 = {
     trialTargetTerms: 6,
-    trialStartDate: Moment.moment("2022-04-01"),
-    trialEndDate: Moment.moment("2025-01-31"),
-    trialTargetStartDate: Moment.moment("2021-10-01"),
-    trialTargetEndDate: Moment.moment("2022-03-31"),
+    trialStartDate: toDate_("2022-04-01"),
+    trialEndDate: toDate_("2025-01-31"),
+    trialTargetStartDate: toDate_("2021-10-01"),
+    trialTargetEndDate: toDate_("2022-03-31"),
     expected: 0,
   };
   if (!testCalcRegistrationMonth_(case5, 5)) {
@@ -177,10 +178,10 @@ function testCalcRegistrationMonth() {
    */
   const case6 = {
     trialTargetTerms: 6,
-    trialStartDate: Moment.moment("2022-01-01"),
-    trialEndDate: Moment.moment("2022-12-31"),
-    trialTargetStartDate: Moment.moment("2023-01-01"),
-    trialTargetEndDate: Moment.moment("2023-06-30"),
+    trialStartDate: toDate_("2022-01-01"),
+    trialEndDate: toDate_("2022-12-31"),
+    trialTargetStartDate: toDate_("2023-01-01"),
+    trialTargetEndDate: toDate_("2023-06-30"),
     expected: 0,
   };
 
@@ -196,10 +197,10 @@ function testCalcRegistrationMonth() {
    */
   const case7 = {
     trialTargetTerms: 2,
-    trialStartDate: Moment.moment("2025-04-01"),
-    trialEndDate: Moment.moment("2025-05-31"),
-    trialTargetStartDate: Moment.moment("2025-04-01"),
-    trialTargetEndDate: Moment.moment("2025-05-31"),
+    trialStartDate: toDate_("2025-04-01"),
+    trialEndDate: toDate_("2025-05-31"),
+    trialTargetStartDate: toDate_("2025-04-01"),
+    trialTargetEndDate: toDate_("2025-05-31"),
     expected: 2,
   };
   if (!testCalcRegistrationMonth_(case7, 7)) {
@@ -212,10 +213,10 @@ function testCalcRegistrationMonth() {
    */
   const case8 = {
     trialTargetTerms: 6,
-    trialStartDate: Moment.moment("2025-10-01"),
-    trialEndDate: Moment.moment("2026-05-31"),
-    trialTargetStartDate: Moment.moment("2025-10-01"),
-    trialTargetEndDate: Moment.moment("2026-03-31"),
+    trialStartDate: toDate_("2025-10-01"),
+    trialEndDate: toDate_("2026-05-31"),
+    trialTargetStartDate: toDate_("2025-10-01"),
+    trialTargetEndDate: toDate_("2026-03-31"),
     expected: 6,
   };
   if (!testCalcRegistrationMonth_(case8, 8)) {
@@ -228,10 +229,10 @@ function testCalcRegistrationMonth() {
    */
   const case9 = {
     trialTargetTerms: 3,
-    trialStartDate: Moment.moment("2025-10-01"),
-    trialEndDate: Moment.moment("2026-03-31"),
-    trialTargetStartDate: Moment.moment("2026-01-01"),
-    trialTargetEndDate: Moment.moment("2026-03-31"),
+    trialStartDate: toDate_("2025-10-01"),
+    trialEndDate: toDate_("2026-03-31"),
+    trialTargetStartDate: toDate_("2026-01-01"),
+    trialTargetEndDate: toDate_("2026-03-31"),
     expected: 3,
   };
   if (!testCalcRegistrationMonth_(case9, 9)) {
