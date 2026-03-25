@@ -1,67 +1,7 @@
 /**
- * Trial / Items シート生成・価格設定・コメント操作
- */
-function convertQuotationTypeLabel_(value) {
-  return value === "正式見積" ? "御見積書" : "御参考見積書";
-}
-/**
- * 見積係数を正規化する
- * - 商用企業の場合は 1.5
- * - それ以外は 1
+ * 見積用スプレッドシート名をリネームする（副作用あり）
  *
- * @param {string} coefficientValue quotation_request から取得した値
- * @param {PropertiesService.Properties} scriptProperties
- * @return {number} 正規化後の係数
- */
-function normalizeCoefficient_(coefficientValue) {
-  const commercialCoefficient = QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
-
-  return coefficientValue === commercialCoefficient ? 1.5 : 1;
-}
-/**
- * CRF数をCDISC加算用の式に変換する
- *
- * @param {string|number} crfCount
- * @return {string}
- */
-function buildCdiscCrfFormula_(crfCount) {
-  const crfValue = typeof crfCount === "number" ? crfCount : `"${crfCount}"`;
-  return `=${crfValue}*${CDISC_ADDITION}`;
-}
-/**
- * CRF項目数を CDISC対応有無に応じて調整し、コメントを更新する
- *
- * @param {string|number} crfCount CRF項目数（元の値）
- * @return {string|number} trialシートに設定する数式文字列またはCRF項目数
- */
-function handleCrfWithCdisc_(crfCount) {
-  const isCdiscEnabled =
-    getQuotationRequestValue_(
-      QUOTATION_REQUEST_SHEET.ITEMNAMES.CDISC_SUPPORT,
-    ) === COMMON_EXISTENCE_LABELS.YES;
-
-  if (!isCdiscEnabled) {
-    return crfCount;
-  }
-
-  // 既存コメント削除
-  deleteTrialComment_(
-    '="CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
-  );
-
-  // CDISC対応コメント追加
-  setTrialComment_(
-    '="CDISC SDTM変数へのプレマッピングを想定し、CRFのべ項目数を一症例あたり"&$B$30&"項目と想定しております。"',
-  );
-
-  // CRF数を式に変換
-  return buildCdiscCrfFormula_(crfCount);
-}
-/**
- * 見積用スプレッドシート名をリネームする
- *
- * 形式:
- *   Quote {acronym} {yyyyMMdd}
+ * 形式: Quote {acronym} {yyyyMMdd}
  *
  * @param {string} acronym 試験実施番号
  * @return {void}
@@ -71,11 +11,13 @@ function renameSpreadsheetWithAcronym_(acronym) {
   const today = Utilities.formatDate(new Date(), "JST", "yyyyMMdd");
   const ss = getSpreadsheet_();
   ss.rename(`Quote ${acronym} ${today}`);
-  return;
 }
+
 /**
- * 試験期間に必要な日付を取得する
- * @return {{trialStartDate:any, trialEndDate:any}|null}
+ * 試験期間の開始日・終了日を取得する
+ *
+ * @return {{trialStartDate: *, trialEndDate: *}|null}
+ *   両方存在する場合のみオブジェクトを返し、欠損があれば null を返す
  */
 function getTrialDates_() {
   const trialStartDate = getQuotationRequestValue_(
@@ -96,73 +38,10 @@ function getTrialDates_() {
 }
 
 /**
- * trialシートに試験期間配列を書き込む
- *
- * @param {Object} sheet sheetsオブジェクト
- * @param {Array.<Array.<Date>>} trialDateArray 試験期間配列
- * @param {number} trialSetupRow trialSetup開始行
- * @param {number} trialStartCol trial開始列
- * @param {number} trialEndCol trial終了列
- * @param {number} trialYearsCol 年数表示列
- * @param {number} totalMonthCol 総月数表示列
- * @return {void}
- */
-function writeTrialDatesToSheet_(
-  sheet,
-  trialDateArray,
-  trialSetupRow,
-  trialStartCol,
-  trialEndCol,
-  trialYearsCol,
-  totalMonthCol,
-) {
-  let lastRow = null;
-
-  trialDateArray.forEach((dates, i) => {
-    const startCell = sheet.trial.getRange(trialSetupRow + i, trialStartCol);
-    const endCell = sheet.trial.getRange(trialSetupRow + i, trialEndCol);
-
-    const [startDate, endDate] = dates;
-
-    if (startDate) startCell.setValue(startDate);
-    if (endDate) endCell.setValue(endDate);
-
-    const startAddr = startCell.getA1Notation();
-    const endAddr = endCell.getA1Notation();
-
-    sheet.trial
-      .getRange(trialSetupRow + i, trialYearsCol)
-      .setFormula(
-        `=if(and($${startAddr}<>"",$${endAddr}<>""),datedif($${startAddr},$${endAddr},"y")+1,"")`,
-      );
-
-    lastRow = trialSetupRow + i;
-  });
-
-  // total（月数）
-  const totalCell = sheet.trial.getRange(lastRow, totalMonthCol);
-  totalCell.setFormula(
-    `=datedif(${sheet.trial
-      .getRange(lastRow, trialStartCol)
-      .getA1Notation()},(${sheet.trial
-      .getRange(lastRow, trialEndCol)
-      .getA1Notation()}+1),"m")`,
-  );
-
-  // x年xヶ月 表示
-  sheet.trial
-    .getRange(lastRow, trialYearsCol)
-    .setFormula(
-      `=trunc(${totalCell.getA1Notation()}/12) & "年" & if(mod(${totalCell.getA1Notation()},12)<>0,mod(${totalCell.getA1Notation()},12) & "ヶ月","")`,
-    );
-  return;
-}
-
-/**
- * 試験種別に応じて試験期間を計算し、trialシートへ反映する
+ * 試験種別に応じて試験期間を計算しtrialシートへ反映する（副作用あり）
  *
  * @param {string} trialType 試験種別
- * @param {Object} sheet sheets オブジェクト
+ * @param {{trial: GoogleAppsScript.Spreadsheet.Sheet}} sheet sheetsオブジェクト
  * @return {void}
  */
 function applyTrialType_(trialType, sheet) {
@@ -184,7 +63,7 @@ function applyTrialType_(trialType, sheet) {
   const trialEndCol = TRIAL_SHEET.COLUMNS.TRIAL_END;
   const trialSetupRow = TRIAL_SHEET.ROWS.TRIAL_SETUP;
   const trialYearsCol = TRIAL_SHEET.COLUMNS.TRIAL_YEARS;
-  const totalMonthCol = 6;
+  const totalMonthCol = TRIAL_SHEET.COLUMNS.TRIAL_MONTHS;
 
   // 既存値クリア
   sheet.trial
@@ -204,60 +83,10 @@ function applyTrialType_(trialType, sheet) {
 }
 
 /**
- * Trialシートの各項目に応じた処理を振り分ける関数
+ * quotation_requestシートの内容をもとに
+ * trialシートおよびitemsシートを更新する（副作用あり）
  *
- * この関数は、各試験関連項目に応じて値の変換やスクリプトプロパティの更新、
- * スプレッドシート名の変更などを行います。
- *
- * @param {string} key - 処理対象の項目名（例: "試験種別", "CRF項目数"）
- * @param {any} fieldValue - quotation_requestシートから取得した値
- * @param {Object} context - 共通コンテキストオブジェクト
- * @param {PropertiesService.scriptProperties} context.scriptProperties - スクリプトプロパティ
- * @param {Array.<string>} context.arrayQuotationRequest - quotation_requestシートの値
- * @param {Object} context.sheet - Sheetsオブジェクト（trial, itemsシートなど）
- *
- * @returns {any} - trialシートにセットする最終値。fieldValueがnullの場合はnullを返す
- *
- * @example
- * const processedValue = resolveTrialFieldValue_("CRF項目数", 120, context);
- */
-function resolveTrialFieldValue_(key, fieldValue, context) {
-  if (fieldValue == null) return null;
-
-  const scriptProperties = context.scriptProperties;
-  const sheet = context.sheet;
-  const const_facilities = ITEM_LABELS.FACILITIES;
-  const const_number_of_cases = ITEM_LABELS.NUMBER_OF_CASES;
-
-  switch (key) {
-    case TRIAL_SHEET.ITEMNAMES.QUOTATION_TYPE:
-      return convertQuotationTypeLabel_(fieldValue);
-    case const_number_of_cases:
-      setNumberOfCasesProperty_(fieldValue, scriptProperties);
-      return fieldValue;
-    case const_facilities:
-      setFacilitiesProperty_(fieldValue, scriptProperties);
-      return fieldValue;
-    case TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE:
-      applyTrialType_(fieldValue, sheet);
-      return fieldValue;
-    case ITEM_LABELS.FUNDING_SOURCE_LABEL:
-      return normalizeCoefficient_(fieldValue);
-    case TRIAL_SHEET.ITEMNAMES.CRF:
-      return handleCrfWithCdisc_(fieldValue);
-    case "試験実施番号":
-      renameSpreadsheetWithAcronym_(fieldValue);
-      return fieldValue;
-    default:
-      return fieldValue;
-  }
-}
-
-/**
- * quotation_requestシートの内容からtrialシート, itemsシートを設定する
  * @return {void}
- * @example
- *   applyQuotationRequestToSheets_();
  */
 function applyQuotationRequestToSheets_() {
   const const_facilities = ITEM_LABELS.FACILITIES;
@@ -271,34 +100,40 @@ function applyQuotationRequestToSheets_() {
     ["見積発行先", 4],
     ["研究代表者名", 8],
     ["試験課題名", 9],
-    ["試験実施番号", 10],
+    [ITEM_LABELS.ACRONYM, 10],
     [TRIAL_SHEET.ITEMNAMES.TRIAL_TYPE, 27],
     [const_number_of_cases, TRIAL_SHEET.ROWS.CASES],
     [const_facilities, TRIAL_SHEET.ROWS.FACILITIES],
-    [TRIAL_SHEET.ITEMNAMES.CRF, 30],
+    [TRIAL_SHEET.ITEMNAMES.CRF, TRIAL_SHEET.ROWS.CRF],
     [ITEM_LABELS.FUNDING_SOURCE_LABEL, 44],
   ];
   const scriptProperties = PropertiesService.getScriptProperties();
+  const isCdiscEnabled = isCdiscEnabled_();
+
   for (let i = 0; i < trial_list.length; i++) {
     const key = trial_list[i][0];
     const row = Number(trial_list[i][1]);
     const context = {
-      sheet: _cachedSheets,
       scriptProperties,
+      isCdiscEnabled,
     };
-
     const quotationRequestValue = getQuotationRequestValue_(key);
     if (quotationRequestValue == null) {
       throw new Error(`Missing quotation request value for key: ${key}`);
     }
 
-    const result = resolveTrialFieldValue_(key, quotationRequestValue, context);
-    trialSheet.getRange(row, 2).setValue(result);
+    applyTrialSideEffects_(key, quotationRequestValue, context);
+    const result = resolveTrialFieldValue_(key, quotationRequestValue, {
+      isCdiscEnabled,
+    });
+    trialSheet.getRange(row, TRIAL_SHEET.COLUMNS.VALUE).setValue(result);
   }
   // 発行年月日に今日の日付を入れる
   const date_of_issue = findRowByValue_(trialSheet, 1, "発行年月日");
   if (date_of_issue > 0) {
-    trialSheet.getRange(date_of_issue, 2).setValue(formatTodayYmd_());
+    trialSheet
+      .getRange(date_of_issue, TRIAL_SHEET.COLUMNS.VALUE)
+      .setValue(formatTodayYmd_());
   }
   const itemSheet = _cachedSheets.items;
   if (!itemSheet) {

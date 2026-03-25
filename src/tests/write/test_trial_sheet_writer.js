@@ -1,7 +1,9 @@
 function test_trialSheetWriter() {
   test_convertQuotationTypeLabel_();
   test_normalizeCoefficient_();
+  test_convertCrfValueForCdisc_();
   test_buildCdiscCrfFormula_();
+  test_resolveTrialFieldValue_();
 }
 function test_convertQuotationTypeLabel_() {
   const actualFormal = convertQuotationTypeLabel_("正式見積");
@@ -64,4 +66,72 @@ function test_buildCdiscCrfFormula_() {
     expectedString,
     "文字列はクォート付きで式になること",
   );
+}
+function test_resolveTrialFieldValue_() {
+  test_resolveTrialFieldValue_null();
+  test_resolveTrialFieldValue_quotationType();
+  test_resolveTrialFieldValue_fundingSource();
+  test_resolveTrialFieldValue_crf();
+  test_resolveTrialFieldValue_default();
+}
+function test_resolveTrialFieldValue_null() {
+  const actual = resolveTrialFieldValue_("何でもいい", null);
+  const expected = null;
+
+  assertEquals_(actual, expected, "nullの場合はnullが返ること");
+}
+function test_resolveTrialFieldValue_quotationType() {
+  const key = TRIAL_SHEET.ITEMNAMES.QUOTATION_TYPE;
+
+  const actual = resolveTrialFieldValue_(key, "正式見積");
+  const expected = "御見積書";
+
+  assertEquals_(
+    actual,
+    expected,
+    "QUOTATION_TYPEはconvertQuotationTypeLabel_が適用されること",
+  );
+}
+function test_resolveTrialFieldValue_fundingSource() {
+  const key = ITEM_LABELS.FUNDING_SOURCE_LABEL;
+  const commercial = QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
+
+  const actual = resolveTrialFieldValue_(key, commercial);
+  const expected = 1.5;
+
+  assertEquals_(
+    actual,
+    expected,
+    "FUNDING_SOURCEはnormalizeCoefficient_が適用されること",
+  );
+}
+function test_resolveTrialFieldValue_crf() {
+  const key = TRIAL_SHEET.ITEMNAMES.CRF;
+
+  const actual = resolveTrialFieldValue_(key, 10, {
+    isCdiscEnabled: true,
+  });
+
+  const expected = `=10*${CDISC_ADDITION}`;
+
+  assertEquals_(actual, expected, "CDISCありの場合は式になる");
+}
+function test_resolveTrialFieldValue_default() {
+  const actual = resolveTrialFieldValue_("未知キー", "そのまま値");
+  const expected = "そのまま値";
+
+  assertEquals_(actual, expected, "対象外キーはそのまま返ること");
+}
+
+function test_convertCrfValueForCdisc_() {
+  // CDISCあり
+  const actualEnabled = convertCrfValueForCdisc_(10, true);
+  const expectedEnabled = `=10*${CDISC_ADDITION}`;
+
+  assertEquals_(actualEnabled, expectedEnabled, "CDISCありの場合は式になる");
+
+  // CDISCなし
+  const actualDisabled = convertCrfValueForCdisc_(10, false);
+
+  assertEquals_(actualDisabled, 10, "CDISCなしの場合はそのまま");
 }

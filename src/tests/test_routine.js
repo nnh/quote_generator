@@ -147,10 +147,13 @@ class QuoteRoutineTestRunner {
     } = ROUTINE_TEST_EXPECTED[idx] ?? {};
 
     const testResults = this.execRoutineTest(targetRow, falseRowNumbers);
+    if (testResults === true) {
+      console.log(messageOk);
+      return true;
+    }
 
     const messageNG = messageNg ?? `!!! execTestMain ng. ${testResults} !!!`;
-
-    console.log(testResults ? messageOk : messageNG);
+    console.log(messageNG);
     return testResults;
   }
   /**

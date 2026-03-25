@@ -1,7 +1,7 @@
 /**
- * テスト用スクリプト: trial_term_service の get_months_ と get_years_ の動作確認（Moment対応）
+ * テスト用スクリプト: trial_term_service の calculateMonthSpan_ と calculateYearSpan_ の動作確認（Moment対応）
  */
-function test_get_months_and_years() {
+function test_calculateMonthSpan_and_years() {
   // 文字列 → Moment（空文字は null）
   function toMoment(str) {
     return str ? Moment.moment(str) : null;
@@ -40,8 +40,8 @@ function test_get_months_and_years() {
 
     if (start && end) {
       // 本番関数をそのまま使用（Moment前提）
-      months = get_months_(start, end);
-      years = get_years_(start, end);
+      months = calculateMonthSpan_(start, end);
+      years = calculateYearSpan_(start, end);
     } else {
       months = null;
       years = null;

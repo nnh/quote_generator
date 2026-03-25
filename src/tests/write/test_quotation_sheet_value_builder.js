@@ -14,7 +14,7 @@ function test_buildSheetValuesWithTargetItems() {
     {
       getTargetCountValues_: () => mockTargetValues,
       initTargetColumn_: () => 1,
-      get_fy_items_: () => mockArrayItem,
+      buildItemRowIndexMap_: () => mockArrayItem,
       applyTargetItemsToValues_: (count, items, targets) => {
         if (count === mockInputValues) return [["RESULT"]];
         if (count === mockTargetValues) return [["RESULT"]];

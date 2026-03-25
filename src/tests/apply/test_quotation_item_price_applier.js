@@ -14,12 +14,13 @@ function testInsuranceFee_(quotationRequestValue, expectedValue, testName) {
   if (!insuranceFeeRow) {
     throw new Error("itemsシートの保険料行が定義されていません");
   }
-  const itemSheetColumnsPrice = ITEMS_SHEET.COLUMNS.PRICE;
+  const itemSheetColumnsPrice = ITEMS_SHEET.COLUMN_LETTERS.PRICE;
   if (!itemSheetColumnsPrice) {
     throw new Error("itemsシートの単価列が定義されていません");
   }
   const insuranceFeePriceCell = `${itemSheetColumnsPrice}${insuranceFeeRow}`;
-  const itemSheetColumnsBaseUnitPrice = ITEMS_SHEET.COLUMNS.BASE_UNIT_PRICE;
+  const itemSheetColumnsBaseUnitPrice =
+    ITEMS_SHEET.COLUMN_LETTERS.BASE_UNIT_PRICE;
   if (!itemSheetColumnsBaseUnitPrice) {
     throw new Error("itemsシートの基準単価列が定義されていません");
   }
@@ -298,7 +299,8 @@ function testResearchSupportFee_(
   }
   const itemSheet =
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName(itemSheetName);
-  const itemSheetColumnsBaseUnitPrice = ITEMS_SHEET.COLUMNS.BASE_UNIT_PRICE;
+  const itemSheetColumnsBaseUnitPrice =
+    ITEMS_SHEET.COLUMN_LETTERS.BASE_UNIT_PRICE;
   if (!itemSheetColumnsBaseUnitPrice) {
     throw new Error("itemsシートの基準単価列が定義されていません");
   }
@@ -466,21 +468,25 @@ function testResearchSupportFee_(
     [
       "prepareFee",
       itemSheet
-        .getRange(`${ITEMS_SHEET.COLUMNS.PRICE}${itemSheetRowsPrepareFee}`)
+        .getRange(
+          `${ITEMS_SHEET.COLUMN_LETTERS.PRICE}${itemSheetRowsPrepareFee}`,
+        )
         .getValue(),
     ],
     [
       "caseRegistrationFee",
       itemSheet
         .getRange(
-          `${ITEMS_SHEET.COLUMNS.PRICE}${ITEMS_SHEET.ROWS.REGISTRATION_FEE}`,
+          `${ITEMS_SHEET.COLUMN_LETTERS.PRICE}${ITEMS_SHEET.ROWS.REGISTRATION_FEE}`,
         )
         .getValue(),
     ],
     [
       "finalReportFee",
       itemSheet
-        .getRange(`${ITEMS_SHEET.COLUMNS.PRICE}${ITEMS_SHEET.ROWS.REPORT_FEE}`)
+        .getRange(
+          `${ITEMS_SHEET.COLUMN_LETTERS.PRICE}${ITEMS_SHEET.ROWS.REPORT_FEE}`,
+        )
         .getValue(),
     ],
   ]);

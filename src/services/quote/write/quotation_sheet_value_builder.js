@@ -12,7 +12,7 @@ function buildSheetValuesWithTargetItems_(sheetName, targetItems, inputValues) {
 
   const sheet = getSheetByNameCached_(sheetName);
 
-  const itemRowIndexMap = get_fy_items_(
+  const itemRowIndexMap = buildItemRowIndexMap_(
     sheet,
     TOTAL_AND_PHASE_SHEET.COLUMNS.ITEM_NAME,
   );

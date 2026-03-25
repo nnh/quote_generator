@@ -23,7 +23,7 @@ function testApplyTargetItemsToValues_(target_items, test_str, target_row) {
   const targetSheetsName = getTargetSheetNameForTest_();
   targetSheetsName.forEach((sheetname) => {
     const test_name = `testApplyTargetItemsToValues_ : ${test_str} シート[${sheetname}]の場合`;
-    const array_item = get_fy_items_(
+    const array_item = buildItemRowIndexMap_(
       SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetname),
       total_and_phase_sheet_columns_itemname,
     );

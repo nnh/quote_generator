@@ -28,8 +28,9 @@ function isClinicalTrialsOfficeRequired_() {
     ) === TRIAL_TYPE_LABELS.INVESTIGATOR_INITIATED;
 
   const isCommercialFunding =
-    getQuotationRequestValue_(QUOTATION_REQUEST_SHEET.ITEMNAMES.COEFFICIENT) ===
-    QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
+    getQuotationRequestValue_(
+      QUOTATION_REQUEST_SHEET.ITEMNAMES.FUNDING_SOURCE,
+    ) === QUOTATION_COMMERCIAL_FUNDING_SOURCE_LABEL;
 
   const hasAdjustmentOffice =
     getQuotationRequestValue_(
@@ -51,19 +52,19 @@ function isClinicalTrialsOfficeRequired_() {
  *   対象となるシート名
  * @return {{
  *   trialTargetTerms: any,
- *   trial_term_values: Array|undefined
+ *   trialTerm: Array|undefined
  * }}
  */
 function buildTrialTermResult_(values, sheetname) {
-  const trial_term_values = values.filter(
-    (row) => row[TRIAL_SHEET.COLIDX.SHEET_NAME] === sheetname,
+  const trialTerm = values.filter(
+    (row) => row[TRIAL_SHEET.COLUMN_INDEX.SHEET_NAME] === sheetname,
   )[0];
 
   return {
-    trialTargetTerms: trial_term_values
-      ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_MONTHS]
+    trialTargetTerms: trialTerm
+      ? trialTerm[TRIAL_SHEET.COLUMN_INDEX.TRIAL_MONTHS]
       : undefined,
-    trial_term_values,
+    trialTerm,
   };
 }
 /**
@@ -143,12 +144,12 @@ function buildTrialDatesPure_(trial_term_values, props) {
   return {
     trialTargetStartDate: toDate_(
       trial_term_values
-        ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_START]
+        ? trial_term_values[TRIAL_SHEET.COLUMN_INDEX.TRIAL_START]
         : undefined,
     ),
     trialTargetEndDate: toDate_(
       trial_term_values
-        ? trial_term_values[TRIAL_SHEET.COLIDX.TRIAL_END]
+        ? trial_term_values[TRIAL_SHEET.COLUMN_INDEX.TRIAL_END]
         : undefined,
     ),
     trialStartDate: toDate_(props.trialStartDate),
@@ -182,14 +183,14 @@ function initSetSheetItemTrialDates_(trial_term_values) {
  * @return {Object}
  */
 function buildSheetContext_(sheetName) {
-  const trialTerm = getTrialTerm_(sheetName);
-  const trialDates = initSetSheetItemTrialDates_(trialTerm.trialTermValues);
+  const { trialTargetTerms, trialTerm } = getTrialTerm_(sheetName);
+  const trialDates = initSetSheetItemTrialDates_(trialTerm);
 
   return {
     sheetName,
 
-    trialTargetTerms: trialTerm.trialTargetTerms,
-    trialTermValues: trialTerm.trialTermValues,
+    trialTargetTerms: trialTargetTerms,
+    trialTermValues: trialTerm,
 
     trialTargetStartDate: trialDates.trialTargetStartDate,
     trialTargetEndDate: trialDates.trialTargetEndDate,

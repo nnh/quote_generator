@@ -37,7 +37,7 @@ function applyQuotationToSheet_(sheetName) {
  * @return {void}
  */
 function postProcessQuotation_() {
-  setImbalanceValues_();
+  applyImbalanceValues_();
   updateTermSheetVisibility_();
 }
 
@@ -47,7 +47,7 @@ function postProcessQuotation_() {
 function updateTermSheetVisibility_() {
   getTargetTermSheets_().forEach((sheet) => {
     const value = sheet
-      .getRange(PHASE_SHEET.ROWNUMBER.HEADER, PHASE_SHEET.COLUMNNUMBER.HEADER)
+      .getRange(PHASE_SHEET.ROWS.HEADER, PHASE_SHEET.COLUMNS.HEADER)
       .getValue();
     setSheetVisibility_(sheet, value !== "");
   });

@@ -1,9 +1,9 @@
 // ===== Setup〜Closingシート =====
 const PHASE_SHEET = {
-  ROWNUMBER: {
+  ROWS: {
     HEADER: 2,
   },
-  COLUMNNUMBER: {
+  COLUMNS: {
     HEADER: 2,
   },
 };

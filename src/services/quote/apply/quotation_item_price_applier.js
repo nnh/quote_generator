@@ -57,7 +57,7 @@ function processInsuranceFee_(itemSheet) {
  * @return {void}
  */
 function processResearchSupportFee_(itemSheet) {
-  const itemUnitColNumber = getColumnNumber_(ITEMS_SHEET.COLUMNS.UNIT);
+  const itemUnitColNumber = getColumnNumber_(ITEMS_SHEET.COLUMN_LETTERS.UNIT);
   const itemRows = {};
   const itemUnits = {};
   const quotationValues = {};
@@ -175,7 +175,9 @@ function buildItemPriceRow_(price) {
 function writeItemPriceRow_(sheet, price, row) {
   if (!row || row <= 0) return;
 
-  const targetCol = getColumnNumber_(ITEMS_SHEET.COLUMNS.BASE_UNIT_PRICE);
+  const targetCol = getColumnNumber_(
+    ITEMS_SHEET.COLUMN_LETTERS.BASE_UNIT_PRICE,
+  );
   const rowValues = buildItemPriceRow_(price);
 
   sheet.getRange(row, targetCol, 1, rowValues.length).setValues([rowValues]);
