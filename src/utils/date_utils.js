@@ -24,15 +24,15 @@ function formatTodayYmd_(baseDate = new Date()) {
 }
 
 /**
- * 指定日が属する日本年度の年度末（3/31）を返す（Moment非依存）
+ * 指定日が属する日本年度の年度末（3/31）を返す
  *
- * @param {Date|Object} date Date または Moment互換（toDate を持つ）
+ * @param {Date} date Date
  * @return {Date}
  */
 function getFiscalYearEnd_(date) {
   const d = normalizeDate_(date);
 
-  // 3ヶ月引く（Moment互換ロジック）
+  // 3ヶ月引く
   const shifted = addMonths_(d, -3);
 
   const fiscalYear = shifted.getFullYear();
@@ -86,7 +86,7 @@ function endOfMonth_(date) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0);
 }
 /**
- * 2つの日付の月差が正かどうかを判定する（Moment互換）
+ * 2つの日付の月差が正かどうかを判定する
  *
  * Moment の
  *   to.diff(from, "months") > 0
@@ -140,7 +140,7 @@ function normalizeDate_(v) {
  * - 元の日付は変更しない（immutable）
  * - 月末補正あり（例: 1/31 + 1ヶ月 → 2/29 など）
  *
- * @param {Date|Object} date Date または Moment互換（toDate を持つ）
+ * @param {Date} date Date
  * @param {number} months 加減する月数（負数可）
  * @return {Date}
  */
@@ -175,7 +175,7 @@ function addDays_(date, days) {
   return d;
 }
 /**
- * 月差を計算（Moment diff互換）
+ * 月差を計算
  * 切り捨て
  *
  * @param {Date|null} to

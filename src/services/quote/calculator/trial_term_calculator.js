@@ -367,14 +367,13 @@ function calculateRegistrationPeriods_(
 /**
  * Registration 年数を計算する
  *
- * Moment / Date の両方を受け取れる
  *
- * @param {Moment|null|Date} registration1Start
- * @param {Moment|null|Date} observation2End
- * @param {Moment|null|Date} registration2End
- * @param {Moment|null|Date} registration1End
- * @param {Moment|Date} trialStart
- * @param {Moment|Date} trialEnd
+ * @param {null|Date} registration1Start
+ * @param {null|Date} observation2End
+ * @param {null|Date} registration2End
+ * @param {null|Date} registration1End
+ * @param {Date} trialStart
+ * @param {Date} trialEnd
  * @return {number}
  */
 function calculateRegistrationDurationYears_(
