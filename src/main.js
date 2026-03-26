@@ -20,7 +20,7 @@ function onOpen() {
       functionName: "updateTotalSheetsColumnsByTrialTerm",
     },
   ];
-  const arr4 = [{ name: "PDF出力", functionName: "ssToPdf" }];
+  const arr4 = [{ name: "PDF出力", functionName: "exportAllPdfs" }];
   const arr5 = [
     {
       name: "出力結果チェック",

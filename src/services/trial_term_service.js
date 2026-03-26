@@ -206,3 +206,46 @@ function getActiveTrialTermSheets_() {
     }))
     .filter((x) => x.active);
 }
+
+/**
+ * 各シートの開始日・終了日を設定する
+ * @param {number} input_trialStartDate 試験開始日のセル値
+ * @param {number} input_trialEndDate 試験終了日のセル値
+ * @return {Array.<Array>} 各シートの開始日・終了日の二次元配列
+ */
+function buildTrialDateArray_(input_trialStartDate, input_trialEndDate) {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const setupTermMonths = Number(
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.SETUP_TERM, scriptProperties),
+  );
+  const closingTermMonths = Number(
+    getScriptProperty_(SCRIPT_PROPERTY_KEYS.CLOSING_TERM, scriptProperties),
+  );
+
+  const dates = calculateTrialDates_(
+    input_trialStartDate,
+    input_trialEndDate,
+    setupTermMonths,
+    closingTermMonths,
+  );
+
+  setScriptProperty_(
+    SCRIPT_PROPERTY_KEYS.TRIAL_START_DATE,
+    Utilities.formatDate(dates.trialStart, "Asia/Tokyo", "yyyy-MM-dd"),
+    scriptProperties,
+  );
+
+  setScriptProperty_(
+    SCRIPT_PROPERTY_KEYS.TRIAL_END_DATE,
+    Utilities.formatDate(dates.trialEnd, "Asia/Tokyo", "yyyy-MM-dd"),
+    scriptProperties,
+  );
+
+  setScriptProperty_(
+    SCRIPT_PROPERTY_KEYS.REGISTRATION_YEARS,
+    dates.registrationYears,
+    scriptProperties,
+  );
+
+  return dates.sheetDateArray;
+}

@@ -133,10 +133,20 @@ function updateTotalSheetsColumnsByTrialTerm() {
  * @return {Sheet[]} Total2 / Total3 系シートの配列
  */
 function extractTargetSheets_() {
+  const TARGET_TOTAL_PREFIXES = [
+    QUOTATION_SHEET_NAMES.TOTAL2,
+    QUOTATION_SHEET_NAMES.TOTAL3,
+  ];
   const sheets = get_sheets();
 
   return Object.entries(sheets)
-    .filter(([name]) => name.startsWith("total2") || name.startsWith("total3"))
+    .filter(([name]) => {
+      const lower = name.toLowerCase();
+
+      return TARGET_TOTAL_PREFIXES.some((prefix) =>
+        lower.startsWith(prefix.toLowerCase()),
+      );
+    })
     .map(([, sheet]) => sheet);
 }
 
