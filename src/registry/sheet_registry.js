@@ -60,8 +60,10 @@ function get_sheets() {
   };
 
   if (ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_NMC)) {
+    sheet.quote_nmc = ss.getSheetByName(QUOTATION_SHEET_NAMES.QUOTE_NMC);
     sheet.total_nmc = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_NMC);
     sheet.total2_nmc = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2_NMC);
+    sheet.quote_oscr = ss.getSheetByName(QUOTATION_SHEET_NAMES.QUOTE_OSCR);
     sheet.total_oscr = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL_OSCR);
     sheet.total2_oscr = ss.getSheetByName(QUOTATION_SHEET_NAMES.TOTAL2_OSCR);
   }
